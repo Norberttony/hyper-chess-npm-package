@@ -325,6 +325,19 @@ export class BoardGraphics {
             this.jumpToVariation(previous);
     }
 
+    addMoveToEndLAN(lan){
+        const previous = this.currentVariation;
+        const doSwitch = this.currentVariation != this.mainVariation;
+
+        this.jumpToVariation(this.mainVariation);
+        
+        const move = this.state.getMoveOfLAN(lan);
+        if (move)
+            this.makeMove(move);
+
+        if (doSwitch)
+            this.jumpToVariation(previous);
+    }
     
     // assumes move is legal
     // performs the move without making any graphical updates. To perform graphical updates, run the
