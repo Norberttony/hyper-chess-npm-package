@@ -1,8 +1,8 @@
 
-export { Board, StartingFEN } from "./game.mjs";
+export { Board, StartingFEN } from "./game/game.mjs";
 export {
     squareToAlgebraic, squareToAlgebraicFile, squareToAlgebraicRank, algebraicToSquare, getFileFromSq, getRankFromSq
-} from "./coords.mjs";
-export { Move } from "./move.mjs";
-export { Piece, PieceASCII, PieceTypeToFEN, FENToPiece } from "./piece.mjs";
-export { getMoveSAN, removeGlyphs } from "./san.mjs";
+} from "./game/coords.mjs";
+export { Move } from "./game/move.mjs";
+export { Piece, PieceASCII, PieceTypeToFEN, FENToPiece } from "./game/piece.mjs";
+export { getMoveSAN, removeGlyphs } from "./game/san.mjs";

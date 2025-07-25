@@ -1,6 +1,4 @@
 
-// v1.1.0
-
 // contains all of the game logic
 
 // this code REPEATEDLY violates the DRY principle. read at your own risk.
