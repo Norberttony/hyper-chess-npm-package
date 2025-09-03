@@ -38,6 +38,9 @@ export class RawBoard {
     pickup(sq){
         const val = this.squares[sq];
 
+        if (!val)
+            return 0;
+
         this.squares[sq] = 0;
 
         const isWhite = Piece.ofColor(val, Piece.white);
@@ -84,6 +87,11 @@ export class RawBoard {
     // places down the given piece at the sq
     // assumes that there is currently no piece at the given sq.
     placedown(sq, piece){
+        // TODO: code relies on having duplicate captures, but once that's fixed, this should
+        // error.
+        if (this.squares[sq])
+            return;
+
         this.squares[sq] = piece;
 
         const isWhite = Piece.ofColor(piece, Piece.white);
@@ -176,7 +184,7 @@ export class RawBoard {
     isImmobilized(sq, piece){
         if (this.inVicinity(sq, piece, Piece.immobilizer))
             return true;
-        if (piece == Piece.immobilizer)
+        if (Piece.ofType(piece, Piece.immobilizer))
             return this.inVicinity(sq, piece, Piece.chameleon);
         return false;
     }

@@ -26,6 +26,8 @@ try {
                 throw new Error(`Perft results did not match for fen ${fen} at depth ${depthStr}`);
         }
     }
+
+    console.log("Test finished successfully!");
 }
 catch(err){
     console.error("An error occurred during testing:", err);
@@ -53,6 +55,9 @@ function countMoves(depth, board, prevMove){
         const res = countMoves(depth - 1, board, m);
         for (let i = 0; i < 4; i++)
             counter[i] += res[i];
+
+        if (!prevMove)
+            console.log(m.uci, res[0]);
 
         board.unmakeMove(m);
     }

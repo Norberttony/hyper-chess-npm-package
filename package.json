@@ -8,7 +8,7 @@
     "./pgn": "./pgn/index.mjs"
   },
   "scripts": {
-    "test": "node --prof test-game.mjs"
+    "test": "node test-game.mjs"
   },
   "author": "Norbert Krajewski",
   "license": "ISC",
