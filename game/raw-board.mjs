@@ -2,7 +2,8 @@
 // the base board with no move-gen functionality. The only reason this class exists is to
 // separate the move generator from generic board operations, such as checking where pieces are.
 
-import { Piece } from "./piece.mjs";
+import { Piece, FENToPiece, PieceTypeToFEN } from "./piece.mjs";
+import { numSquaresToEdge, dirOffsets } from "./pre-game.mjs";
 
 
 export class RawBoard {
@@ -39,7 +40,8 @@ export class RawBoard {
 
         this.squares[sq] = 0;
 
-        this.pieceCounts[Piece.ofColor(val, Piece.white) ? 0 : 1][Piece.getType(val)]--;
+        const isWhite = Piece.ofColor(val, Piece.white);
+        this.pieceCounts[isWhite ? 0 : 1][Piece.getType(val)]--;
 
         // update piece square look ups
         if (Piece.ofType(val, Piece.coordinator)){
@@ -47,22 +49,32 @@ export class RawBoard {
             this.coordinators[Piece.getColor(val) / 8 - 1] = 255;
         }else if (Piece.ofType(val, Piece.chameleon)){
             // remove chameleon from list
-            if (this.turn == Piece.white){
-                if (this.chameleons[2] == sq){
-                    this.chameleons[2] = this.chameleons[3];
-                }
-                this.chameleons[3] = 255;
-            }else{
+            if (isWhite){
                 if (this.chameleons[0] == sq){
                     this.chameleons[0] = this.chameleons[1];
+                    this.chameleons[1] = 255;
+                }else if (this.chameleons[1] == sq)
+                    this.chameleons[1] = 255;
+                else{
+                    console.log("white", this.getFEN(), this.chameleons);
+                    throw new Error(`Tried to pick up a chameleon at square ${sq} but it was never stored in the lookup`);
                 }
-                this.chameleons[1] = 255;
+            }else{
+                if (this.chameleons[2] == sq){
+                    this.chameleons[2] = this.chameleons[3];
+                    this.chameleons[3] = 255;
+                }else if (this.chameleons[3] == sq)
+                    this.chameleons[3] = 255;
+                else{
+                    console.log("black", this.getFEN(), this.chameleons);
+                    throw new Error(`Tried to pick up a chameleon at square ${sq} but it was never stored in the lookup`);
+                }
             }
         }else if (Piece.ofType(val, Piece.king)){
-            if (this.turn == Piece.white){
-                this.kings[1] = 255;
-            }else{
+            if (isWhite){
                 this.kings[0] = 255;
+            }else{
+                this.kings[1] = 255;
             }
         }
 
@@ -74,40 +86,45 @@ export class RawBoard {
     placedown(sq, piece){
         this.squares[sq] = piece;
 
-        this.pieceCounts[Piece.ofColor(piece, Piece.white) ? 0 : 1][Piece.getType(piece)]++;
+        const isWhite = Piece.ofColor(piece, Piece.white);
+        this.pieceCounts[isWhite ? 0 : 1][Piece.getType(piece)]++;
 
         // update piece square look ups
-        if (Piece.ofType(val, Piece.coordinator)){
-            const idx = Piece.getColor(val) / 8 - 1;
+        if (Piece.ofType(piece, Piece.coordinator)){
+            const idx = Piece.getColor(piece) / 8 - 1;
             if (this.coordinators[idx] == 255)
                 this.coordinators[idx] = sq;
             else
                 throw new Error("Cannot have more than 1 coordinator on one side in a position");
-        }else if (Piece.ofType(val, Piece.chameleon)){
-            if (this.turn == Piece.white){
-                if (this.chameleons[2] == 255)
-                    this.chameleons[2] = sq;
-                else if (this.chameleons[3] == 255)
-                    this.chameleons[3] = sq;
-                else
-                    throw new Error("Cannot have more than 2 chameleons on one side in a position");
-            }else{
+        }else if (Piece.ofType(piece, Piece.chameleon)){
+            if (isWhite){
                 if (this.chameleons[0] == 255)
                     this.chameleons[0] = sq;
                 else if (this.chameleons[1] == 255)
                     this.chameleons[1] = sq;
-                else
+                else{
+                    console.log("white", this.getFEN(), this.chameleons, sq);
                     throw new Error("Cannot have more than 2 chameleons on one side in a position");
-            }
-        }else if (Piece.ofType(val, Piece.king)){
-            if (this.turn == Piece.white){
-                if (this.kings[1] != 255)
-                    throw new Error("Cannot have more than 1 king on one side in a position");
-                this.kings[1] = sq;
+                }
             }else{
+                if (this.chameleons[2] == 255)
+                    this.chameleons[2] = sq;
+                else if (this.chameleons[3] == 255)
+                    this.chameleons[3] = sq;
+                else{
+                    console.log("black", this.getFEN(), this.chameleons, sq);
+                    throw new Error("Cannot have more than 2 chameleons on one side in a position");
+                }
+            }
+        }else if (Piece.ofType(piece, Piece.king)){
+            if (isWhite){
                 if (this.kings[0] != 255)
                     throw new Error("Cannot have more than 1 king on one side in a position");
                 this.kings[0] = sq;
+            }else{
+                if (this.kings[1] != 255)
+                    throw new Error("Cannot have more than 1 king on one side in a position");
+                this.kings[1] = sq;
             }
         }
     }
@@ -223,20 +240,21 @@ export class RawBoard {
                 this.squares[sq] = piece;
                 f++;
 
-                this.pieceCounts[Piece.ofColor(piece, Piece.white) ? 0 : 1][Piece.getType(piece)]++;
+                const isWhite = Piece.ofColor(piece, Piece.white);
+                this.pieceCounts[isWhite ? 0 : 1][Piece.getType(piece)]++;
 
                 // if the piece is a king, record it
                 if (Piece.ofType(piece, Piece.king)){
-                    Piece.ofColor(piece, Piece.white) ? this.kings[0] = sq : this.kings[1] = sq;
+                    isWhite ? this.kings[0] = sq : this.kings[1] = sq;
                 }
 
                 // if the piece is a coordinator, record it
                 if (Piece.ofType(piece, Piece.coordinator)){
-                    Piece.ofColor(piece, Piece.white) ? this.coordinators[0] = sq : this.coordinators[1] = sq;
+                    isWhite ? this.coordinators[0] = sq : this.coordinators[1] = sq;
                 }
 
                 if (Piece.ofType(piece, Piece.chameleon)){
-                    if (Piece.ofColor(piece, Piece.white)){
+                    if (isWhite){
                         if (this.chameleons[0] == 255){
                             this.chameleons[0] = sq;
                         }else{

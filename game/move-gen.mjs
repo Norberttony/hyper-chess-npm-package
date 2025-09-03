@@ -4,7 +4,8 @@
 import { Piece } from "./piece.mjs";
 import { RawBoard } from "./raw-board.mjs";
 import { Move } from "./move.mjs";
-import { numSquaresToEdge } from "./pre-game.mjs";
+import { numSquaresToEdge, dirOffsets } from "./pre-game.mjs";
+import { getRankFromSq, getFileFromSq } from "./coords.mjs";
 
 
 export class MoveGenerator extends RawBoard {
@@ -14,7 +15,6 @@ export class MoveGenerator extends RawBoard {
 
     // returns true if a certain square is attacked
     isAttacked(sq){
-
         // go through every move
         let test = this.generateMoves(false);
         for (const m of test){
@@ -27,7 +27,6 @@ export class MoveGenerator extends RawBoard {
         return false;
     }
 
-    // ========================================= GENERATE MOVES START ========================================= //
     // detects which piece this is, and generates moves for it. Generally used for graphical side of app.
     generatePieceMoves(start, piece, filter = true, moves = []){
         if (Piece.ofColor(piece, this.turn)){
@@ -68,8 +67,11 @@ export class MoveGenerator extends RawBoard {
 
         for (let s = 0; s < 64; s++){
             const piece = this.squares[s];
-            this.generatePieceMoves(s, piece, filter, moves);
+            this.generatePieceMoves(s, piece, false, moves);
         }
+
+        if (filter)
+            return this.filterLegalMoves(moves);
 
         return moves;
     }
@@ -281,7 +283,6 @@ export class MoveGenerator extends RawBoard {
                 }else{
                     moves.push(new Move(target, start));
                 }
-
             }
         }
     }
@@ -290,8 +291,8 @@ export class MoveGenerator extends RawBoard {
         if (this.isImmobilized(start, piece))
             return;
 
-        let dirStart = 0;
-        let dirEnd = 8;
+        const dirStart = 0;
+        const dirEnd = 8;
 
         // a chameleon cannot team up with another chameleon to capture the king.
         // that would make two chameleons much too powerful :)
