@@ -1,7 +1,7 @@
 
 import { BoardWidget } from "./board-widget.mjs";
-import { Piece } from "../../game/piece.mjs";
-import { Board } from "../../game/game.mjs";
+import { getMoveSAN, Piece, Board } from "../../index.mjs";
+import { HyperChessBot } from "./bot-wrapper.js";
 
 
 export class EngineWidget extends BoardWidget {
