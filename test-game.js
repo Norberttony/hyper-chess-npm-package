@@ -1,7 +1,7 @@
 
 import fs from "node:fs";
 import pathModule from "node:path";
-import { Board } from "./game/game.mjs";
+import { Board } from "./game/board.js";
 
 const perftPath = pathModule.join(".", "perft.json");
 

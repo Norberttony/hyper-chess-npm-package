@@ -1,15 +1,15 @@
 
-import { Board } from "../game/game.mjs";
-import { setInputTarget } from "./input.mjs";
-import { VariationMove, PGNData, extractHeaders } from "./pgn/index.mjs";
-import { getFirstElemOfClass } from "./widgets/board-widget.mjs";
-import { WIDGET_NAMES } from "./widgets/index.mjs";
+import { Board } from "../game/board.js";
+import { setInputTarget } from "./input.js";
+import { VariationMove, PGNData, extractHeaders } from "./pgn/index.js";
+import { getFirstElemOfClass } from "./widgets/board-widget.js";
+import { WIDGET_NAMES } from "./widgets/index.js";
 import {
     setAllPiecesToPool, setAllMoveHighlightsToPool, setAllLastMoveHighlightsToPool,
     getPieceFromPool, getLastMoveHighlightFromPool
-} from "./pool.mjs";
+} from "./pool.js";
 
-import { Piece, getMoveSAN } from "../index.mjs";
+import { Piece, getMoveSAN } from "../index.js";
 
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum

@@ -3,11 +3,11 @@
 
 // this code REPEATEDLY violates the DRY principle. read at your own risk.
 
-import { algebraicToSquare } from "./coords.mjs";
-import { Piece, FENToPiece } from "./piece.mjs";
-import { numSquaresToEdge, dirOffsets } from "./pre-game.mjs";
-import { getMoveSAN, removeGlyphs } from "./san.mjs";
-import { MoveGenerator } from "./move-gen.mjs";
+import { algebraicToSquare } from "./coords.js";
+import { Piece, FENToPiece } from "./piece.js";
+import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
+import { getMoveSAN, removeGlyphs } from "./san.js";
+import { MoveGenerator } from "./move-gen.js";
 
 export const StartingFEN = "unbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNU w 0 1";
 

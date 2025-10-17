@@ -2,8 +2,8 @@
 // the base board with no move-gen functionality. The only reason this class exists is to
 // separate the move generator from generic board operations, such as checking where pieces are.
 
-import { Piece, FENToPiece, PieceTypeToFEN } from "./piece.mjs";
-import { numSquaresToEdge, dirOffsets } from "./pre-game.mjs";
+import { Piece, FENToPiece, PieceTypeToFEN } from "./piece.js";
+import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
 
 
 export class RawBoard {
@@ -294,7 +294,7 @@ export class RawBoard {
         // fullmove clock
         this.fullmove = parseInt(segments[3]);
         if (isNaN(this.fullmove))
-            this.fullmove = "-";
+            this.fullmove = 1;
     }
 
     getFEN(){

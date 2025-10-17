@@ -1,6 +1,6 @@
 
-import { BoardWidget } from "./board-widget.mjs";
-import { getMoveSAN, Piece, Board } from "../../index.mjs";
+import { BoardWidget } from "./board-widget.js";
+import { getMoveSAN, Piece, Board } from "../../index.js";
 import { HyperChessBot } from "./bot-wrapper.js";
 
 
