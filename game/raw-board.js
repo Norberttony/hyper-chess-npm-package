@@ -13,8 +13,6 @@ export class RawBoard {
 
         this.pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
 
-        this.result;
-
         this.turn = Piece.white;
 
         // positions of kings
@@ -137,7 +135,8 @@ export class RawBoard {
         }
     }
 
-    // returns any unique identifiers to a position (arrangement of pieces, castling rights, en passant, whose turn it is, etc)
+    // returns any unique identifiers to a position (arrangement of pieces, castling rights, en
+    // passant, whose turn it is, etc)
     getPosition(){
         let position = "";
         for (let i = 0; i < 64; i++){
@@ -152,11 +151,6 @@ export class RawBoard {
         }
         position += this.turn;
         return position;
-    }
-
-    setResult(result, termination, winner){
-        this.result = { result, termination, winner };
-        return this.result;
     }
 
     // returns true if the given pieceType is within a 1 square in any direction to the given sq
@@ -216,7 +210,6 @@ export class RawBoard {
     loadFEN(fen){
         // clear board first
         this.squares = new Uint8Array(64);
-        delete this.result;
         this.coordinators[0] = 255;
         this.coordinators[1] = 255;
         this.chameleons[0] = 255;
