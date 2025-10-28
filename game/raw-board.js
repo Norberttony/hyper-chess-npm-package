@@ -135,22 +135,9 @@ export class RawBoard {
         }
     }
 
-    // returns any unique identifiers to a position (arrangement of pieces, castling rights, en
-    // passant, whose turn it is, etc)
+    // returns any unique identifiers to a position (arrangement of pieces and whose turn it is)
     getPosition(){
-        let position = "";
-        for (let i = 0; i < 64; i++){
-            let v = this.squares[i];
-            if (v){
-                let c = PieceTypeToFEN[Piece.getType(v)];
-                if (Piece.ofColor(v, Piece.white)) c = c.toUpperCase();
-                position += c;
-            }else{
-                position += "0";
-            }
-        }
-        position += this.turn;
-        return position;
+        return `${this.squares.join(".")}.${this.turn}`;
     }
 
     // returns true if the given pieceType is within a 1 square in any direction to the given sq

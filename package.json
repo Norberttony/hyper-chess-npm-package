@@ -12,5 +12,6 @@
   },
   "author": "Norbert Krajewski",
   "license": "ISC",
-  "type": "module"
+  "type": "module",
+  "files": [ "/game", "/graphics", "/pgn", "/index.js" ]
 }
