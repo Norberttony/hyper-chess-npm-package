@@ -6,7 +6,7 @@ import { getFirstElemOfClass } from "./widgets/board-widget.js";
 import { WIDGET_NAMES } from "./widgets/index.js";
 import {
     setAllPiecesToPool, setAllMoveHighlightsToPool, setAllLastMoveHighlightsToPool,
-    getPieceFromPool, getLastMoveHighlightFromPool
+    getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph
 } from "./pool.js";
 
 import { Piece, getMoveSAN } from "../index.js";
@@ -92,6 +92,19 @@ export class BoardGraphics {
         w.classList.add(`board-graphics__${widgetName}`);
         this.skeleton.appendChild(w);
         return w;
+    }
+
+    // expects widgets to be a set of widget names.
+    setActiveWidgets(widgets){
+        console.log(Array.from(widgets));
+        for (const [ name, widget ] of Object.entries(this.widgets)){
+            if (widgets.has(name)){
+                widget.enable();
+                widgets.delete(name);
+            }else
+                widget.disable();
+        }
+        console.log(Array.from(widgets));
     }
 
     attachWidget(widget){

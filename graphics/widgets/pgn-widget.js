@@ -1,6 +1,6 @@
 
+import { Piece, StartingFEN } from "../../index.js";
 import { BoardWidget, getFirstElemOfClass } from "./board-widget.js";
-import { Piece } from "../../game/piece.js";
 import { addPointerHoldListener } from "../pgn/pgn-control.js";
 
 // handles displaying any of the moves in a separate panel, splitting the PGN into variations as
