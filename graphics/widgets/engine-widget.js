@@ -1,6 +1,6 @@
 
 import { BoardWidget } from "./board-widget.js";
-import { getMoveSAN, Piece, Board } from "../../index.js";
+import { Piece, Board } from "../../index.js";
 import { HyperChessBot } from "./bot-wrapper.js";
 
 
@@ -66,7 +66,7 @@ export class EngineWidget extends BoardWidget {
             // get eval
             const scoreIdx = words.indexOf("score");
             if (scoreIdx > -1){
-                const isWTP = this.boardgfx.state.turn == Piece.white;
+                const isWTP = this.boardgfx.turn == Piece.white;
                 const score = (isWTP ? 1 : -1) * parseInt(words[scoreIdx + 2]);
                 const sign = score > 0 ? "+" : "";
                 
@@ -84,18 +84,16 @@ export class EngineWidget extends BoardWidget {
             if (pvIdx > -1){
                 const pv = words.splice(pvIdx + 1);
 
-                const b = new Board();
-                const state = this.boardgfx.state;
-                b.loadFEN(state.getFEN());
-                let fullmove = state.fullmove;
-                let pvSan = state.turn == Piece.white ? "" : `${fullmove}... `;
+                const b = new Board(this.boardgfx.getFEN());
+                let fullmove = this.boardgfx.fullmove;
+                let pvSan = this.boardgfx.turn == Piece.white ? "" : `${fullmove}... `;
                 for (const m of pv){
                     const move = b.getMoveOfLAN(m);
                     if (b.turn == Piece.white)
                         pvSan += `${fullmove}. `
                     else
                         fullmove++;
-                    pvSan += getMoveSAN(b, move) + " ";
+                    pvSan += b.getMoveSAN(move) + " ";
                     b.makeMove(move);
                 }
 
@@ -138,7 +136,7 @@ export class EngineWidget extends BoardWidget {
     startThinking(){
         if (this.engine.running){
             this.engine.sendCmd("stop");
-            this.engine.sendCmd(`position fen ${this.boardgfx.state.getFEN()}`);
+            this.engine.sendCmd(`position fen ${this.boardgfx.getFEN()}`);
             this.engine.sendCmd("go");
         }
     }

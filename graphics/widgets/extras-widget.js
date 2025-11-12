@@ -53,7 +53,7 @@ export class ExtrasWidget extends BoardWidget {
     }
 
     updateFENText(){
-        this.fenText.value = this.boardgfx.state.getFEN();
+        this.fenText.value = this.boardgfx.getFEN();
     }
 
     updatePGNText(){

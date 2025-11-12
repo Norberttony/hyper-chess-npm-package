@@ -1,6 +1,5 @@
 
 import { Piece } from "../game/piece.js";
-import { getMoveSAN } from "../game/san.js";
 
 
 export function PGNHeadersToString(headers){
@@ -36,7 +35,7 @@ export function convertToPGN(headers, moves, board, result = "*"){
         pgn += `${counter++}... `;
     }
     for (const move of moves){
-        const san = getMoveSAN(board, move);
+        const san = board.getMoveSAN(move);
         board.makeMove(move);
 
         if (board.turn == Piece.black){

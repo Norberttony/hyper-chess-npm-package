@@ -1,7 +1,6 @@
 
-import { Board } from "../game/board.js";
+import { VariationsBoard } from "../game/variations-board.js";
 import { setInputTarget } from "./input.js";
-import { VariationMove, PGNData, extractHeaders } from "./pgn/index.js";
 import { getFirstElemOfClass } from "./widgets/board-widget.js";
 import { WIDGET_NAMES } from "./widgets/index.js";
 import {
@@ -9,15 +8,16 @@ import {
     getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph
 } from "./pool.js";
 
-import { Piece, getMoveSAN } from "../index.js";
+import { Piece } from "../index.js";
 
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum
 // that it allows is a board element with pieces displayed on it, but it can support any combination
 // of widgets, that may listen to relevant state changes.
 
-export class BoardGraphics {
+export class BoardGraphics extends VariationsBoard {
     constructor(allowDragging = true, displayRanksAndFiles = false, skeleton = null){
+        super();
         skeleton = createSkeleton(skeleton);
         skeleton.classList.add("board-graphics--board-blue", "board-graphics--pieces-cburnett");
 
@@ -35,25 +35,9 @@ export class BoardGraphics {
         this.boardDiv = boardDiv;
         this.piecesDiv = piecesDiv;
         this.widgetNames = new Set();
-        this.state = new Board();
         this.allowInputFrom = { [Piece.white]: allowDragging, [Piece.black]: allowDragging };
         this.allowVariations = true;
         this.piecePointerDown = createPiecePointerDown(this);
-
-        // variations in the position are stored via a tree. The root is the very first empty
-        // variation (sentinel node).
-        this.variationRoot = new VariationMove();
-
-        // This set-up allows quickly adding more moves at the end of the main variation, without
-        // performing any additional tree searches.
-        this.mainVariation = this.variationRoot;
-
-        // pgnData allows reading in the current variation.
-        this.pgnData = new PGNData(this.variationRoot);
-
-        // currentVariation points to the currently active variation that a piece of code or the
-        // user is viewing. It is not necessarily the variation currently displayed to the user.
-        this.currentVariation = this.variationRoot;
 
         // graphicalVariation points to the variation currently displayed to the user. If
         // currentVariation does not match with graphicalVariation, applyChanges should be called.
@@ -126,12 +110,7 @@ export class BoardGraphics {
     // =========================== //
 
     loadFEN(fen){
-        this.state.loadFEN(fen);
-        
-        // just get rid of everything after variation root and have gc handle it
-        this.currentVariation = this.variationRoot;
-        this.mainVariation = this.currentVariation;
-        this.variationRoot.next = [];
+        super.loadFEN(fen);
 
         this.graphicalVariation = this.variationRoot;
         this.applyChanges(false);
@@ -139,48 +118,13 @@ export class BoardGraphics {
     }
 
     loadPGN(pgn){
-        let fen = StartingFEN;
-        
-        const headers = extractHeaders(pgn);
-        
-        // check if we have to load from position
-        if (headers.Variant == "From Position"){
-            fen = headers.FEN;
-        }
+        super.loadPGN(pgn);
 
-        let whiteScore = "";
-        let blackScore = "";
-        if (headers.Result)
-            [ whiteScore, blackScore ] = headers.Result.split("-");
+        const w = this.pgnData.headers.White;
+        const b = this.pgnData.headers.Black;
+        if (w && b)
+            this.setNames(w, b);
 
-        this.setNames((headers.White || "") + " | " + whiteScore, (headers.Black || "") + " | " + blackScore);
-
-        this.loadFEN(fen);
-
-        // set headers of pgnData
-        this.pgnData.clearHeaders();
-        for (const [ name, value ] of Object.entries(headers))
-            this.pgnData.setHeader(name, value);
-
-        // remove headers
-        pgn = pgn.replace(/\[.+?\]\s*/g, "");
-
-        // remove any comments
-        pgn = pgn.replace(/\{.+?\}\s*/g, "");
-
-        // remove full move counters
-        pgn = pgn.replace(/[0-9]+[\.]+/g, "");
-
-        // add a space before and after parentheses
-        pgn = pgn.replace(/\(/g, " ( ").replace(/\)/g, " ) ");
-
-        // make sure there is one space between each move
-        pgn = pgn.replace(/\s+/g, " ");
-        pgn = pgn.trim();
-
-        // start reading san
-        const pgnSplit = pgn.split(" ");
-        this.readVariation(pgnSplit, 0);
         this.applyChanges(false);
     }
 
@@ -218,77 +162,20 @@ export class BoardGraphics {
         }
 
         // check and dispatch event for any results
-        this.state.isGameOver();
-        if (this.state.result){
+        this.isGameOver();
+        if (this.result){
             this.dispatchEvent("result", {
-                result:         this.state.result.result,
-                turn:           this.state.turn,
-                termination:    this.state.result.termination,
-                winner:         this.state.result.winner
+                result:         this.result.result,
+                turn:           this.turn,
+                termination:    this.result.termination,
+                winner:         this.result.winner
             });
         }
     }
 
-    // board jumps to the given variation
-    jumpToVariation(variation){
-        const ca = this.currentVariation.findCommonAncestor(variation);
-
-        // build the path of nodes from the common ancestor to the given variation
-        const path = [];
-        let iter = variation;
-        while (iter != ca){
-            path.unshift(iter.location);
-            iter = iter.prev;
-        }
-
-        // go to the common ancestor
-        while (this.currentVariation != ca)
-            this.previousVariation();
-
-        // go forth to the given variation
-        for (const n of path)
-            this.nextVariation(n);
-    }
-
-    // chooses one of the next variations to play
-    nextVariation(index = 0){
-        const variation = this.currentVariation.next[index];
-        if (variation){
-            this.state.makeMove(variation.move);
-            this.currentVariation = variation;
-            return true;
-        }
-        return false;
-    }
-
-    // goes back a variation
-    previousVariation(){
-        if (this.currentVariation.prev){
-            this.state.unmakeMove(this.currentVariation.move);
-            this.currentVariation = this.currentVariation.prev;
-            return true;
-        }
-        return false;
-    }
-
     deleteVariation(variation, isHelper = false){
-        for (const n of variation.next)
-            this.deleteVariation(n, true);
-
+        super.deleteVariation(variation, isHelper);
         this.dispatchEvent("delete-variation", { variation });
-
-        // if removing part of the main variation, scroll back
-        if (variation == this.mainVariation)
-            this.mainVariation = variation.prev;
-
-        if (variation == this.currentVariation)
-            this.previousVariation();
-
-        // only apply changes if this is the root of the call tree
-        if (!isHelper){
-            variation.prev.next.splice(variation.prev.next.indexOf(variation), 1);
-            this.applyChanges(false);
-        }
     }
 
     // ========================== //
@@ -302,70 +189,12 @@ export class BoardGraphics {
             return false;
 
         // prevent user from playing when a result is already set
-        if (this.state.result)
+        if (this.result)
             return false;
 
-        const piece = this.state.squares[sq];
+        const piece = this.squares[sq];
         const col = Piece.getColor(piece);
-        return this.allowInputFrom[col] && !this.state.isImmobilized(sq, piece) && this.state.turn == col;
-    }
-
-    addMoveToEnd(san){
-        const previous = this.currentVariation;
-        const doSwitch = this.currentVariation != this.mainVariation;
-
-        this.jumpToVariation(this.mainVariation);
-        
-        const move = this.state.getMoveOfSAN(san);
-        if (move)
-            this.makeMove(move);
-
-        if (doSwitch)
-            this.jumpToVariation(previous);
-    }
-
-    addMoveToEndLAN(lan){
-        const previous = this.currentVariation;
-        const doSwitch = this.currentVariation != this.mainVariation;
-
-        this.jumpToVariation(this.mainVariation);
-        
-        const move = this.state.getMoveOfLAN(lan);
-        if (move)
-            this.makeMove(move);
-
-        if (doSwitch)
-            this.jumpToVariation(previous);
-    }
-    
-    // assumes move is legal
-    // performs the move without making any graphical updates. To perform graphical updates, run the
-    // applyChanges method.
-    makeMove(move, SAN = getMoveSAN(this.state, move)){
-        
-        // search for an existing variation with this move
-        for (const v of this.currentVariation.next){
-            if (v.san == SAN){
-                this.nextVariation(v.location);
-                return;
-            }
-        }
-        
-        // otherwise create a new variation
-        const variation = new VariationMove(move);
-        variation.san = SAN;
-
-        variation.attachTo(this.currentVariation);
-
-        this.currentVariation = variation;
-
-        this.dispatchEvent("new-variation", { variation });
-
-        // continue the main variation if necessary
-        if (variation.prev == this.mainVariation)
-            this.mainVariation = variation;
-
-        this.state.makeMove(move);
+        return this.allowInputFrom[col] && !this.isImmobilized(sq, piece) && this.turn == col;
     }
 
     // ============================== //
@@ -409,7 +238,7 @@ export class BoardGraphics {
         // display all pieces on the board
         for (let r = 0; r < 8; r++){
             for (let f = 0; f < 8; f++){
-                const v = this.state.squares[r * 8 + f];
+                const v = this.squares[r * 8 + f];
                 if (v){
                     const piece = getPieceFromPool(f, r, this.isFlipped, Piece.getType(v), Piece.getColor(v));
                     this.piecesDiv.appendChild(piece);
@@ -424,43 +253,6 @@ export class BoardGraphics {
 
     dispatchEvent(name, detail){
         this.skeleton.dispatchEvent(new CustomEvent(name, { detail }));
-    }
-
-    // parses a list of PGN tokens
-    readVariation(pgnSplit, start){
-        let toUndo = 0;
-
-        for (let i = start; i < pgnSplit.length; i++){
-            const pgn = pgnSplit[i];
-
-            if (pgn.startsWith("(")){
-
-                this.previousVariation();
-
-                // start a variation!
-                i = this.readVariation(pgnSplit, i + 1);
-
-                // continue with main variation
-                this.nextVariation(0);
-
-            }else if (pgn.startsWith(")")){
-
-                for (let j = 0; j < toUndo; j++){
-                    this.previousVariation();
-                }
-
-                return i;
-            }else if (pgn.length == 0){
-                // avoid having to search for a move that clearly doesn't exist.
-                continue;
-            }else{
-                const move = this.state.getMoveOfSAN(pgn);
-                if (move){
-                    this.makeMove(move, pgn);
-                    toUndo++;
-                }
-            }
-        }
     }
 }
 

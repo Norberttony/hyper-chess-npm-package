@@ -65,7 +65,7 @@ function piecePointerdown(event){
     if (!INPUT.gameState.canMove(square))
         return;
 
-    const piece = INPUT.gameState.state.squares[square];
+    const piece = INPUT.gameState.squares[square];
 
     INPUT.dragging = elem;
     INPUT.selected = elem;
@@ -80,7 +80,7 @@ function piecePointerdown(event){
     setDraggingElemPos(event.pageX, event.pageY);
 
     // get moves for selected piece and display them
-    INPUT.currentMoves = INPUT.gameState.state.generatePieceMoves(square, piece);
+    INPUT.currentMoves = INPUT.gameState.generatePieceMoves(square, piece);
     for (let i = 0; i < INPUT.currentMoves.length; i++){
         const move = INPUT.currentMoves[i];
         
@@ -115,7 +115,7 @@ function draggingPointerup(event){
         INPUT.testMove = INPUT.currentMoves[parseInt(highlight.dataset.index)];
 
         // testMove handlers
-        INPUT.gameState.makeMove(INPUT.testMove);
+        INPUT.gameState.playMove(INPUT.testMove);
         INPUT.gameState.applyChanges(true);
         INPUT.testMove = undefined;
 

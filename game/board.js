@@ -3,10 +3,13 @@
 
 // this code REPEATEDLY violates the DRY principle. read at your own risk.
 
-import { algebraicToSquare } from "./coords.js";
-import { Piece, FENToPiece } from "./piece.js";
+import {
+    algebraicToSquare, squareToAlgebraic,
+    squareToAlgebraicFile, squareToAlgebraicRank
+} from "./coords.js";
+import { Piece, FENToPiece, PieceASCII } from "./piece.js";
 import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
-import { getMoveSAN, removeGlyphs } from "./san.js";
+import { removeGlyphs } from "./san.js";
 import { MoveGenerator } from "./move-gen.js";
 
 export const StartingFEN = "unbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNU w 0 1";
@@ -14,9 +17,9 @@ export const StartingFEN = "unbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNU w 0 1";
 // The Board object contains a game state of the board. Certain moves can be done or undone, but
 // they are not stored.
 export class Board extends MoveGenerator {
-    constructor(){
+    constructor(fen = StartingFEN){
         super();
-        this.loadFEN(StartingFEN);
+        Board.prototype.loadFEN.call(this, fen);
         this.result;
     }
 
@@ -150,7 +153,7 @@ export class Board extends MoveGenerator {
             if (m.to != toSq || this.squares[m.from] != pieceValue)
                 continue;
 
-            const SAN = getMoveSAN(this, m, possibleMoves, false);
+            const SAN = this.getMoveSAN(m, possibleMoves, false);
             if (removeGlyphs(SAN) == san){
                 return m;
             }
@@ -168,5 +171,82 @@ export class Board extends MoveGenerator {
                 return m;
             }
         }
+    }
+
+    // returns the SAN For the given move
+    getMoveSAN(move, pseudoMoves = this.generateMoves(false), withGlyphs = true){
+        let SAN;
+    
+        /* collects information on move collision ambiguity */
+        let sameMove = false;
+        let sameFile = false;
+        let sameRank = false;
+        for (const other of pseudoMoves){
+            if (!(move.from == other.from) && move.to == other.to && Piece.ofType(this.squares[move.from], this.squares[other.from])){
+    
+                // of course, ambiguity is only caused if the move is legal.
+                if (!this.isMoveLegal(other))
+                    continue;
+    
+                // oh no, the move is ambiguous!
+                sameMove = true;
+    
+                // do we need to specify the rank (first & foremost?)
+                if (squareToAlgebraicRank(move.from) == squareToAlgebraicRank(other.from))
+                    sameRank = true;
+                
+                // what about the file
+                if (squareToAlgebraicFile(move.from) == squareToAlgebraicFile(other.from))
+                    sameFile = true;
+            }
+        }
+    
+        let movingPieceType = Piece.getType(this.squares[move.from]);
+    
+        // using information from move collision ambiguity, determine the resolving square
+        let resolvedSquare = "";
+        if (sameMove){
+            if (sameRank || (!sameRank && !sameFile))
+                resolvedSquare += squareToAlgebraicFile(move.from);
+            if (sameFile)
+                resolvedSquare += squareToAlgebraicRank(move.from);
+        }
+        if (Piece.ofType(this.squares[move.from], Piece.pawn) && this.squares[move.to]){
+            resolvedSquare = squareToAlgebraicFile(move.from);
+        }
+    
+        SAN = `${PieceASCII[movingPieceType]}${resolvedSquare}${move.captures.length > 0 ? "x": ""}${squareToAlgebraic(move.to)}`;
+    
+        if (withGlyphs){
+            this.makeMove(move);
+    
+            // is game over?
+            let result = this.isGameOver();
+            if (result && result.result != "1/2-1/2"){
+                SAN += "#";
+            }else{
+                // does this move threaten to take the king on the next turn?
+                this.nextTurn();
+                const moves = this.generateMoves(false);
+                this.nextTurn();
+    
+                let isCheck = false;
+                for (const m of moves){
+                    for (const c of m.captures){
+                        if (Piece.ofType(c.captured, Piece.king)){
+                            isCheck = true;
+                            break;
+                        }
+                    }
+                    if (isCheck)
+                        break;
+                }
+                if (isCheck)
+                    SAN += "+";
+            }
+            this.unmakeMove(move);
+        }
+    
+        return SAN;
     }
 }

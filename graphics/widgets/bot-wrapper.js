@@ -1,5 +1,5 @@
 
-import { Board, getMoveSAN } from "../../index.js";
+import { Board } from "../../index.js";
 
 // A wrapper class for communicating with a UCI-compliant Hyper Chess engine.
 
@@ -74,7 +74,7 @@ export class HyperChessBot {
                     const move = t.board.getMoveOfLAN(lan);
                     if (move){
                         t.worker.postMessage(`position moves ${lan}`);
-                        const san = getMoveSAN(t.board, move);
+                        const san = t.board.getMoveSAN(move);
                         res(san);
                         t.board.makeMove(move);
                     }else{
