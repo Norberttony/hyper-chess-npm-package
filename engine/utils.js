@@ -1,0 +1,127 @@
+
+import fs from "node:fs";
+import path from "node:path";
+
+// given a dir (path to a folder), returns all of the immediate children files that are .exe
+// returns a list of objects: { name, path }
+export function getEngines(dir){
+    const engines = [];
+    fs.readdirSync(dir).forEach(fileName => {
+        if (fileName.endsWith(".exe")){
+            engines.push({
+                name: fileName.substring(0, fileName.length - 4),
+                path: path.join(dir, fileName)
+            });
+        }
+    });
+    return engines;
+}
+
+
+import { Board, Piece } from "hyper-chess-board";
+import { log } from "./logger.js";
+
+
+export class Score {
+    constructor(value, isMate){
+        this.value = value;
+        this.isMate = isMate;
+    }
+}
+
+export function extractFromInfoLine(line, name){
+    const idx = line.indexOf(` ${name} `);
+    if (idx == -1)
+        return;
+
+    const leftSpace = idx + 1 + name.length;
+    const rightSpace = line.indexOf(" ", leftSpace + 1);
+    return line.substring(leftSpace + 1, rightSpace);
+}
+
+// retrieves the engine's evaluation of its currently set position in the form
+// { score, pv, depth, log }
+// where score is an instance of the Score class,
+// pv is a string containing the UCI best line-of-play according to the engine
+// depth how deeply the engine calculated (in ply)
+// and log is the engine's output for this position
+// cmd should be either of the form:
+// go depth <depth in ply>
+// OR
+// go movetime <time in ms>
+export async function getEvaluation(engine, cmd, stp, timeoutMs){
+    const startIdx = engine.log.length;
+
+    await engine.prompt(cmd, "bestmove", timeoutMs);
+
+    // only consider what the engine put into its log after
+    const tempLog = engine.log.substring(startIdx);
+
+    const curr = { score: NaN, pv: "", depth: 0, log: "" };
+
+    // go through each of the engine's info lines
+    for (const line of tempLog.split("\n")){
+        if (line.startsWith("info")){
+
+            // extract PV
+            const pvIdx = line.indexOf("pv");
+            const pv = line.substring(pvIdx + 3).trim();
+
+            // prioritize depth, and then most recent lines.
+            const depth = extractFromInfoLine(line, "depth");
+            if (depth && parseInt(depth) >= curr.depth){
+                const score = new Score();
+                // extract either cp score, mate score, or empty score.
+                const cpScore = extractFromInfoLine(line, "score cp");
+                const mateScore = extractFromInfoLine(line, "score mate");
+                const emptyScore = extractFromInfoLine(line, "score (--)");
+
+                if (cpScore){
+                    score.value = parseInt(cpScore);
+                    score.isMate = false;
+                }else if (mateScore){
+                    score.value = parseInt(mateScore);
+                    score.isMate = true;
+                }else if (emptyScore){
+                    score.value = undefined;
+                    score.isMate = undefined;
+                }else{
+                    const msg = `Warning: could not find score from info line ${line}`;
+                    log(msg);
+                    console.warn(msg);
+                }
+                if (score.value && stp == Piece.black)
+                    score.value = -score.value;
+
+                // avoid writing in empty PV lines
+                if (pv != "")
+                    curr.pv = pv;
+
+                // keep the latest score
+                if (score.value != undefined && score.isMate != undefined)
+                    curr.score = score;
+
+                curr.depth = depth;
+                curr.log = tempLog;
+            }
+        }
+    }
+
+    return curr;
+}
+
+export function getMovesFromPV(fen, pv){
+    const board = new Board();
+    board.loadFEN(fen);
+
+    const moves = [];
+    for (const uci of pv.trim().split(" ")){
+        const move = board.getMoveOfLAN(uci);
+        if (move){
+            moves.push(move);
+            board.makeMove(move);
+        }
+    }
+
+    return moves;
+}
