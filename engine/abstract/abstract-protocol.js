@@ -7,5 +7,5 @@ export class AbstractBotProtocol {
     async isAssignableTo(process){}
     setFEN(fen){}
     playMove(lan){}
-    async thinkFor(ms){}
+    async thinkFor(ms, timeoutPaddingMs){}
 }

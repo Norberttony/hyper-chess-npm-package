@@ -1,57 +1,35 @@
 
 import { Board } from "../../index.js";
+import { WebBotProcess } from "../../engine/web/web-bot-process.js";
+import { assignProtocol } from "../../engine/protocols/index.js";
 
-// A wrapper class for communicating with a UCI-compliant Hyper Chess engine.
+// A wrapper class for communicating with a Hyper Chess engine.
 
 export class HyperChessBot {
     constructor(path){
-        this.workerPath = path;
+        this.proc = new WebBotProcess(path);
+        this.prot = assignProtocol(this.proc);
         this.fen = "";
         this.board = new Board();
-        this.running = false;
-
-        this.start();
-    }
-
-    start(){
-        if (this.worker)
-            this.stop();
-
-        this.worker = new Worker(this.workerPath);
-        this.running = true;
-        this.worker.onerror = (err) => {
-            this.running = false;
-            throw new Error(`Could not start hyper chess bot web worker: ${err.message}`);
-        }
-        this.worker.onmessageerror = (err) => {
-            throw new Error(err);
-        }
-    }
-
-    stop(){
-        if (!this.worker)
-            return;
-
-        this.running = false;
-        this.worker.terminate();
-    }
-
-    // have you tried turning it off and on again?
-    restart(){
-        this.stop();
-        this.start();
     }
 
     setFEN(fen){
-        if (!this.worker)
-            return;
-
-        this.worker.postMessage(`position fen ${fen}`);
+        this.prot.setFEN(fen);
         this.board.loadFEN(fen);
     }
 
     // thinks for ms milliseconds, and then returns the best move.
     async thinkFor(ms){
+        this.prot = await this.prot;
+
+        this.prot.thinkFor()
+
+        return new Promise((res, rej) => {
+            let t = this;
+
+            
+        });
+
         return new Promise((res, rej) => {
             let t = this;
 

@@ -1,4 +1,6 @@
 
+import { EmptyBotProtocol } from "../protocols/empty-protocol";
+
 export class AbstractBotProcess {
     constructor(onReadLine = () => 0){
         // log is all of the input/output to/from the engine so far
@@ -63,5 +65,25 @@ export class AbstractBotProcess {
 
             this.write(cmd);
         });
+    }
+
+    async assignProtocol(){
+        const empty = new EmptyBotProtocol(this);
+        this.prot = empty;
+
+        for (const prot of PROTOCOLS){
+            if (await prot.isAssignableTo(this, timeoutMs)){
+                this.prot = new prot(this);
+
+                // for each queued call, run it on prot
+                for (const { method, args } of empty.queuedCalls){
+
+                }
+
+                return this;
+            }
+        }
+        console.error("Could not find a valid protocol for bot:", this);
+        throw new Error("Protocol not found");
     }
 }

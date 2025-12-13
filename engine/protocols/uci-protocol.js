@@ -32,7 +32,8 @@ export class UCIBotProtocol extends AbstractBotProtocol {
         this.bot.write(`position fen ${this.startFEN} moves ${this.moves.join(" ")}`);
     }
 
-    async thinkFor(ms){
-        
+    async thinkFor(ms, timeoutPaddingMs = 500){
+        const line = await this.bot.prompt(`go movetime ${ms}`, "bestmove", ms + timeoutPaddingMs);
+        return line.trim().split(" ").filter(v => v.length > 0)[1];
     }
 }
