@@ -1,4 +1,3 @@
-
 export { VariationMove } from "./variation.js";
 export { PGNData } from "./pgn-data.js";
 export { extractHeaders, extractMoves } from "../../pgn/index.js";

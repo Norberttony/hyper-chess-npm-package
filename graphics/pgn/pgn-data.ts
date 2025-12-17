@@ -1,22 +1,25 @@
+import { VariationMove } from "./index.js";
+
 // PGN headers contains all relevant information pertaining to the SAN of some game. This class
 // handles the proper text (based on given and missing information) that describes the PGN headers.
 
 // determines all valid headers and their default order
-const VALID_HEADERS = [
-    "Event", "Site", "Round", "TimeControl", "White", "Black", "Result", "Termination", "Variant", "FEN"
-];
+// "as const" is necessary because it prevents TypeScript from seeing this as a
+// string[] type ("widening")
+export const VALID_HEADERS = [ "Event", "Site", "Round", "TimeControl", "White", "Black", "Result", "Termination", "Variant", "FEN" ] as const;
+export type PGNHeader = typeof VALID_HEADERS[number];
+export type PGNHeaders = { [key in PGNHeader]?: string };
 
 export class PGNData {
-    constructor(pgnRoot){
-        this.pgnRoot = pgnRoot;
+    // whether or not started as white to play
+    public startedWTP: boolean = true;
+    public headers: PGNHeaders = {};
 
-        // whether or not started as white to play
-        this.startedWTP = true;
-
+    constructor(public pgnRoot: VariationMove){
         this.initHeaders();
     }
 
-    initHeaders(){
+    private initHeaders(): void {
         this.headers = {
             "Event": "Hyper Chess Analysis",
             "Site": window.location.href,
@@ -25,15 +28,15 @@ export class PGNData {
         };
     }
 
-    clearHeaders(){
+    public clearHeaders(): void {
         this.headers = {};
     }
 
-    clear(){
+    public clear(): void {
         this.initHeaders();
     }
 
-    setHeader(hdr, value){
+    public setHeader(hdr: PGNHeader, value: string): void {
         this.headers[hdr] = value;
 
         if (hdr == "FEN"){
@@ -43,11 +46,11 @@ export class PGNData {
         }
     }
 
-    unsetHeader(hdr){
+    public unsetHeader(hdr: PGNHeader): void {
         delete this.headers[hdr];
     }
 
-    toString(){
+    public toString(): string {
         let pgn = "";
         // show all valid headers
         for (const hdr of VALID_HEADERS){
@@ -59,9 +62,9 @@ export class PGNData {
     }
 
     // generates SAN for this descendant node
-    sanHelper(node, count){
+    public sanHelper(node: VariationMove | undefined, count: number): string {
         let san = "";
-        let iter = node;
+        let iter: VariationMove | undefined = node;
 
         if (!this.startedWTP && node && node == this.pgnRoot.next[0])
             count++;
@@ -91,16 +94,17 @@ export class PGNData {
                 if (count % 2 == 0)
                     san += `${Math.floor(count / 2) + 1}. `;
 
-                san += `${iter.next[0].san} `;
+                san += `${iter.next[0]!.san} `;
                 count++;
 
                 for (let i = 1; i < iter.next.length; i++){
-                    san += `( ${this.sanHelper(iter.next[i], count - 1)}) `;
+                    san += `( ${this.sanHelper(iter.next[i]!, count - 1)}) `;
                 }
 
                 iter = iter.next[0];
             }
-            iter = iter.next[0];
+            if (iter)
+                iter = iter.next[0];
         }
 
         return san;

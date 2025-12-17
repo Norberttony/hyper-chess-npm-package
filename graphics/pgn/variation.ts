@@ -1,51 +1,46 @@
-
-import { removeGlyphs, Piece } from "../../index.js";
+import { removeGlyphs, Side } from "../../index.js";
+import { Move } from "../../index.js";
 
 // the variation object operates as a linked list with a single previous node and a list of next
 // nodes.
 
 export class VariationMove {
-    constructor(move, san){
-        this.prev;
-        this.next = [];
+    public prev?: VariationMove;
+    public next: VariationMove[] = [];
 
-        // operates as a move counter as well.
-        this.level = 0;
+    public level: number = 0;
+    public move?: Move;
 
+    public glyphs: string[] = [];
+    public comment: string = "";
+    public fiftyMoveRuleCounter: number = 0;
+
+    constructor(move?: Move, public san?: string){
         // allows (un)doing the move whenever user scrolls through pgn
         if (move)
             this.move = move.clone();
-
-        // SAN of the move
-        this.san = san;
-
-        // any glyphs attached to this move
-        this.glyphs = [];
-
-        // this move's comment
-        this.comment = "";
-
-        this.fiftyMoveRuleCounter = 0;
     }
 
     // returns the full move number (a "full move" being a move from white AND a move from black)
-    get fullMoveNum(){
+    public get fullMoveNum(): number {
         return Math.floor((this.level + 1) / 2);
     }
 
     // returns whose turn it is at this variation
-    get turn(){
-        return this.level % 2 == 1 ? Piece.white : Piece.black;
+    public get turn(): Side {
+        // to-do: unfortunately level does not decide turn because Black might have
+        // started the game.
+        return this.level % 2 == 1 ? Side.White : Side.Black;
     }
 
     // detaches this variation from its previous variation
-    detach(){
+    public detach(): void {
         if (this.prev)
             this.prev.next.splice(this.prev.next.indexOf(this), 1);
     }
 
     // attaches this variation to come after the given variation
-    attachTo(variation){
+    public attachTo(variation: VariationMove): void {
         // if necessary, detaches from any previous variation
         this.detach();
 
@@ -56,7 +51,7 @@ export class VariationMove {
     }
 
     // finds a common ancestor with another variation node
-    findCommonAncestor(other){
+    public findCommonAncestor(other: VariationMove): VariationMove {
         let n1;
         let n2;
 
@@ -90,7 +85,7 @@ export class VariationMove {
     }
 
     // returns the current variation as text
-    toText(deleteGlyphs = false){
+    public toText(deleteGlyphs = false): string {
         let moves = "";
 
         // go back to the first moves and collect them first
@@ -99,16 +94,18 @@ export class VariationMove {
         }
 
         // append this move after those first moves
-        const san = deleteGlyphs ? removeGlyphs(this.san) : this.san;
-        moves += san;
+        if (this.san){
+            const san = deleteGlyphs ? removeGlyphs(this.san) : this.san;
+            moves += san;
+        }
 
         return moves;
     }
 
-    isMain(){
+    public isMain(): boolean {
         // keep traveling backwards until location is not 0 (which means it branches off).
         // ignores the root
-        let iter = this;
+        let iter: VariationMove | undefined = this;
         while (iter && iter.prev){
             if (iter.location != 0)
                 return false;
@@ -118,8 +115,9 @@ export class VariationMove {
         return true;
     }
 
-    get location(){
+    public get location(): number | undefined {
         if (this.prev)
             return this.prev.next.indexOf(this);
+        return;
     }
 }

@@ -22,6 +22,14 @@ export class RawBoard {
 
     constructor(){}
 
+    public getFullMove(): number {
+        return this.fullmove;
+    }
+
+    public getTurn(): Side {
+        return this.turn;
+    }
+
     public getPieceCount(p: Piece): number {
         return this.pieceCounts[isPieceOfSide(p, Side.White) ? 0 : 1]![getPieceType(p)]!;
     }

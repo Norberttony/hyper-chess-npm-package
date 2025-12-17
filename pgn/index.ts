@@ -1,8 +1,11 @@
 
-import { Piece } from "../game/piece.js";
+import { Board } from "../game/board.js";
+import { Move } from "../game/move.js";
+import { Side } from "../game/piece.js";
+import type { PGNHeader, PGNHeaders } from "../graphics/pgn/pgn-data.js";
 
 
-export function PGNHeadersToString(headers){
+export function PGNHeadersToString(headers: PGNHeaders): string {
     let pgn = "";
     for (const [ name, value ] of Object.entries(headers))
         pgn += `[${name} "${value}"]\n`;
@@ -11,7 +14,7 @@ export function PGNHeadersToString(headers){
 
 // splits the given string into each individual game.
 // returns an array of the individual games.
-export function splitPGNs(pgnsString){
+export function splitPGNs(pgnsString: string): string[] {
     const games = [];
 
     // the first capture group catches all of the PGN headers. The next capture group handles
@@ -26,33 +29,31 @@ export function splitPGNs(pgnsString){
 }
 
 // takes in a list of moves
-export function convertToPGN(headers, moves, board, result = "*"){
+export function convertToPGN(headers: PGNHeaders, moves: Move[], board: Board, resultTag = "*"): string {
     let pgn = `${PGNHeadersToString(headers)}\n`;
 
     // play out each move
-    let counter = board.fullmove;
-    if (board.turn == Piece.black){
+    let counter = board.getFullMove();
+    if (board.getTurn() == Side.Black)
         pgn += `${counter++}... `;
-    }
     for (const move of moves){
         const san = board.getMoveSAN(move);
         board.makeMove(move);
 
-        if (board.turn == Piece.black){
+        if (board.getTurn() == Side.Black){
             pgn += `${counter++}. ${san} `;
         }else{
             pgn += `${san} `;
         }
     }
 
-    pgn += result;
-
+    pgn += resultTag;
     return pgn.trim();
 }
 
 // returns a dictionary where keys are header names and values are header values.
-export function extractHeaders(pgn){
-    const headers = {};
+export function extractHeaders(pgn: string): PGNHeaders {
+    const headers: PGNHeaders = {};
 
     let leftBracket = pgn.indexOf("[");
     while (leftBracket > -1){
@@ -64,7 +65,7 @@ export function extractHeaders(pgn){
 
         if (leftQuote > -1 && rightQuote > -1){
             let value = pgn.substring(leftQuote + 1, rightQuote).trim();
-            let name = pgn.substring(leftBracket + 1, leftQuote).trim();
+            let name = pgn.substring(leftBracket + 1, leftQuote).trim() as PGNHeader;
             headers[name] = value;
         }
 
@@ -77,7 +78,7 @@ export function extractHeaders(pgn){
     return headers;
 }
 
-export function extractMoves(pgn){
+export function extractMoves(pgn: string): string {
     // remove headers
     pgn = pgn.replace(/\[.+?\]\s*/g, "");
 
@@ -98,7 +99,7 @@ export function extractMoves(pgn){
 }
 
 // returns the current date in the form YYYY.MM.DD
-export function getPGNDateNow(){
+export function getPGNDateNow(): string {
     const date = new Date();
     const y = date.getFullYear().toString().padStart(4, "0");
     const m = (date.getMonth() + 1).toString().padStart(2, "0");

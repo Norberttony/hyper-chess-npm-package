@@ -1,21 +1,19 @@
 
 // allows the user to scroll through the PGN.
 
-
 /* mobile user holds down next/back buttons */
-
-export function addPointerHoldListener(elem, action){
-    let holdTimeout;
+export function addPointerHoldListener(elem: HTMLElement, action: Function){
+    let holdTimeout: number = -1;
 
     // times in ms, maxTime represents initial wait time for action and minTime represents
     // the lowest possible wait time for action
     let maxTime = 400;
     let minTime = 250;
-    let time;
+    let time = maxTime;
 
     // go through "maxTimes" moves before speeding up
     let maxTimes = 4;
-    let times;
+    let times = 0;
 
     function startHold(){
         cancelHold();
