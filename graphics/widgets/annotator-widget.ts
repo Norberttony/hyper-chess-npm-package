@@ -1,9 +1,21 @@
-
+import type { BoardGraphics } from "../board-graphics.js";
 import { BoardWidget } from "./board-widget.js";
 
+interface Annotation {
+    startX: number,
+    startY: number,
+    endX: number,
+    endY: number
+};
 
 export class AnnotatorWidget extends BoardWidget {
-    constructor(boardgfx){
+    private annotations: Annotation[] = [];
+    private ctx: CanvasRenderingContext2D;
+
+    private startX?: number;
+    private startY?: number;
+
+    constructor(boardgfx: BoardGraphics){
         super(boardgfx);
 
         // initialize by adding canvas
@@ -16,16 +28,11 @@ export class AnnotatorWidget extends BoardWidget {
 
         // this currently creates a circular reference which could lead to memory leaks if boardgfx
         // (instance of BoardGraphics) does not delete this .boardgfx reference.
-        this.annotations = [];
-        this.ctx = canvas.getContext("2d");
-
+        this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
         this.ctx.lineWidth = 12;
         this.ctx.strokeStyle = "rgba(0, 120, 0)";
         this.ctx.fillStyle = "rgba(0, 120, 0)";
         this.ctx.lineCap = "round";
-
-        this.startX;
-        this.startY;
 
         // attach event listeners
         boardgfx.boardDiv.addEventListener("mousedown", (event) => {
@@ -42,20 +49,21 @@ export class AnnotatorWidget extends BoardWidget {
         });
     }
 
-    redrawAll(){
+    private redrawAll(): void {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        for (const coords of this.annotations){
-            coords.split("").map((val) => parseInt(val));
-            this.drawAnnotation(...coords);
+        for (const a of this.annotations){
+            this.drawAnnotation(a);
         }
     }
 
-    clearAll(){
+    private clearAll(): void {
         this.annotations = [];
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
-    drawAnnotation(startX, startY, endX, endY){
+    private drawAnnotation(annotation: Annotation): void {
+        const { startX, startY, endX, endY } = annotation;
+
         // general variables useful for drawing annotations
         const squareSize = this.ctx.canvas.width / 8;
         const halfSquare = this.ctx.canvas.width / 16;
@@ -109,7 +117,7 @@ export class AnnotatorWidget extends BoardWidget {
         }
     }
 
-    mousedown(event){
+    private mousedown(event: MouseEvent): void {
         if (event.button != 2)
             return;
 
@@ -125,9 +133,11 @@ export class AnnotatorWidget extends BoardWidget {
         }
     }
 
-    mouseup(event){
+    private mouseup(event: MouseEvent): void {
         if (event.button != 2)
             return this.clearAll();
+        if (!this.startX || !this.startY)
+            return;
     
         const rect = this.ctx.canvas.getBoundingClientRect();
     
@@ -140,16 +150,30 @@ export class AnnotatorWidget extends BoardWidget {
             annotationEndY = 7 - annotationEndY;
         }
     
-        const code = `${this.startX}${this.startY}${annotationEndX}${annotationEndY}`;
-        const index = this.annotations.indexOf(code);
-        if (index > -1){
+        const annotation = this.getAnnotation(this.startX, this.startY, annotationEndX, annotationEndY);
+        if (annotation){
+            const index = this.annotations.indexOf(annotation);
             this.annotations.splice(index, 1);
             this.redrawAll();
         }else{
-            this.drawAnnotation(this.startX, this.startY, annotationEndX, annotationEndY);
-            this.annotations.push(code);
+            const a = {
+                startX: this.startX,
+                startY: this.startY,
+                endX: annotationEndX,
+                endY: annotationEndY
+            };
+            this.drawAnnotation(a);
+            this.annotations.push(a);
         }
 
         event.preventDefault();
+    }
+
+    private getAnnotation(startX: number, startY: number, endX: number, endY: number): Annotation | undefined {
+        for (const a of this.annotations){
+            if (a.startX == startX && a.startY == startY && a.endX == endX && a.endY == endY)
+                return a;
+        }
+        return undefined;
     }
 }

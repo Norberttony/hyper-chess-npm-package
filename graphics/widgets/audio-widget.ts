@@ -1,4 +1,5 @@
-
+import type { Move } from "../../game/move.js";
+import type { BoardGraphics } from "../board-graphics.js";
 import { BoardWidget } from "./board-widget.js";
 
 // Whenever a move, capture, or something important happens, a sound occurs.
@@ -16,13 +17,12 @@ const bufferedAudio = {
     [AUDIO.capture]: new Audio(AUDIO.capture)
 };
 
-
 export class AudioWidget extends BoardWidget {
-    constructor(boardgfx){
+    constructor(boardgfx: BoardGraphics){
         super(boardgfx);
 
         boardgfx.skeleton.addEventListener("single-scroll", (event) => {
-            const { prevVariation, variation, userInput } = event.detail;
+            const { variation } = (event as CustomEvent).detail;
             
             // only play audio if move scrolling is going forward by exactly 1
             makeNoise(variation.move);
@@ -30,8 +30,7 @@ export class AudioWidget extends BoardWidget {
     }
 }
 
-
-function playAudio(src){
+function playAudio(src: string): void {
     if (bufferedAudio[src]){
         bufferedAudio[src].load();
         bufferedAudio[src].play();
@@ -43,7 +42,7 @@ function playAudio(src){
     bufferedAudio[src].load();
 }
 
-function makeNoise(move){
+function makeNoise(move: Move): void {
     if (move && move.captures.length > 0)
         playAudio(AUDIO.capture);
     else

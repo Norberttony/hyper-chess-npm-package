@@ -1,10 +1,15 @@
-
-import { BoardWidget, getFirstElemOfClass } from "./board-widget.js";
+import { BoardGraphics } from "../board-graphics.js";
+import { BoardWidget, getFirstElemOfClass, WidgetLocation } from "./board-widget.js";
 
 // Allows user to copy or set the FEN or PGN
 
 export class ExtrasWidget extends BoardWidget {
-    constructor(boardgfx, location = WIDGET_LOCATIONS.BOTTOM){
+    private pgnText: HTMLTextAreaElement;
+    private fenText: HTMLInputElement;
+    private pgnButton: HTMLElement;
+    private fenButton: HTMLElement;
+
+    constructor(boardgfx: BoardGraphics, location: WidgetLocation = "Bottom"){
         super(boardgfx);
 
         const container = document.createElement("div");
@@ -14,16 +19,16 @@ export class ExtrasWidget extends BoardWidget {
             <button class = "extras__set-pgn-button" onclick = "setPGN();">Set PGN</button>
             <input class = "extras__fen" onfocus = "this.select();">
             <button class = "extras__set-fen-button" onclick = "setFEN();" spellcheck = "false">Set FEN</button>`;
-        boardgfx.getWidgetElem(location).appendChild(container);
+        boardgfx.getWidgetContainer(location).appendChild(container);
 
-        const pgnText = getFirstElemOfClass(container, "extras__pgn");
-        const fenText = getFirstElemOfClass(container, "extras__fen");
+        const pgnText = getFirstElemOfClass(container, "extras__pgn") as HTMLTextAreaElement;
+        const fenText = getFirstElemOfClass(container, "extras__fen") as HTMLInputElement;
 
         this.boardgfx = boardgfx;
         this.pgnText = pgnText;
         this.fenText = fenText;
-        this.pgnButton = getFirstElemOfClass(container, "extras__set-pgn-button");
-        this.fenButton = getFirstElemOfClass(container, "extras__set-fen-button");
+        this.pgnButton = getFirstElemOfClass(container, "extras__set-pgn-button") as HTMLElement;
+        this.fenButton = getFirstElemOfClass(container, "extras__set-fen-button") as HTMLElement;
 
         this.updateFENText();
         this.updatePGNText();
@@ -38,25 +43,28 @@ export class ExtrasWidget extends BoardWidget {
 
         // listening to game state events
         boardgfx.skeleton.addEventListener("variation-change", () => this.updateFENText());
-        boardgfx.skeleton.addEventListener("loadFEN", () => this.updateFENText() + this.updatePGNText());
         boardgfx.skeleton.addEventListener("new-variation", () => this.updatePGNText());
+        boardgfx.skeleton.addEventListener("loadFEN", () => {
+            this.updateFENText();
+            this.updatePGNText();
+        });
     }
 
-    enable(){
+    public override enable(): void {
         this.pgnButton.removeAttribute("disabled");
         this.fenButton.removeAttribute("disabled");
     }
 
-    disable(){
+    public override disable(): void {
         this.pgnButton.setAttribute("disabled", "true");
         this.fenButton.setAttribute("disabled", "true");
     }
 
-    updateFENText(){
+    private updateFENText(): void {
         this.fenText.value = this.boardgfx.getFEN();
     }
 
-    updatePGNText(){
+    private updatePGNText(): void {
         this.pgnText.value = this.boardgfx.pgnData.toString();
     }
 }

@@ -1,7 +1,9 @@
 
-import { Piece, StartingFEN } from "../../index.js";
-import { BoardWidget, getFirstElemOfClass } from "./board-widget.js";
+import { Side, StartingFEN } from "../../index.js";
+import { BoardWidget, getFirstElemOfClass, WidgetLocation } from "./board-widget.js";
 import { addPointerHoldListener } from "../pgn/pgn-control.js";
+import type { BoardGraphics } from "../board-graphics.js";
+import { VariationMove } from "../pgn/variation.js";
 
 // handles displaying any of the moves in a separate panel, splitting the PGN into variations as
 // necessary.
@@ -24,12 +26,17 @@ import { addPointerHoldListener } from "../pgn/pgn-control.js";
 //  </div>
 
 export class PGNWidget extends BoardWidget {
-    constructor(boardgfx, location){
+    // determines the current next variation the user is selecting
+    private selectedVariation: number = 0;
+    private pgnElem: HTMLElement;
+    private resultElem?: HTMLElement;
+
+    constructor(boardgfx: BoardGraphics, location: WidgetLocation){
         super(boardgfx);
 
         const container = document.createElement("div");
         container.classList.add("pgn-viewer");
-        boardgfx.getWidgetElem(location).appendChild(container);
+        boardgfx.getWidgetContainer(location).appendChild(container);
 
         const pgnControl = document.createElement("div");
         pgnControl.classList.add("pgn-viewer__pgn-control");
@@ -40,21 +47,24 @@ export class PGNWidget extends BoardWidget {
             <button class = "pgn-viewer__last">&gt;&gt;</button>`;
         container.appendChild(pgnControl);
 
-        // determines the current next variation the user is selecting
-        this.selectedVariation = 0;
-
-        addPointerHoldListener(pgnControl.getElementsByClassName("pgn-viewer__back")[0], () => {
+        const back = pgnControl.getElementsByClassName("pgn-viewer__back")[0] as HTMLElement;
+        addPointerHoldListener(back, () => {
             this.PGNMoveBack();
         });
-        addPointerHoldListener(pgnControl.getElementsByClassName("pgn-viewer__next")[0], () => {
+
+        const next = pgnControl.getElementsByClassName("pgn-viewer__next")[0] as HTMLElement;
+        addPointerHoldListener(next, () => {
             this.PGNMoveForward();
         });
 
-        pgnControl.getElementsByClassName("pgn-viewer__first")[0].addEventListener("click", () => {
+        const first = pgnControl.getElementsByClassName("pgn-viewer__first")[0] as HTMLElement;
+        first.addEventListener("click", () => {
             // displays position with no moves made on the board
             this.PGNMoveFirst();
         });
-        pgnControl.getElementsByClassName("pgn-viewer__last")[0].addEventListener("click", () => {
+
+        const last = pgnControl.getElementsByClassName("pgn-viewer__last")[0] as HTMLElement;
+        last.addEventListener("click", () => {
             // displays position of the last committed move in the main variation
             this.PGNMoveLast();
         });
@@ -65,29 +75,28 @@ export class PGNWidget extends BoardWidget {
         container.appendChild(pgnElem);
 
         this.pgnElem = pgnElem;
-        this.boardgfx = boardgfx;
 
         // event listeners
         boardgfx.skeleton.addEventListener("new-variation", (event) => {
-            this.onNewVariation(event);
+            this.onNewVariation(event as CustomEvent);
         });
         boardgfx.skeleton.addEventListener("result", (event) => {
-            this.onResult(event);
+            this.onResult(event as CustomEvent);
         });
         boardgfx.skeleton.addEventListener("loadFEN", (event) => {
-            this.onLoadFEN(event);
+            this.onLoadFEN(event as CustomEvent);
         });
         boardgfx.skeleton.addEventListener("variation-change", (event) => {
-            this.onVariationChange(event);
+            this.onVariationChange(event as CustomEvent);
         });
         boardgfx.skeleton.addEventListener("delete-variation", (event) => {
-            this.onDeleteVariation(event);
+            this.onDeleteVariation(event as CustomEvent);
         });
 
         document.body.addEventListener("keydown", (event) => this.keydown(event));
     }
 
-    keydown(event){
+    private keydown(event: KeyboardEvent){
         if (event.target == this.boardgfx.skeleton){
             switch (event.key.toLowerCase()){
                 case "arrowleft":
@@ -115,36 +124,36 @@ export class PGNWidget extends BoardWidget {
         }
     }
 
-    PGNMoveBack(){
+    private PGNMoveBack(): void {
         if (this.boardgfx.previousVariation())
             this.boardgfx.applyChanges();
         this.selectedVariation = 0;
     }
 
-    PGNMoveForward(){
+    private PGNMoveForward(): void {
         if (this.boardgfx.nextVariation(this.selectedVariation))
             this.boardgfx.applyChanges();
         this.selectedVariation = 0;
     }
 
-    PGNUpVariation(){
+    private PGNUpVariation(): void {
         this.selectedVariation--;
         if (this.selectedVariation < 0)
             this.selectedVariation = this.boardgfx.currentVariation.next.length - 1;
     }
 
-    PGNDownVariation(){
+    private PGNDownVariation(): void {
         const max = this.boardgfx.currentVariation.next.length;
         this.selectedVariation = (this.selectedVariation + 1) % max;
     }
 
-    PGNMoveFirst(){
+    private PGNMoveFirst(): void {
         // displays position with no moves made on the board
         this.boardgfx.jumpToVariation(this.boardgfx.variationRoot);
         this.boardgfx.applyChanges();
     }
 
-    PGNMoveLast(){
+    private PGNMoveLast(): void {
         // displays position of the last committed move in the main variation
         let iter = this.boardgfx.currentVariation;
         while (iter.next[0]){
@@ -155,7 +164,7 @@ export class PGNWidget extends BoardWidget {
         this.boardgfx.applyChanges();
     }
 
-    onNewVariation(event){
+    private onNewVariation(event: CustomEvent): void {
         const { variation } = event.detail;
 
         // determine move number
@@ -169,7 +178,7 @@ export class PGNWidget extends BoardWidget {
         variation.element = sanElem;
 
         if (variation.isMain()){
-            if (turn == Piece.black){
+            if (turn == Side.Black){
                 // add this move to the previous move line
                 const prevMoveline = variation.prev.element.parentNode;
                 prevMoveline.appendChild(sanElem);
@@ -238,7 +247,7 @@ export class PGNWidget extends BoardWidget {
                 if (previousContainer.classList.contains("pgn-viewer__pgn-moveline")){
                     const nextElem = previousContainer.nextElementSibling;
                     // do we split the moveline or not?
-                    if (turn == Piece.white){
+                    if (turn == Side.White){
                         // split!!!
                         if (nextElem && nextElem.classList.contains("pgn-viewer__pgn-elem--type-variation")){
                             nextElem.appendChild(variationLineElem);
@@ -247,7 +256,8 @@ export class PGNWidget extends BoardWidget {
                             variationElem.appendChild(variationLineElem);
 
                             const [ m1, m2 ] = splitMovelineElem(this.boardgfx, this.pgnElem, previousContainer);
-                            m1.parentNode.insertBefore(variationElem, m2);
+                            if (m1 && m2 && m1.parentNode)
+                                m1.parentNode.insertBefore(variationElem, m2);
                         }
                     }else{
                         const variationElem = newVariationElem();
@@ -270,8 +280,8 @@ export class PGNWidget extends BoardWidget {
         }
     }
 
-    onResult(event){
-        const { result, turn, termination } = event.detail;
+    private onResult(event: CustomEvent): void {
+        const { result, termination } = event.detail;
 
         // based on the result number, add some result text and flavor text
         const resultText = result.split("-").join(" - ");
@@ -295,7 +305,7 @@ export class PGNWidget extends BoardWidget {
         this.boardgfx.pgnData.setHeader("Result", resultText);
     }
 
-    onLoadFEN(event){
+    private onLoadFEN(event: CustomEvent): void {
         const { fen } = event.detail;
     
         // none of the previous PGN is relevant to this new position, so...
@@ -308,16 +318,16 @@ export class PGNWidget extends BoardWidget {
         }
     }
     
-    onVariationChange(event){
+    private onVariationChange(event: CustomEvent): void {
         const { variation } = event.detail;
     
         selectPGNElem(this.pgnElem, variation.element);
     }
 
-    onDeleteVariation(event){
+    private onDeleteVariation(event: CustomEvent): void {
         const { variation } = event.detail;
 
-        if (variation == this.boardgfx.mainVariation && this.resultElem){
+        if (variation == this.boardgfx.mainVariation && this.resultElem && this.resultElem.parentNode){
             this.resultElem.parentNode.removeChild(this.resultElem);
             delete this.resultElem;
         }
@@ -325,18 +335,20 @@ export class PGNWidget extends BoardWidget {
         this.deletePGNElement(variation.element);
     }
 
-    deletePGNElement(elem){
-        const parent = elem.parentNode;
-        parent.removeChild(elem);
+    private deletePGNElement(elem: HTMLElement): void {
+        const parent = elem.parentNode as HTMLElement;
+        if (parent){
+            parent.removeChild(elem);
 
-        // if the moveline no longer contains any moves, it's useless and should be removed.
-        if (!getFirstElemOfClass(parent, "pgn-viewer__pgn-elem--type-san"))
-            parent.parentNode.removeChild(parent);
+            // if the moveline no longer contains any moves, it's useless and should be removed.
+            if (!getFirstElemOfClass(parent, "pgn-viewer__pgn-elem--type-san"))
+                parent.parentNode!.removeChild(parent);
+        }
     }
 }
 
 
-function selectPGNElem(pgnElem, elem){
+function selectPGNElem(pgnElem: HTMLElement, elem: HTMLElement): void {
     (document.getElementsByClassName("pgn-viewer__pgn-elem--selected")[0] || elem || document.body).classList.remove("pgn-viewer__pgn-elem--selected");
     if (elem){
         elem.classList.add("pgn-viewer__pgn-elem--selected");
@@ -363,7 +375,7 @@ function selectPGNElem(pgnElem, elem){
 }
 
 // creates and returns the new moveline with the given number and white elem.
-function newMovelineElem(num, whiteSANElem){
+function newMovelineElem(num: number, whiteSANElem: HTMLElement): HTMLDivElement {
     const moveline = document.createElement("div");
 
     moveline.classList.add("pgn-viewer__pgn-moveline");
@@ -380,7 +392,7 @@ function newMovelineElem(num, whiteSANElem){
 
 // returns a list of two elements, the first moveline element and the second moveline element
 // if the given moveline elem is already split, this returns an empty list.
-function splitMovelineElem(gameState, pgnElem, movelineElem){
+function splitMovelineElem(gameState: BoardGraphics, pgnElem: HTMLElement, movelineElem: HTMLElement): HTMLElement[] {
     // cannot split a moveline that is already split.
     if (movelineElem.classList.contains("pgn_split-moveline"))
         return [];
@@ -389,14 +401,14 @@ function splitMovelineElem(gameState, pgnElem, movelineElem){
 
     const elem1 = movelineElem;
 
-    const numText = elem1.getElementsByClassName("pgn-viewer__pgn-elem--type-num")[0].innerText;
-    const elem2 = newMovelineElem(numText.substring(0, numText.length - 1), newBlankSANElem(gameState, pgnElem));
+    const numText = (elem1.getElementsByClassName("pgn-viewer__pgn-elem--type-num")[0] as HTMLElement).innerText;
+    const elem2 = newMovelineElem(parseInt(numText.substring(0, numText.length - 1)), newBlankSANElem(gameState, pgnElem));
 
     const nextElem = elem1.nextElementSibling;
     if (nextElem)
-        nextElem.parentNode.insertBefore(elem2, nextElem);
+        nextElem.parentNode!.insertBefore(elem2, nextElem);
     else
-        elem1.parentNode.appendChild(elem2);
+        elem1.parentNode!.appendChild(elem2);
 
     // swap the second move elem in the first moveline with a blank elem
     const blackMove = elem1.getElementsByClassName("pgn-viewer__pgn-elem--type-san")[1];
@@ -408,7 +420,7 @@ function splitMovelineElem(gameState, pgnElem, movelineElem){
     return [ elem1, elem2 ];
 }
 
-function newSANElem(gameState, pgnElem, san, variation){
+function newSANElem(gameState: BoardGraphics, pgnElem: HTMLElement, san: string, variation?: VariationMove): HTMLDivElement {
     const div = document.createElement("div");
     div.classList.add("pgn-viewer__pgn-elem", "pgn-viewer__pgn-elem--type-san");
     div.innerText = san;
@@ -424,18 +436,18 @@ function newSANElem(gameState, pgnElem, san, variation){
     return div;
 }
 
-function newBlankSANElem(gameState, pgnElem){
+function newBlankSANElem(gameState: BoardGraphics, pgnElem: HTMLElement): HTMLDivElement {
     const div = newSANElem(gameState, pgnElem, "...");
     div.classList.add("pgn-viewer__pgn-elem", "pgn-viewer__pgn-elem--type-blank");
     return div;
 }
 
-function newVariationElem(){
+function newVariationElem(): HTMLDivElement {
     const div = document.createElement("div");
     div.classList.add("pgn-viewer__pgn-elem", "pgn-viewer__pgn-elem--type-variation");
     return div;
 }
 
-function isPGNSpecialBlock(elem){
+function isPGNSpecialBlock(elem: HTMLElement): boolean {
     return elem.classList.contains("pgn-viewer__pgn-moveline") || elem.classList.contains("pgn-viewer__pgn-elem--type-result");
 }

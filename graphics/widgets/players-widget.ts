@@ -1,26 +1,29 @@
-
-import { BoardWidget, WIDGET_LOCATIONS } from "./board-widget.js";
+import { BoardGraphics } from "../board-graphics.js";
+import { BoardWidget } from "./board-widget.js";
 
 // technically takes up two locations at once but oh well
 
 export class PlayersWidget extends BoardWidget {
-    constructor(boardgfx){
+    private topPlyr: HTMLElement;
+    private bottomPlyr: HTMLElement;
+
+    constructor(boardgfx: BoardGraphics){
         super(boardgfx);
 
         const topPlyr = document.createElement("div");
         topPlyr.classList.add("board-graphics__top-player");
-        boardgfx.getWidgetElem(WIDGET_LOCATIONS.TOP_BAR).appendChild(topPlyr);
+        boardgfx.getWidgetContainer("Top_Bar").appendChild(topPlyr);
 
         const bottomPlyr = document.createElement("div");
         bottomPlyr.classList.add("board-graphics__bottom-player");
-        boardgfx.getWidgetElem(WIDGET_LOCATIONS.BOTTOM_BAR).appendChild(bottomPlyr);
+        boardgfx.getWidgetContainer("Bottom_Bar").appendChild(bottomPlyr);
 
         this.topPlyr = topPlyr;
         this.bottomPlyr = bottomPlyr;
 
         // whenever the board flips, update the player names.
         boardgfx.skeleton.addEventListener("player-names", (event) => {
-            const { whiteName, blackName } = event.detail;
+            const { whiteName, blackName } = (event as CustomEvent).detail;
             this.setNames(whiteName, blackName);
         });
         boardgfx.skeleton.addEventListener("flip", () => {
@@ -30,17 +33,17 @@ export class PlayersWidget extends BoardWidget {
         });
     }
 
-    disable(){
+    public override disable(): void {
         this.topPlyr.style.display = "none";
         this.bottomPlyr.style.display = "none";
     }
 
-    enable(){
+    public override enable(): void {
         this.topPlyr.style.display = "";
         this.bottomPlyr.style.display = "";
     }
 
-    setNames(white, black){
+    private setNames(white: string, black: string): void {
         if (!this.boardgfx.isFlipped){
             this.topPlyr.innerText = black;
             this.bottomPlyr.innerText = white;

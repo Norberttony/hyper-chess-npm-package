@@ -1,24 +1,22 @@
+import { getFileFromSq, getRankFromSq } from "../../game/coords.js";
+import { BoardWidget } from "./board-widget.js";
+import { getPieceFromPool, setElemLocation } from "../pool.js";
+import type { BoardGraphics } from "../board-graphics.js";
+import { getPieceSide, getPieceType } from "../../game/piece.js";
 
 // handles move animations
 
-import { getFileFromSq, getRankFromSq } from "../../game/coords.js";
-import { Piece } from "../../game/piece.js";
-import { BoardWidget } from "./board-widget.js";
-import { getPieceFromPool, setElemLocation } from "../pool.js";
-
-
 export class AnimationWidget extends BoardWidget {
-    constructor(boardgfx){
+    private queuedAnimations: number[] = [];
+
+    constructor(boardgfx: BoardGraphics){
         super(boardgfx);
-
-        this.queuedAnimations = [];
-
         boardgfx.skeleton.addEventListener("single-scroll", (event) => {
-            this.singleScroll(event);
+            this.singleScroll(event as CustomEvent);
         });
     }
 
-    singleScroll(event){
+    singleScroll(event: CustomEvent){
         const { prevVariation, variation, userInput } = event.detail;
 
         let isFlipped = this.boardgfx.isFlipped;
@@ -42,36 +40,37 @@ export class AnimationWidget extends BoardWidget {
 
         // make captured pieces disappear
         for (const c of lastMadeMove.captures){
-            const piece = getPieceFromPool(getFileFromSq(c.sq), getRankFromSq(c.sq), isFlipped, Piece.getType(c.captured), Piece.getColor(c.captured));
+            const piece = getPieceFromPool(getFileFromSq(c.sq), getRankFromSq(c.sq), isFlipped, getPieceType(c.captured), getPieceSide(c.captured));
             piece.classList.add("board-graphics__piece--captured");
             this.boardgfx.piecesDiv.appendChild(piece);
         }
 
         // now move piece graphically
-        let piece;
+        let piece: HTMLElement | undefined;
 
         if (dir == 1){
-            piece = this.boardgfx.getPieceElem(getFileFromSq(lastMadeMove.to), getRankFromSq(lastMadeMove.to));
+            piece = this.boardgfx.getPieceElem(getFileFromSq(lastMadeMove.to), getRankFromSq(lastMadeMove.to))!;
             setElemLocation(piece, getFileFromSq(lastMadeMove.from), getRankFromSq(lastMadeMove.from), isFlipped);
         }else{
-            piece = this.boardgfx.getPieceElem(getFileFromSq(lastMadeMove.from), getRankFromSq(lastMadeMove.from));
+            piece = this.boardgfx.getPieceElem(getFileFromSq(lastMadeMove.from), getRankFromSq(lastMadeMove.from))!;
             setElemLocation(piece, getFileFromSq(lastMadeMove.to), getRankFromSq(lastMadeMove.to), isFlipped);
         }
 
-        let qa = this.queuedAnimations;
+        let qa: number[] | undefined = this.queuedAnimations;
         const timeout = setTimeout(() => {
             if (dir == 1)
-                setElemLocation(piece, getFileFromSq(lastMadeMove.to), getRankFromSq(lastMadeMove.to), isFlipped);
+                setElemLocation(piece!, getFileFromSq(lastMadeMove.to), getRankFromSq(lastMadeMove.to), isFlipped);
             else
-                setElemLocation(piece, getFileFromSq(lastMadeMove.from), getRankFromSq(lastMadeMove.from), isFlipped);
+                setElemLocation(piece!, getFileFromSq(lastMadeMove.from), getRankFromSq(lastMadeMove.from), isFlipped);
 
-            const index = qa.indexOf(timeout);
-            if (index > -1)
-                qa.splice(index, 1);
+            if (qa){
+                const index = qa.indexOf(timeout);
+                if (index > -1)
+                    qa.splice(index, 1);
+            }
 
-            qa = null;
-            piece = null;
-            isFlipped = null;
+            qa = undefined;
+            piece = undefined;
         }, 10);
 
         this.queuedAnimations.push(timeout);
