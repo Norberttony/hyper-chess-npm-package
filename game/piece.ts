@@ -1,13 +1,13 @@
 // Contains helper functions for pieces, such as their numerical representations
 // FEN to piece conversions are also stored here.
 
-export const enum Side {
+export enum Side {
     None = 0,
     White = 8,
     Black = 16
 };
 
-export const enum PieceType {
+export enum PieceType {
     None,
     King,
     Retractor,

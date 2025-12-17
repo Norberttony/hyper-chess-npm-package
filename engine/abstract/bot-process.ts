@@ -7,7 +7,6 @@ export abstract class BotProcess {
     // input is indexed by a " > " before the line.
     private log: string = "";
     private readListeners: onReadLineListener[] = [];
-    #isRunning: boolean = false;
 
     // for prompt
     private promptPrefix?: string;
@@ -16,9 +15,9 @@ export abstract class BotProcess {
 
     constructor(){}
 
-    public get isRunning(){
-        return this.#isRunning;
-    }
+    public abstract get isRunning(): boolean;
+    public abstract start(): void;
+    public abstract stop(): void;
 
     #onReadLine(line: string): void {
         for (const l of this.readListeners)
@@ -27,14 +26,6 @@ export abstract class BotProcess {
 
     public addReadLineListener(listener: onReadLineListener): void {
         this.readListeners.push(listener);
-    }
-
-    public start(): void {
-        this.#isRunning = true;
-    }
-
-    public stop(): void {
-        this.#isRunning = false;
     }
 
     public write(cmd: string): void {
@@ -68,6 +59,7 @@ export abstract class BotProcess {
             if (timeoutMs !== undefined){
                 this.promptTimeout = setTimeout(() => {
                     console.error(`Prompt ${cmd} failed to achieve prefix ${prefix} after ${timeoutMs}ms`);
+                    console.error(this.log);
                     delete this.promptPrefix;
                     rej();
                 }, timeoutMs);

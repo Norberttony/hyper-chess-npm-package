@@ -1,9 +1,17 @@
-
 import { Board } from "../game/board.js";
 import { Move } from "../game/move.js";
 import { Side } from "../game/piece.js";
 import type { PGNHeader, PGNHeaders } from "../graphics/pgn/pgn-data.js";
 
+export function getResultTag(winner: Side): string {
+    if (winner == Side.None)
+        return "1/2-1/2";
+    else if (winner == Side.White)
+        return "1-0";
+    else if (winner == Side.Black)
+        return "0-1";
+    return "*";
+}
 
 export function PGNHeadersToString(headers: PGNHeaders): string {
     let pgn = "";

@@ -9,6 +9,13 @@ export class ExeBotProcess extends BotProcess {
         super();
         this.start();
     }
+
+    public override get isRunning(): boolean {
+        if (!this.proc)
+            return false;
+        else
+            return this.proc.exitCode === null && this.proc.signalCode === null;
+    }
     
     // internal function that separates out stdout into complete lines.
     #getLines(stdoutData: string): void {
@@ -22,7 +29,6 @@ export class ExeBotProcess extends BotProcess {
     }
 
     public override start(): void {
-        super.start();
         this.proc = spawn(this.path);
 
         // broken keeps track of "broken" lines (see #getLines)
@@ -37,10 +43,10 @@ export class ExeBotProcess extends BotProcess {
         });
     }
 
-    // kills the process. Must be run when done interacting with the ExeBotProcess instance.
+    // kills the process. Must be run when done interacting with the
+    // ExeBotProcess instance.
     public override stop(): void {
         if (this.proc){
-            super.stop();
             this.proc.kill();
             delete this.proc;
         }

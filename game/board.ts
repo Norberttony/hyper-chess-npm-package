@@ -62,6 +62,7 @@ export class Board extends MoveGenerator {
         this.repeats[pos]!--;
 
         super.unmakeMove(move);
+        delete this.result;
     }
 
     // checks if the current player is checkmated... or stalemated...
@@ -75,12 +76,9 @@ export class Board extends MoveGenerator {
         // no legal moves?!
         if (moves.length == 0){
             this.nextTurn();
-            if (this.isAttacked(this.getKingSq(false))){
+            if (this.isAttacked(this.getKingSq(true))){
                 // CHECKMATE!!!
-                if (this.turn == Side.Black)
-                    this.setResult("checkmate", this.turn);
-                else
-                    this.setResult("checkmate", this.turn);
+                this.setResult("checkmate", this.turn);
             }else{
                 // stalemate...!
                 this.setResult("stalemate", Side.None);

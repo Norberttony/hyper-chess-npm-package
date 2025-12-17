@@ -4,6 +4,7 @@ import { BoardWidget, getFirstElemOfClass, WidgetLocation } from "./board-widget
 import { addPointerHoldListener } from "../pgn/pgn-control.js";
 import type { BoardGraphics } from "../board-graphics.js";
 import { VariationMove } from "../pgn/variation.js";
+import { getResultTag } from "../../pgn/index.js";
 
 // handles displaying any of the moves in a separate panel, splitting the PGN into variations as
 // necessary.
@@ -281,9 +282,10 @@ export class PGNWidget extends BoardWidget {
     }
 
     private onResult(event: CustomEvent): void {
-        const { result, termination } = event.detail;
+        const { winner, termination } = event.detail;
 
         // based on the result number, add some result text and flavor text
+        const result = getResultTag(winner);
         const resultText = result.split("-").join(" - ");
         let flavorText;
         if (result == "1/2-1/2"){
@@ -295,13 +297,13 @@ export class PGNWidget extends BoardWidget {
         }
 
         // displays result
-        const pgn_resultElem = document.createElement("div");
-        pgn_resultElem.classList.add("pgn-viewer__pgn-elem", "pgn-viewer__pgn-elem--type-result");
-        pgn_resultElem.innerHTML = `<span>${resultText}</span><br /><span style = "font-size: large;">${flavorText} ${termination}</span>`;
-        this.pgnElem.appendChild(pgn_resultElem);
-
-        this.resultElem = pgn_resultElem;
-
+        if (!this.resultElem || !this.resultElem.parentNode){
+            const pgn_resultElem = document.createElement("div");
+            pgn_resultElem.classList.add("pgn-viewer__pgn-elem", "pgn-viewer__pgn-elem--type-result");
+            this.pgnElem.appendChild(pgn_resultElem);
+            this.resultElem = pgn_resultElem;
+        }
+        this.resultElem.innerHTML = `<span>${resultText}</span><br /><span style = "font-size: large;">${flavorText} ${termination}</span>`;
         this.boardgfx.pgnData.setHeader("Result", resultText);
     }
 
