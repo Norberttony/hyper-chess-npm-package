@@ -1,9 +1,8 @@
 import { BotProtocol } from "../abstract/protocol.js";
 import { StartingFEN } from "../../game/board.js";
 import { readWords } from "./utils.js";
-import { Score } from "./index.js";
 import type { BotProcess } from "../abstract/bot-process.js";
-import { GameTime } from "../utils.js";
+import { GameTime, Score } from "../utils.js";
 
 export class UCIBotProtocol extends BotProtocol {
     private startFEN: string = "";
@@ -107,12 +106,12 @@ function extractPV(line: string): string {
 }
 
 function extractScore(line: string): Score | undefined {
-    const mateScore = extractInfo(line, "score mate");
-    const cpScore = extractInfo(line, "score cp");
+    const mateScore = parseInt(extractInfo(line, "score mate"));
+    const cpScore = parseInt(extractInfo(line, "score cp"));
     if (mateScore)
-        return new Score(mateScore, true);
+        return { value: mateScore, isMate: true };
     else if (cpScore)
-        return new Score(cpScore, false);
+        return { value: cpScore, isMate: false };
     else
         return undefined;
 }

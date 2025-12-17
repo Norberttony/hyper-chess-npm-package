@@ -1,14 +1,14 @@
-
 import fs from "node:fs";
 import pathModule from "node:path";
 import { Board } from "./game/board.js";
+import { Move } from "./game/move.js";
 
 const perftPath = pathModule.join(".", "perft.json");
 
 try {
     console.log("[!!!] Only running tests that are <= 50k nodes because the program is slow");
 
-    const testSuite = JSON.parse(fs.readFileSync(perftPath));
+    const testSuite = JSON.parse(fs.readFileSync(perftPath).toString());
 
     const b = new Board();
 
@@ -34,14 +34,14 @@ catch(err){
 }
 
 
-function countMoves(depth, board, prevMove){
+function countMoves(depth: number, board: Board, prevMove?: Move): number[] {
     if (depth == 0){
         if (prevMove)
             return [
                 1,
                 prevMove.captures.length > 0 ? 1 : 0,
                 prevMove.captures.length,
-                board.isGameOver() && board.result.termination == "checkmate" ? 1 : 0
+                board.isGameOver() && board.isGameOver()!.termination == "checkmate" ? 1 : 0
             ];
         else
             return [ 1, 0, 0, 0 ];
@@ -54,10 +54,10 @@ function countMoves(depth, board, prevMove){
 
         const res = countMoves(depth - 1, board, m);
         for (let i = 0; i < 4; i++)
-            counter[i] += res[i];
+            counter[i]! += res[i]!;
 
         if (!prevMove)
-            console.log(m.uci, res[0]);
+            console.log(m.lan, res[0]);
 
         board.unmakeMove(m);
     }

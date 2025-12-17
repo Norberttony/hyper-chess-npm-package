@@ -6,12 +6,12 @@ export interface Score {
 
 // The engine's thinking data
 export interface ThinkStats {
-    depth?: number,
-    bestmove?: string,
-    nodes?: number,
-    time?: number,
-    pv?: string,
-    score?: Score
+    depth?: number | undefined,
+    bestmove?: string | undefined,
+    nodes?: number | undefined,
+    time?: number | undefined,
+    pv?: string | undefined,
+    score?: Score | undefined
 };
 
 export interface GameTime {
