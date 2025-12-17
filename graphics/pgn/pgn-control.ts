@@ -3,7 +3,7 @@
 
 /* mobile user holds down next/back buttons */
 export function addPointerHoldListener(elem: HTMLElement, action: Function){
-    let holdTimeout: number = -1;
+    let holdTimeout: ReturnType<typeof setTimeout>;
 
     // times in ms, maxTime represents initial wait time for action and minTime represents
     // the lowest possible wait time for action

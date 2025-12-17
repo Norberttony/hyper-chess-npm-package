@@ -7,7 +7,7 @@ import { getPieceSide, getPieceType } from "../../game/piece.js";
 // handles move animations
 
 export class AnimationWidget extends BoardWidget {
-    private queuedAnimations: number[] = [];
+    private queuedAnimations: ReturnType<typeof setTimeout>[] = [];
 
     constructor(boardgfx: BoardGraphics){
         super(boardgfx);
@@ -56,7 +56,7 @@ export class AnimationWidget extends BoardWidget {
             setElemLocation(piece, getFileFromSq(lastMadeMove.to), getRankFromSq(lastMadeMove.to), isFlipped);
         }
 
-        let qa: number[] | undefined = this.queuedAnimations;
+        let qa: ReturnType<typeof setTimeout>[] | undefined = this.queuedAnimations;
         const timeout = setTimeout(() => {
             if (dir == 1)
                 setElemLocation(piece!, getFileFromSq(lastMadeMove.to), getRankFromSq(lastMadeMove.to), isFlipped);

@@ -23,7 +23,7 @@ export class VariationsBoard extends Board {
         super();
     }
 
-    public override loadFEN(fen: string ): void {
+    public override loadFEN(fen: string): void {
         super.loadFEN(fen);
 
         // just get rid of everything after variation root and have gc handle it
