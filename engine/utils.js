@@ -1,22 +1,4 @@
-
 import { Board, Piece } from "hyper-chess-board";
-
-export class Score {
-    constructor(value, isMate){
-        this.value = value;
-        this.isMate = isMate;
-    }
-}
-
-export function extractFromInfoLine(line, name){
-    const idx = line.indexOf(` ${name} `);
-    if (idx == -1)
-        return;
-
-    const leftSpace = idx + 1 + name.length;
-    const rightSpace = line.indexOf(" ", leftSpace + 1);
-    return line.substring(leftSpace + 1, rightSpace);
-}
 
 // retrieves the engine's evaluation of its currently set position in the form
 // { score, pv, depth, log }

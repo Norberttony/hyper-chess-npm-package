@@ -1,13 +1,10 @@
-
-import { EmptyBotProtocol } from "../protocols/empty-protocol";
-
 export class AbstractBotProcess {
-    constructor(onReadLine = () => 0){
+    constructor(){
         // log is all of the input/output to/from the engine so far
         // input is indexed by a " > " before the line.
         this.log = "";
 
-        this.onReadLine = onReadLine;
+        this.readListeners = [];
 
         this.running = false;
 
@@ -15,6 +12,15 @@ export class AbstractBotProcess {
         this.promptPrefix;
         this.onPromptSuccess;
         this.promptTimeout;
+    }
+
+    #onReadLine(line){
+        for (const l of this.readListeners)
+            l(line);
+    }
+
+    addReadLineListener(listener){
+        this.readListeners.push(listener);
     }
 
     // This must be implemented in all derived classes
@@ -40,7 +46,7 @@ export class AbstractBotProcess {
 
     readLine(line){
         this.log += `${line}\n`;
-        this.onReadLine(line);
+        this.#onReadLine(line);
         if (this.promptPrefix && l.startsWith(this.promptPrefix)){
             this.onPromptSuccess(l);
             clearTimeout(this.promptTimeout);
@@ -65,25 +71,5 @@ export class AbstractBotProcess {
 
             this.write(cmd);
         });
-    }
-
-    async assignProtocol(){
-        const empty = new EmptyBotProtocol(this);
-        this.prot = empty;
-
-        for (const prot of PROTOCOLS){
-            if (await prot.isAssignableTo(this, timeoutMs)){
-                this.prot = new prot(this);
-
-                // for each queued call, run it on prot
-                for (const { method, args } of empty.queuedCalls){
-
-                }
-
-                return this;
-            }
-        }
-        console.error("Could not find a valid protocol for bot:", this);
-        throw new Error("Protocol not found");
     }
 }
