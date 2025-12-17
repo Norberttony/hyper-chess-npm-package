@@ -13,5 +13,14 @@
   "author": "Norbert Krajewski",
   "license": "ISC",
   "type": "module",
-  "files": [ "/game", "/graphics", "/pgn", "/index.js" ]
+  "files": [
+    "/game",
+    "/graphics",
+    "/pgn",
+    "/index.js"
+  ],
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "typescript": "^5.9.3"
+  }
 }

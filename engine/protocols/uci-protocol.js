@@ -1,8 +1,8 @@
-import { AbstractBotProtocol } from "../abstract/abstract-protocol.js";
+import { BotProtocol } from "../abstract/protocol.js";
 import { StartingFEN } from "../../game/board.js";
 import { readWords, Score } from "./utils.js";
 
-export class UCIBotProtocol extends AbstractBotProtocol {
+export class UCIBotProtocol extends BotProtocol {
     constructor(botProcess){
         super(botProcess);
         this.startFEN = "";

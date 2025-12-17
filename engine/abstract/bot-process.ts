@@ -1,40 +1,42 @@
-export class AbstractBotProcess {
-    constructor(){
-        // log is all of the input/output to/from the engine so far
-        // input is indexed by a " > " before the line.
-        this.log = "";
+export abstract class BotProcess {
+    // log is all of the input/output to/from the engine so far
+    // input is indexed by a " > " before the line.
+    private log: string = "";
+    private readListeners: Function[] = [];
+    #isRunning: boolean = false;
 
-        this.readListeners = [];
+    // for prompt
+    private promptPrefix?: string;
+    private onPromptSuccess?: Function;
+    private promptTimeout?: number;
 
-        this.running = false;
+    constructor(){}
 
-        // for prompt
-        this.promptPrefix;
-        this.onPromptSuccess;
-        this.promptTimeout;
+    public get isRunning(){
+        return this.#isRunning;
     }
 
-    #onReadLine(line){
+    #onReadLine(line: string){
         for (const l of this.readListeners)
             l(line);
     }
 
-    addReadLineListener(listener){
+    addReadLineListener(listener: Function){
         this.readListeners.push(listener);
     }
 
     // This must be implemented in all derived classes
     start(){
-        this.running = true;
+        this.#isRunning = true;
     }
 
     // This must be implemented in all derived classes
     stop(){
-        this.running = false;
+        this.#isRunning = false;
     }
 
     // This must be implemented in all derived classes
-    write(cmd){
+    write(cmd: string){
         this.log += `> ${cmd}\n`;
     }
 
@@ -44,22 +46,23 @@ export class AbstractBotProcess {
         this.start();
     }
 
-    readLine(line){
+    readLine(line: string){
         this.log += `${line}\n`;
         this.#onReadLine(line);
-        if (this.promptPrefix && l.startsWith(this.promptPrefix)){
-            this.onPromptSuccess(l);
+        if (this.promptPrefix && line.startsWith(this.promptPrefix)){
+            if (this.onPromptSuccess)
+                this.onPromptSuccess(line);
             clearTimeout(this.promptTimeout);
             delete this.promptPrefix;
         }
     }
 
-    prompt(cmd, prefix, timeoutMs = undefined){
+    prompt(cmd: string, prefix: string, timeoutMs = undefined){
         if (this.promptPrefix)
             throw new Error("AbstractBotProcess: cannot prompt; currently responding to an earlier prompt");
         return new Promise((res, rej) => {
             this.promptPrefix = prefix;
-            this.onPromptSuccess = (line) => res(line);
+            this.onPromptSuccess = (line: string) => res(line);
 
             if (timeoutMs !== undefined){
                 this.promptTimeout = setTimeout(() => {
