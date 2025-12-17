@@ -1,14 +1,18 @@
+export type onReadLineListener = (line: string) => any;
+
+// start, stop, and write should be overridden in the derived classes.
+
 export abstract class BotProcess {
     // log is all of the input/output to/from the engine so far
     // input is indexed by a " > " before the line.
     private log: string = "";
-    private readListeners: Function[] = [];
+    private readListeners: onReadLineListener[] = [];
     #isRunning: boolean = false;
 
     // for prompt
     private promptPrefix?: string;
-    private onPromptSuccess?: Function;
-    private promptTimeout?: number;
+    private onPromptSuccess?: onReadLineListener;
+    private promptTimeout?: NodeJS.Timeout;
 
     constructor(){}
 
@@ -16,37 +20,34 @@ export abstract class BotProcess {
         return this.#isRunning;
     }
 
-    #onReadLine(line: string){
+    #onReadLine(line: string): void {
         for (const l of this.readListeners)
             l(line);
     }
 
-    addReadLineListener(listener: Function){
+    public addReadLineListener(listener: onReadLineListener): void {
         this.readListeners.push(listener);
     }
 
-    // This must be implemented in all derived classes
-    start(){
+    public start(): void {
         this.#isRunning = true;
     }
 
-    // This must be implemented in all derived classes
-    stop(){
+    public stop(): void {
         this.#isRunning = false;
     }
 
-    // This must be implemented in all derived classes
-    write(cmd: string){
+    public write(cmd: string): void {
         this.log += `> ${cmd}\n`;
     }
 
     // have you tried turning it off and on again?
-    restart(){
+    public restart(): void {
         this.stop();
         this.start();
     }
 
-    readLine(line: string){
+    protected readLine(line: string): void {
         this.log += `${line}\n`;
         this.#onReadLine(line);
         if (this.promptPrefix && line.startsWith(this.promptPrefix)){
@@ -57,7 +58,7 @@ export abstract class BotProcess {
         }
     }
 
-    prompt(cmd: string, prefix: string, timeoutMs = undefined){
+    public prompt(cmd: string, prefix: string, timeoutMs: number | undefined = undefined): Promise<string> {
         if (this.promptPrefix)
             throw new Error("AbstractBotProcess: cannot prompt; currently responding to an earlier prompt");
         return new Promise((res, rej) => {

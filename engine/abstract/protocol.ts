@@ -1,15 +1,41 @@
-import type { ThinkStats } from "../utils.js";
+import type { GameTime, ThinkStats } from "../utils.js";
 import type { BotProcess } from "./bot-process.js";
+
+type ThinkStatsUpdateListener = (stats: ThinkStats) => any;
 
 export abstract class BotProtocol {
     protected bot: BotProcess;
-    private thinkStats: { [depth: number]: ThinkStats };
-    private currDepth: number;
+    protected thinkStats: { [depth: number]: ThinkStats } = {};
+    protected currDepth: number = -1;
+
+    private thinkStatsUpdateListeners: ThinkStatsUpdateListener[] = [];
+
+    private engineName: string = "???";
+    private authorName: string = "???";
 
     constructor(botProcess: BotProcess){
         this.bot = botProcess;
-        this.thinkStats = {};
-        this.currDepth = -1;
+        this.bot.start();
+    }
+
+    protected setEngineName(name: string): void {
+        this.engineName = name;
+    }
+
+    protected setAuthorName(name: string): void {
+        this.authorName = name;
+    }
+
+    public getEngineName(): string {
+        return this.engineName;
+    }
+
+    public getAuthorName(): string {
+        return this.authorName;
+    }
+
+    public addThinkStatsUpdateListener(listener: ThinkStatsUpdateListener){
+        this.thinkStatsUpdateListeners.push(listener);
     }
 
     protected updateThinkStats(stats: ThinkStats){
@@ -21,18 +47,24 @@ export abstract class BotProtocol {
         }else{
             this.thinkStats[this.currDepth] = stats;
         }
+        for (const l of this.thinkStatsUpdateListeners)
+            l(this.thinkStats[this.currDepth]!);
     }
 
-    public getThinkStats(){
-        return this.thinkStats[this.currDepth];
+    public getThinkStats(): ThinkStats {
+        return this.thinkStats[this.currDepth] || {};
     }
 
     public resetThinkStats(){
         this.thinkStats = {};
     }
 
-    public static async isAssignableTo(botProcess: BotProcess, timeoutMs: number){}
-    public setFEN(fen: string){}
-    public playMove(lan: string){}
-    public async thinkFor(ms: number, timeoutPaddingMs: number){}
+    public abstract setFEN(fen: string): void;
+    public abstract playMove(lan: string): void;
+    public abstract thinkForMoveTime(ms: number, allowTimeout: boolean, timeoutPaddingMs: number): Promise<string | undefined>;
+    public abstract thinkTimedGame(time: GameTime, allowTimeout: boolean, isWhite: boolean, timeoutPaddingMs: number): Promise<string | undefined>;
+    public abstract thinkForDepth(depth: number): Promise<string | undefined>;
+    public abstract startThink(): void;
+    public abstract stopThink(): void;
+    public abstract isReady(timeoutMs: number): Promise<boolean>;
 }

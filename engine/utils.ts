@@ -13,3 +13,10 @@ export interface ThinkStats {
     pv?: string,
     score?: Score
 };
+
+export interface GameTime {
+    wtime: number,
+    winc: number,
+    btime: number,
+    binc: number
+};
