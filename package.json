@@ -16,7 +16,9 @@
   "license": "ISC",
   "type": "module",
   "files": [
-    "/dist"
+    "/dist",
+    "/graphics/styles",
+    "/graphics/images"
   ],
   "devDependencies": {
     "@types/node": "^25.0.3",
