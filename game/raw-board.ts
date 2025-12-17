@@ -1,4 +1,5 @@
-import { PieceType, Side, isPieceOfSide, getPieceType, isPieceOfType, getPieceSide, Piece, arePiecesSameType, getFENCharFromPieceType, getPieceTypeFromFENChar } from "./piece.js";
+import { squareToAlgebraic } from "./coords.js";
+import { PieceType, Side, isPieceOfSide, getPieceType, isPieceOfType, getPieceSide, Piece, getFENCharFromPieceType, getPieceFromFENChar, arePiecesSameSide } from "./piece.js";
 import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
 
 // the base board with no move-gen functionality. The only reason this class
@@ -6,7 +7,7 @@ import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
 // as checking where pieces are.
 
 export class RawBoard {
-    // contains the type and color of every piece on all 64 squares (Piece[Color] | Piece[Type])
+    // contains the type and side of every piece on all 64 squares (Side | PieceType)
     private squares = new Uint8Array(64);
     private pieceCounts: number[][] = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
     protected turn: Side = Side.White;
@@ -14,7 +15,7 @@ export class RawBoard {
     // quick look-ups for piece squares (first index is white second is black)
     protected kings = new Uint8Array(2);
     protected coordinators = new Uint8Array(2);
-    protected chameleons = new Uint8Array(2);
+    protected chameleons = new Uint8Array(4);
 
     protected fullmove: number = 1;
     // keeps track of the history of halfmoves (to allow for undoing moves)
@@ -43,7 +44,7 @@ export class RawBoard {
     public pickup(sq: number): Piece {
         const val = this.getPiece(sq);
 
-        if (!val)
+        if (val == 0)
             return 0;
 
         this.squares[sq] = 0;
@@ -65,7 +66,7 @@ export class RawBoard {
                     this.chameleons[1] = 255;
                 else{
                     console.log("white", this.getFEN(), this.chameleons);
-                    throw new Error(`Tried to pick up a chameleon at square ${sq} but it was never stored in the lookup`);
+                    throw new Error(`Tried to pick up a chameleon on ${squareToAlgebraic(sq)} but it was never stored in the lookup`);
                 }
             }else{
                 if (this.chameleons[2] == sq){
@@ -75,7 +76,7 @@ export class RawBoard {
                     this.chameleons[3] = 255;
                 else{
                     console.log("black", this.getFEN(), this.chameleons);
-                    throw new Error(`Tried to pick up a chameleon at square ${sq} but it was never stored in the lookup`);
+                    throw new Error(`Tried to pick up a chameleon on ${squareToAlgebraic(sq)} but it was never stored in the lookup`);
                 }
             }
         }else if (isPieceOfType(val, PieceType.King)){
@@ -92,8 +93,6 @@ export class RawBoard {
     // places down the given piece at the sq
     // assumes that there is currently no piece at the given sq.
     public placedown(sq: number, piece: Piece): void {
-        // TODO: code relies on having duplicate captures, but once that's fixed, this should
-        // error.
         if (this.squares[sq])
             return;
 
@@ -160,7 +159,7 @@ export class RawBoard {
             const target = sq + dirOffsets[i]!;
             const targetValue = this.getPiece(target);
 
-            if (isPieceOfType(targetValue, pieceType) && !arePiecesSameType(piece, targetValue)){
+            if (isPieceOfType(targetValue, pieceType) && !arePiecesSameSide(piece, targetValue)){
                 return true;
             }
 
@@ -177,19 +176,12 @@ export class RawBoard {
         return false;
     }
 
-    // retrieves the current player's king's square
-    /*
-    public getKingSq(): number {
-        return this.turn == Side.Black ? this.kings[0]! : this.kings[1]!;
-    }
-    */
-
-    // actually retrieves the current player's king's square
+    // retrieves the square of the king
     public getKingSq(enemy: boolean): number {
         return this.kings[this.turn == (enemy ? Side.Black : Side.White) ? 0 : 1]!;
     }
 
-    // retrieves the current player's coordinator's square
+    // retrieves the square of the coordinator
     public getCoordSq(enemy: boolean): number {
         return this.coordinators[this.turn == (enemy ? Side.Black : Side.White) ? 0 : 1]!;
     }
@@ -227,8 +219,8 @@ export class RawBoard {
             if (c == "/"){
                 r--;
                 f = 0;
-            }else if (getPieceTypeFromFENChar(c)){
-                let piece = getPieceTypeFromFENChar(c);
+            }else if (getPieceFromFENChar(c)){
+                let piece = getPieceFromFENChar(c);
                 let sq = f + r * 8;
                 this.squares[sq] = piece;
                 f++;

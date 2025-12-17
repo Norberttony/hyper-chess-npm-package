@@ -5,6 +5,7 @@ import { Move } from "./game/move.js";
 
 const perftPath = pathModule.join(".", "perft.json");
 
+let pv: string[] = [];
 try {
     console.log("[!!!] Only running tests that are <= 50k nodes because the program is slow");
 
@@ -14,16 +15,20 @@ try {
 
     for (const { fen, nodes } of testSuite){
         b.loadFEN(fen);
+        const startFEN = b.getFEN();
         console.log(fen);
         for (const depthStr of Object.keys(nodes)){
             const depth = parseInt(depthStr);
             const expected = nodes[depthStr];
             if (expected > 50000)
                 continue;
-            const actual = countMoves(depth, b)[0];
+            const actual = countMoves(depth, b, pv)[0];
+            const finalFENMatch = b.getFEN() == startFEN;
             console.log(actual, expected);
             if (actual != expected)
-                throw new Error(`Perft results did not match for fen ${fen} at depth ${depthStr}`);
+                throw new Error(`Perft results did not match for fen ${fen} at depth ${depthStr}; final FEN match: ${finalFENMatch}`);
+            if (!finalFENMatch)
+                throw new Error(`Perft results matched but the final FEN (${b.getFEN()}) did not match the initial FEN ${startFEN}`);
         }
     }
 
@@ -31,10 +36,11 @@ try {
 }
 catch(err){
     console.error("An error occurred during testing:", err);
+    console.error("Last PV was", pv);
 }
 
 
-function countMoves(depth: number, board: Board, prevMove?: Move): number[] {
+function countMoves(depth: number, board: Board, pv: string[] = [], prevMove?: Move): number[] {
     if (depth == 0){
         if (prevMove)
             return [
@@ -50,9 +56,11 @@ function countMoves(depth: number, board: Board, prevMove?: Move): number[] {
     const counter = [ 0, 0, 0, 0 ];
     const moves = board.generateMoves();
     for (const m of moves){
+        const startFEN = board.getFEN();
         board.makeMove(m);
+        pv.push(m.lan);
 
-        const res = countMoves(depth - 1, board, m);
+        const res = countMoves(depth - 1, board, pv, m);
         for (let i = 0; i < 4; i++)
             counter[i]! += res[i]!;
 
@@ -60,6 +68,11 @@ function countMoves(depth: number, board: Board, prevMove?: Move): number[] {
             console.log(m.lan, res[0]);
 
         board.unmakeMove(m);
+        const endFEN = board.getFEN();
+        if (startFEN != endFEN){
+            throw new Error(`startFEN does not match with endFEN, PV: ${pv.join(" ")}`);
+        }
+        pv.pop();
     }
 
     return counter;

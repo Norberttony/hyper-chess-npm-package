@@ -86,8 +86,8 @@ export function getFENCharFromPieceType(p: PieceType): string {
     return PieceTypeToFENChar[p]!;
 }
 
-export function getPieceTypeFromFENChar(char: string): PieceType {
-    return getPieceType(FENCharToPiece[char]!);
+export function getPieceFromFENChar(char: string): Piece {
+    return FENCharToPiece[char]!;
 }
 
 export function getSANCharFromPieceType(p: PieceType): string {

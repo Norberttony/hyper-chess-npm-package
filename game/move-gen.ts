@@ -300,9 +300,6 @@ export class MoveGenerator extends RawBoard {
             this.chameleons[this.turn == Side.White ? 1 : 3]!
         ].filter(val => val != 255);
 
-        const ranks = considerSquares.map(val => getRankFromSq(val));
-        const files = considerSquares.map(val => getFileFromSq(val));
-    
         // determines number of valid directions the piece can go through
         for (let i = dirStart; i < dirEnd; i++){
             // goes through all squares until it hits an edge
@@ -319,8 +316,9 @@ export class MoveGenerator extends RawBoard {
 
                 let captures = [];
                 for (let s = 0; s < considerSquares.length; s++){
-                    const sqRank = ranks[s]!;
-                    const sqFile = files[s]!;
+                    const sq = considerSquares[s]!;
+                    const sqRank = getRankFromSq(sq)!;
+                    const sqFile = getFileFromSq(sq)!;
                     if (sqRank != rank && sqFile != file){
                         // death squares are formed
                         const death1 = rank * 8 + sqFile;

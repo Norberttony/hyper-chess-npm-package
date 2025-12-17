@@ -3,7 +3,7 @@ import {
     algebraicToSquare, squareToAlgebraic,
     squareToAlgebraicFile, squareToAlgebraicRank
 } from "./coords.js";
-import { arePiecesSameType, getPieceSide, getPieceType, getPieceTypeFromFENChar, getSANCharFromPieceType, isPieceOfType, PieceType, Side } from "./piece.js";
+import { arePiecesSameType, getPieceSide, getPieceType, getPieceFromFENChar, getSANCharFromPieceType, isPieceOfType, PieceType, Side } from "./piece.js";
 import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
 import { removeGlyphs } from "./san.js";
 import { MoveGenerator } from "./move-gen.js";
@@ -121,7 +121,7 @@ export class Board extends MoveGenerator {
         san = removeGlyphs(san);
         const toSq = algebraicToSquare(san.substring(san.length - 2) as AlgebraicSquare);
         const fenChar = this.turn == Side.White ? san[0]! : san[0]!.toLowerCase();
-        const pieceValue = getPieceTypeFromFENChar(fenChar);
+        const pieceValue = getPieceFromFENChar(fenChar);
 
         if (toSq < 0 || toSq >= 64 || isNaN(toSq))
             throw new Error(`Square ${toSq} is out of range`);
