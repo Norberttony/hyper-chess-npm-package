@@ -1,27 +1,38 @@
-
 import { VariationsBoard } from "../game/variations-board.js";
 import { setInputTarget } from "./input.js";
-import { getFirstElemOfClass } from "./widgets/board-widget.js";
-import { WIDGET_NAMES } from "./widgets/index.js";
+import { BoardWidget, getFirstElemOfClass, getWidgetLocName, WidgetLocation } from "./widgets/board-widget.js";
 import {
     setAllPiecesToPool, setAllMoveHighlightsToPool, setAllLastMoveHighlightsToPool,
     getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph
 } from "./pool.js";
-
-import { Piece } from "../index.js";
-
+import { getPieceSide, getPieceType, Side } from "../index.js";
+import { VariationMove } from "./pgn/variation.js";
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum
 // that it allows is a board element with pieces displayed on it, but it can support any combination
 // of widgets, that may listen to relevant state changes.
 
 export class BoardGraphics extends VariationsBoard {
+    public skeleton: HTMLElement;
+    public boardDiv: HTMLElement;
+    public piecesDiv: HTMLElement;
+    public draggingElem: HTMLElement;
+
+    private widgets: { [name: string]: BoardWidget };
+    private widgetNames: Set<string> = new Set<string>();
+
+    private allowInputFrom: { [side: number]: boolean };
+    private allowVariations: boolean = true;
+    private piecePointerDown: (event: PointerEvent) => void;
+
+    public graphicalVariation: VariationMove;
+
     constructor(allowDragging = true, displayRanksAndFiles = false, skeleton = null){
         super();
-        skeleton = createSkeleton(skeleton);
-        skeleton.classList.add("board-graphics--board-blue", "board-graphics--pieces-cburnett");
+        this.skeleton = createSkeleton(skeleton);
+        this.skeleton.classList.add("board-graphics--board-blue", "board-graphics--pieces-cburnett");
 
-        const boardDiv = skeleton.getElementsByClassName("board-graphics__board")[0];
+        const boardDiv = this.skeleton.getElementsByClassName("board-graphics__board")[0] as HTMLElement;
         if (!boardDiv)
             throw new Error("Skeleton requires a unique empty div of class name board-graphics__board");
         
@@ -31,11 +42,9 @@ export class BoardGraphics extends VariationsBoard {
 
         // set attributes
         this.widgets = {};
-        this.skeleton = skeleton;
         this.boardDiv = boardDiv;
         this.piecesDiv = piecesDiv;
-        this.widgetNames = new Set();
-        this.allowInputFrom = { [Piece.white]: allowDragging, [Piece.black]: allowDragging };
+        this.allowInputFrom = { [Side.White]: allowDragging, [Side.Black]: allowDragging };
         this.allowVariations = true;
         this.piecePointerDown = createPiecePointerDown(this);
 
@@ -47,39 +56,38 @@ export class BoardGraphics extends VariationsBoard {
         if (displayRanksAndFiles)
             addFilesAndRanks(boardDiv);
 
-        if (allowDragging){
-            this.draggingElem = createBoardDraggingElem(skeleton);
+        this.draggingElem = createBoardDraggingElem(this.skeleton);
+        if (allowDragging)
             boardDiv.onpointerdown = this.piecePointerDown;
-        }
     }
 
-    get isFlipped(){
+    public get isFlipped(): boolean {
         return this.skeleton.classList.contains("board-graphics--flipped");
     }
 
-    loading(){
+    public loading(): void {
         this.skeleton.classList.add("board-graphics--loading");
     }
 
-    finishedLoading(){
+    public finishedLoading(): void {
         this.skeleton.classList.remove("board-graphics--loading");
     }
 
     // retrieves the relevant widget container, creating one if necessary
-    getWidgetElem(location){
-        const widgetName = WIDGET_NAMES[location];
-        const elem = getFirstElemOfClass(this.skeleton, `board-graphics__${widgetName}`);
+    public getWidgetContainer(location: WidgetLocation): HTMLElement {
+        const widgetLocName = getWidgetLocName(location);
+        const elem = getFirstElemOfClass(this.skeleton, `board-graphics__${widgetLocName}`) as HTMLElement;
         if (elem)
             return elem;
         
         const w = document.createElement("div");
-        w.classList.add(`board-graphics__${widgetName}`);
+        w.classList.add(`board-graphics__${widgetLocName}`);
         this.skeleton.appendChild(w);
         return w;
     }
 
     // expects widgets to be a set of widget names.
-    setActiveWidgets(widgets){
+    public setActiveWidgets(widgets: Set<string>): void {
         console.log(Array.from(widgets));
         for (const [ name, widget ] of Object.entries(this.widgets)){
             if (widgets.has(name)){
@@ -91,7 +99,7 @@ export class BoardGraphics extends VariationsBoard {
         console.log(Array.from(widgets));
     }
 
-    attachWidget(widget){
+    public attachWidget(widget: BoardWidget): void {
         const name = widget.constructor.name;
         if (this.widgetNames.has(name)){
             console.error("Attempted to attach ", name, " as a widget to ", this, " when an instance of this widget is already attached.");
@@ -101,7 +109,7 @@ export class BoardGraphics extends VariationsBoard {
         this.widgets[name] = widget;
     }
 
-    setNames(whiteName, blackName){
+    public setNames(whiteName: string, blackName: string): void {
         this.dispatchEvent("player-names", { whiteName, blackName });
     }
 
@@ -109,7 +117,7 @@ export class BoardGraphics extends VariationsBoard {
     // === LOADING FEN AND PGN === //
     // =========================== //
 
-    loadFEN(fen){
+    public override loadFEN(fen: string): void {
         super.loadFEN(fen);
 
         this.graphicalVariation = this.variationRoot;
@@ -117,7 +125,7 @@ export class BoardGraphics extends VariationsBoard {
         this.dispatchEvent("loadFEN", { fen });
     }
 
-    loadPGN(pgn){
+    public override loadPGN(pgn: string): void {
         super.loadPGN(pgn);
 
         const w = this.pgnData.headers.White;
@@ -132,7 +140,7 @@ export class BoardGraphics extends VariationsBoard {
     // === HANDLING VARIATIONS === //
     // =========================== //
 
-    applyChanges(userInput = false){
+    public applyChanges(userInput = false): void {
         this.display();
 
         const cv = this.currentVariation;
@@ -157,25 +165,27 @@ export class BoardGraphics extends VariationsBoard {
             
             // attach any relevant glyphs
             for (const g of cv.glyphs){
-                attachGlyph(this.getPieceElem(toX, toY), g);
+                const pieceElem = this.getPieceElem(toX, toY);
+                if (pieceElem)
+                    attachGlyph(pieceElem, g);
             }
         }
 
         // check and dispatch event for any results
-        this.isGameOver();
-        if (this.result){
+        const result = this.isGameOver();
+        if (result){
             this.dispatchEvent("result", {
-                result:         this.result.result,
                 turn:           this.turn,
-                termination:    this.result.termination,
-                winner:         this.result.winner
+                termination:    result.termination,
+                winner:         result.winner
             });
         }
     }
 
-    deleteVariation(variation, isHelper = false){
+    public override deleteVariation(variation: VariationMove, isHelper = false): void {
         super.deleteVariation(variation, isHelper);
         this.dispatchEvent("delete-variation", { variation });
+        this.applyChanges(false);
     }
 
     // ========================== //
@@ -183,18 +193,18 @@ export class BoardGraphics extends VariationsBoard {
     // ========================== //
 
     // returns true if the player can move the piece at the given square. Otherwise, returns false.
-    canMove(sq){
+    public canMove(sq: number): boolean {
         // ensure user is not creating a variation when not allowed to.
         if (!this.allowVariations && this.currentVariation.next.length > 0)
             return false;
 
         // prevent user from playing when a result is already set
-        if (this.result)
+        if (this.isGameOver())
             return false;
 
-        const piece = this.squares[sq];
-        const col = Piece.getColor(piece);
-        return this.allowInputFrom[col] && !this.isImmobilized(sq, piece) && this.turn == col;
+        const piece = this.getPiece(sq);
+        const side = getPieceSide(piece);
+        return this.allowInputFrom[side]! && !this.isImmobilized(sq, piece) && this.turn == side;
     }
 
     // ============================== //
@@ -203,19 +213,19 @@ export class BoardGraphics extends VariationsBoard {
 
     // if v is false: white perspective
     // if v is true: black perspective
-    setFlip(v){
+    public setFlip(v: boolean): void {
         if (v != this.isFlipped)
             this.flip();
     }
 
     // flips the board and then redisplays it
-    flip(){
+    public flip(): void {
         this.skeleton.classList.toggle("board-graphics--flipped");
         this.display();
-        this.dispatchEvent("flip");
+        this.dispatchEvent("flip", {});
     }
 
-    display(){
+    public display(): void {
         setAllPiecesToPool(this.skeleton);
         setAllMoveHighlightsToPool(this.skeleton);
         setAllLastMoveHighlightsToPool(this.skeleton);
@@ -238,20 +248,20 @@ export class BoardGraphics extends VariationsBoard {
         // display all pieces on the board
         for (let r = 0; r < 8; r++){
             for (let f = 0; f < 8; f++){
-                const v = this.squares[r * 8 + f];
+                const v = this.getPiece(r * 8 + f);
                 if (v){
-                    const piece = getPieceFromPool(f, r, this.isFlipped, Piece.getType(v), Piece.getColor(v));
+                    const piece = getPieceFromPool(f, r, this.isFlipped, getPieceType(v), getPieceSide(v));
                     this.piecesDiv.appendChild(piece);
                 }
             }
         }
     }
 
-    getPieceElem(f, r){
-        return this.piecesDiv.getElementsByClassName(`${f}_${r}`)[0];
+    public getPieceElem(f: number, r: number): HTMLElement | undefined {
+        return this.piecesDiv.getElementsByClassName(`${f}_${r}`)[0] as (HTMLElement | undefined);
     }
 
-    dispatchEvent(name, detail){
+    private dispatchEvent(name: string, detail: any): void {
         this.skeleton.dispatchEvent(new CustomEvent(name, { detail }));
     }
 }
@@ -261,7 +271,7 @@ export class BoardGraphics extends VariationsBoard {
 // they are generally used to populate the skeleton with graphical features.
 
 // creates a graphical skeleton that is meant to contain a chess board's graphics and widgets.
-function createSkeleton(skeleton){
+function createSkeleton(skeleton: HTMLElement | null): HTMLElement {
     // skeleton contains all widgets including main board display
     if (!skeleton)
         skeleton = document.createElement("div");
@@ -280,7 +290,7 @@ function createSkeleton(skeleton){
     return skeleton;
 }
 
-function addFilesAndRanks(boardDiv){
+function addFilesAndRanks(boardDiv: HTMLElement): void {
     const filesDiv = document.createElement("div");
     filesDiv.classList.add("board-graphics__files");
     for (const c of "abcdefgh"){
@@ -294,21 +304,21 @@ function addFilesAndRanks(boardDiv){
     ranksDiv.classList.add("board-graphics__ranks");
     for (let r = 1; r <= 8; r++){
         const rank = document.createElement("div");
-        rank.innerText = r;
+        rank.innerText = r.toString();
         ranksDiv.appendChild(rank);
     }
     boardDiv.appendChild(ranksDiv);
 }
 
-function createBoardDraggingElem(skeleton){
+function createBoardDraggingElem(skeleton: HTMLElement): HTMLElement {
     const drag = document.createElement("div");
     drag.classList.add("board-graphics__dragging");
     skeleton.appendChild(drag);
     return drag;
 }
 
-function createPiecePointerDown(gameState){
-    return (event) => {
+function createPiecePointerDown(gameState: BoardGraphics): (event: PointerEvent) => void {
+    return (event: PointerEvent): void => {
         setInputTarget(gameState, gameState.draggingElem, event);
     };
 }

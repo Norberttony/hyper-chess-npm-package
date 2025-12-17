@@ -65,7 +65,7 @@ export class Board extends MoveGenerator {
     }
 
     // checks if the current player is checkmated... or stalemated...
-    public isGameOver(moves?: Move[]){
+    public isGameOver(moves?: Move[]): GameResult | undefined {
         if (this.result)
             return this.result;
 
