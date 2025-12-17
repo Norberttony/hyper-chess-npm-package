@@ -92,7 +92,6 @@ export class AnnotatorWidget extends BoardWidget {
             this.ctx.arc(sx, sy, halfSquare - this.ctx.lineWidth / 2, 0, 2 * Math.PI);
             this.ctx.stroke();
         }else{
-
             const midOffsetX = -50 * nx;
             const midOffsetY = -50 * ny;
             const arrowOffsetX = -80 * nx;

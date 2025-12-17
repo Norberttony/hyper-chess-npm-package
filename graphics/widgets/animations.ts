@@ -3,6 +3,7 @@ import { BoardWidget } from "./board-widget.js";
 import { getPieceFromPool, setElemLocation } from "../pool.js";
 import type { BoardGraphics } from "../board-graphics.js";
 import { getPieceSide, getPieceType } from "../../game/piece.js";
+import { SingleScrollEvent } from "../board-events.js";
 
 // handles move animations
 
@@ -12,11 +13,11 @@ export class AnimationWidget extends BoardWidget {
     constructor(boardgfx: BoardGraphics){
         super(boardgfx);
         boardgfx.skeleton.addEventListener("single-scroll", (event) => {
-            this.singleScroll(event as CustomEvent);
+            this.singleScroll(event);
         });
     }
 
-    singleScroll(event: CustomEvent){
+    singleScroll(event: SingleScrollEvent){
         const { prevVariation, variation, userInput } = event.detail;
 
         let isFlipped = this.boardgfx.isFlipped;

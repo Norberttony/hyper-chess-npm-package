@@ -48,7 +48,7 @@ export class EngineWidget extends BoardWidget {
                 this.stop();
         });
 
-        boardgfx.skeleton.addEventListener("variation-change", (event) => {
+        boardgfx.skeleton.addEventListener("variation-change", () => {
             this.startThinking();
         });
     }

@@ -5,6 +5,7 @@ import { addPointerHoldListener } from "../pgn/pgn-control.js";
 import type { BoardGraphics } from "../board-graphics.js";
 import { VariationMove } from "../pgn/variation.js";
 import { getResultTag } from "../../pgn/index.js";
+import { DeleteVariationEvent, LoadFENEvent, NewVariationEvent, ResultEvent, VariationChangeEvent } from "../board-events.js";
 
 // handles displaying any of the moves in a separate panel, splitting the PGN into variations as
 // necessary.
@@ -79,19 +80,19 @@ export class PGNWidget extends BoardWidget {
 
         // event listeners
         boardgfx.skeleton.addEventListener("new-variation", (event) => {
-            this.onNewVariation(event as CustomEvent);
+            this.onNewVariation(event);
         });
         boardgfx.skeleton.addEventListener("result", (event) => {
-            this.onResult(event as CustomEvent);
+            this.onResult(event);
         });
         boardgfx.skeleton.addEventListener("loadFEN", (event) => {
-            this.onLoadFEN(event as CustomEvent);
+            this.onLoadFEN(event);
         });
         boardgfx.skeleton.addEventListener("variation-change", (event) => {
-            this.onVariationChange(event as CustomEvent);
+            this.onVariationChange(event);
         });
         boardgfx.skeleton.addEventListener("delete-variation", (event) => {
-            this.onDeleteVariation(event as CustomEvent);
+            this.onDeleteVariation(event);
         });
 
         document.body.addEventListener("keydown", (event) => this.keydown(event));
@@ -165,7 +166,7 @@ export class PGNWidget extends BoardWidget {
         this.boardgfx.applyChanges();
     }
 
-    private onNewVariation(event: CustomEvent): void {
+    private onNewVariation(event: NewVariationEvent): void {
         const { variation } = event.detail;
 
         // determine move number
@@ -281,7 +282,7 @@ export class PGNWidget extends BoardWidget {
         }
     }
 
-    private onResult(event: CustomEvent): void {
+    private onResult(event: ResultEvent): void {
         const { winner, termination } = event.detail;
 
         // based on the result number, add some result text and flavor text
@@ -307,7 +308,7 @@ export class PGNWidget extends BoardWidget {
         this.boardgfx.pgnData.setHeader("Result", resultText);
     }
 
-    private onLoadFEN(event: CustomEvent): void {
+    private onLoadFEN(event: LoadFENEvent): void {
         const { fen } = event.detail;
     
         // none of the previous PGN is relevant to this new position, so...
@@ -320,13 +321,13 @@ export class PGNWidget extends BoardWidget {
         }
     }
     
-    private onVariationChange(event: CustomEvent): void {
+    private onVariationChange(event: VariationChangeEvent): void {
         const { variation } = event.detail;
     
         selectPGNElem(this.pgnElem, variation.element);
     }
 
-    private onDeleteVariation(event: CustomEvent): void {
+    private onDeleteVariation(event: DeleteVariationEvent): void {
         const { variation } = event.detail;
 
         if (variation == this.boardgfx.mainVariation && this.resultElem && this.resultElem.parentNode){
