@@ -1,29 +1,37 @@
+import {
+    AlgebraicSquare,
+    algebraicToSquare, squareToAlgebraic,
+    squareToAlgebraicFile, squareToAlgebraicRank
+} from "./coords.js";
+import { arePiecesSameType, getPieceSide, getPieceType, getPieceTypeFromFENChar, getSANCharFromPieceType, isPieceOfType, PieceType, Side } from "./piece.js";
+import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
+import { removeGlyphs } from "./san.js";
+import { MoveGenerator } from "./move-gen.js";
+import { Move } from "./move.js";
 
 // contains all of the game logic
 
 // this code REPEATEDLY violates the DRY principle. read at your own risk.
 
-import {
-    algebraicToSquare, squareToAlgebraic,
-    squareToAlgebraicFile, squareToAlgebraicRank
-} from "./coords.js";
-import { Piece, FENToPiece, PieceASCII } from "./piece.js";
-import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
-import { removeGlyphs } from "./san.js";
-import { MoveGenerator } from "./move-gen.js";
-
 export const StartingFEN = "unbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNU w 0 1";
+
+export interface GameResult {
+    termination: string,
+    winner: Side
+};
 
 // The Board object contains a game state of the board. Certain moves can be done or undone, but
 // they are not stored.
 export class Board extends MoveGenerator {
+    private result?: GameResult;
+    private repeats: { [pos: string]: number } = {};
+
     constructor(fen = StartingFEN){
         super();
         Board.prototype.loadFEN.call(this, fen);
-        this.result;
     }
 
-    loadFEN(fen){
+    public override loadFEN(fen: string): void {
         super.loadFEN(fen);
         this.repeats = {
             [this.getPosition()]: 1
@@ -31,33 +39,33 @@ export class Board extends MoveGenerator {
         delete this.result;
     }
 
-    setResult(result, termination, winner){
-        this.result = { result, termination, winner };
+    protected setResult(termination: string, winner: Side): GameResult {
+        this.result = { termination, winner };
         return this.result;
     }
 
-    makeMove(move){
+    public override makeMove(move: Move): void {
         super.makeMove(move);
 
         const pos = this.getPosition();
         const reps = (this.repeats[pos] || 0) + 1;
         this.repeats[pos] = reps;
         if (reps >= 3)
-            this.setResult("1/2-1/2", "threefold", 0);
+            this.setResult("threefold", Side.None);
 
-        if (this.halfmoves[0] >= 100)
-            this.setResult("1/2-1/2", "fifty move rule", 0);
+        if (this.halfmoves[0]! >= 100)
+            this.setResult("fifty move rule", Side.None);
     }
 
-    unmakeMove(move){
+    public override unmakeMove(move: Move): void {
         const pos = this.getPosition();
-        this.repeats[pos]--;
+        this.repeats[pos]!--;
 
         super.unmakeMove(move);
     }
 
     // checks if the current player is checkmated... or stalemated...
-    isGameOver(moves = undefined){
+    public isGameOver(moves?: Move[]){
         if (this.result)
             return this.result;
 
@@ -67,26 +75,24 @@ export class Board extends MoveGenerator {
         // no legal moves?!
         if (moves.length == 0){
             this.nextTurn();
-            if (this.isAttacked(this.getKingSq())){
+            if (this.isAttacked(this.getKingSq(false))){
                 // CHECKMATE!!!
-                this.winner = this.turn;
-                if (this.winner == Piece.black)
-                    this.setResult("0-1", "checkmate", this.turn);
+                if (this.turn == Side.Black)
+                    this.setResult("checkmate", this.turn);
                 else
-                    this.setResult("1-0", "checkmate", this.turn);
+                    this.setResult("checkmate", this.turn);
             }else{
                 // stalemate...!
-                this.winner = 0;
-                this.setResult("1/2-1/2", "stalemate", 0);
+                this.setResult("stalemate", Side.None);
             }
             this.nextTurn();
         }else{
             // determine if it is a draw by insufficient material
             let sufficient = false;
-            for (let i = Piece.king; i <= Piece.immobilizer; i++){
-                if (i == Piece.king || i == Piece.straddler)
+            for (let i = PieceType.King; i <= PieceType.Immobilizer; i++){
+                if (i == PieceType.King || i == PieceType.Straddler)
                     continue;
-                if (this.pieceCounts[0][i] != 0 || this.pieceCounts[1][i] != 0){
+                if (this.getPieceCount(Side.White | i) != 0 || this.getPieceCount(Side.Black | i) != 0){
                     sufficient = true;
                     break;
                 }
@@ -94,11 +100,13 @@ export class Board extends MoveGenerator {
 
             if (!sufficient){
                 // KvK, KPvK, KPPvK, KPPvKP are all immediate draws.
-                let most = Math.max(this.pieceCounts[0][Piece.straddler], this.pieceCounts[1][Piece.straddler]);
-                let least = Math.min(this.pieceCounts[0][Piece.straddler], this.pieceCounts[1][Piece.straddler]);
+                const whiteStraddlerCount = this.getPieceCount(Side.White | PieceType.Straddler);
+                const blackStraddlerCount = this.getPieceCount(Side.Black | PieceType.Straddler);
+                let most = Math.max(whiteStraddlerCount, blackStraddlerCount);
+                let least = Math.min(whiteStraddlerCount, blackStraddlerCount);
                 if (most <= 1 || most == 2 && least <= 1){
                     // certain draw.
-                    this.setResult("1/2-1/2", "insufficient material", 0);
+                    this.setResult("insufficient material", Side.None);
                 }
             }
             
@@ -108,25 +116,23 @@ export class Board extends MoveGenerator {
     }
 
     // gets move given SAN
-    getMoveOfSAN(san){
-        if (!san)
-            return;
-
+    public getMoveOfSAN(san: string): Move {
         // take a short cut by considering the destination square of the san and the move piece's type
         san = removeGlyphs(san);
-        const toSq = algebraicToSquare(san.substring(san.length - 2));
-        const pieceValue = FENToPiece[this.turn == Piece.white ? san[0] : san[0].toLowerCase()];
+        const toSq = algebraicToSquare(san.substring(san.length - 2) as AlgebraicSquare);
+        const fenChar = this.turn == Side.White ? san[0]! : san[0]!.toLowerCase();
+        const pieceValue = getPieceTypeFromFENChar(fenChar);
 
         if (toSq < 0 || toSq >= 64 || isNaN(toSq))
-            return;
+            throw new Error(`Square ${toSq} is out of range`);
 
-        const possibleMoves = [];
+        const possibleMoves: Move[] = [];
         for (let j = 0; j < dirOffsets.length; j++){
-            let blockerCase = Piece.ofType(pieceValue, Piece.springer) || Piece.ofType(pieceValue, Piece.chameleon) ? 1 : 0;
-            let isCham = Piece.ofType(pieceValue, Piece.chameleon);
-            for (let i = 1; i <= numSquaresToEdge[toSq][j]; i++){
-                const startSq = toSq + i * dirOffsets[j];
-                const val = this.squares[startSq];
+            let blockerCase = isPieceOfType(pieceValue, PieceType.Springer) || isPieceOfType(pieceValue, PieceType.Chameleon) ? 1 : 0;
+            const isCham = isPieceOfType(pieceValue, PieceType.Chameleon);
+            for (let i = 1; i <= numSquaresToEdge[toSq]![j]!; i++){
+                const startSq = toSq + i * dirOffsets[j]!;
+                const val = this.getPiece(startSq);
                 if (val){
                     if (val == pieceValue){
                         const pieceMoves = this.generatePieceMoves(startSq, val, false);
@@ -136,8 +142,8 @@ export class Board extends MoveGenerator {
                             }
                         }
                     }
-                    if (Piece.getColor(pieceValue) != Piece.getColor(val)){
-                        if (blockerCase && (!isCham || Piece.ofType(val, Piece.springer)))
+                    if (getPieceSide(pieceValue) != getPieceSide(val)){
+                        if (blockerCase && (!isCham || isPieceOfType(val, PieceType.Springer)))
                             blockerCase--;
                         else
                             break;
@@ -150,7 +156,7 @@ export class Board extends MoveGenerator {
 
         for (const m of possibleMoves){
             // only consider SAN if to squares and piece types match
-            if (m.to != toSq || this.squares[m.from] != pieceValue)
+            if (m.to != toSq || this.getPiece(m.from) != pieceValue)
                 continue;
 
             const SAN = this.getMoveSAN(m, possibleMoves, false);
@@ -163,26 +169,31 @@ export class Board extends MoveGenerator {
         throw new Error(`Move of SAN ${san} could not be found.`);
     }
 
-    getMoveOfLAN(LAN){
+    public getMoveOfLAN(LAN: string){
         const moves = this.generateMoves(true);
 
         for (const m of moves){
-            if (m.uci == LAN){
+            if (m.lan == LAN){
                 return m;
             }
         }
+
+        console.error("At position", this.getFEN());
+        throw new Error(`Cannot find move of lan ${LAN}`);
     }
 
     // returns the SAN For the given move
-    getMoveSAN(move, pseudoMoves = this.generateMoves(false), withGlyphs = true){
+    public getMoveSAN(move: Move, pseudoMoves = this.generateMoves(false), withGlyphs = true): string {
         let SAN;
+
+        const movingPiece = this.getPiece(move.from);
     
         /* collects information on move collision ambiguity */
         let sameMove = false;
         let sameFile = false;
         let sameRank = false;
         for (const other of pseudoMoves){
-            if (!(move.from == other.from) && move.to == other.to && Piece.ofType(this.squares[move.from], this.squares[other.from])){
+            if (!(move.from == other.from) && move.to == other.to && arePiecesSameType(movingPiece, this.getPiece(other.from))){
     
                 // of course, ambiguity is only caused if the move is legal.
                 if (!this.isMoveLegal(other))
@@ -201,7 +212,7 @@ export class Board extends MoveGenerator {
             }
         }
     
-        let movingPieceType = Piece.getType(this.squares[move.from]);
+        let movingPieceType = getPieceType(movingPiece);
     
         // using information from move collision ambiguity, determine the resolving square
         let resolvedSquare = "";
@@ -211,18 +222,16 @@ export class Board extends MoveGenerator {
             if (sameFile)
                 resolvedSquare += squareToAlgebraicRank(move.from);
         }
-        if (Piece.ofType(this.squares[move.from], Piece.pawn) && this.squares[move.to]){
-            resolvedSquare = squareToAlgebraicFile(move.from);
-        }
-    
-        SAN = `${PieceASCII[movingPieceType]}${resolvedSquare}${move.captures.length > 0 ? "x": ""}${squareToAlgebraic(move.to)}`;
+
+        const SANChar = getSANCharFromPieceType(movingPieceType);
+        SAN = `${SANChar}${resolvedSquare}${move.captures.length > 0 ? "x": ""}${squareToAlgebraic(move.to)}`;
     
         if (withGlyphs){
             this.makeMove(move);
     
             // is game over?
             let result = this.isGameOver();
-            if (result && result.result != "1/2-1/2"){
+            if (result && result.termination == "checkmate"){
                 SAN += "#";
             }else{
                 // does this move threaten to take the king on the next turn?
@@ -233,7 +242,7 @@ export class Board extends MoveGenerator {
                 let isCheck = false;
                 for (const m of moves){
                     for (const c of m.captures){
-                        if (Piece.ofType(c.captured, Piece.king)){
+                        if (isPieceOfType(c.captured, PieceType.King)){
                             isCheck = true;
                             break;
                         }

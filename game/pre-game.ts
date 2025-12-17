@@ -6,7 +6,7 @@ export const dirOffsets = [ 8, 1, -8, -1, 9, -7, -9, 7 ];
 
 // indexed first by square, then by direction.
 // Returns the number of squares to the edge of the board from the square
-export const numSquaresToEdge = [];
+export const numSquaresToEdge: number[][] = [];
 for (let r = 0; r < 8; r++){
     for (let f = 0; f < 8; f++){
         let n = 7 - r;

@@ -1,58 +1,57 @@
-
-// the base board with no move-gen functionality. The only reason this class exists is to
-// separate the move generator from generic board operations, such as checking where pieces are.
-
-import { Piece, FENToPiece, PieceTypeToFEN } from "./piece.js";
+import { PieceType, Side, isPieceOfSide, getPieceType, isPieceOfType, getPieceSide, Piece, arePiecesSameType, getFENCharFromPieceType, getPieceTypeFromFENChar } from "./piece.js";
 import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
 
+// the base board with no move-gen functionality. The only reason this class
+// exists is to separate the move generator from generic board operations, such
+// as checking where pieces are.
 
 export class RawBoard {
-    constructor(){
-        // contains the type and color of every piece on all 64 squares (Piece[Color] | Piece[Type])
-        this.squares = new Uint8Array(64);
+    // contains the type and color of every piece on all 64 squares (Piece[Color] | Piece[Type])
+    private squares = new Uint8Array(64);
+    private pieceCounts: number[][] = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
+    protected turn: Side = Side.White;
 
-        this.pieceCounts = [ [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ] ];
+    // quick look-ups for piece squares (first index is white second is black)
+    protected kings = new Uint8Array(2);
+    protected coordinators = new Uint8Array(2);
+    protected chameleons = new Uint8Array(2);
 
-        this.turn = Piece.white;
+    protected fullmove: number = 1;
+    // keeps track of the history of halfmoves (to allow for undoing moves)
+    protected halfmoves: number[] = [];
 
-        // positions of kings
-        this.kings = new Uint8Array(2);
+    constructor(){}
 
-        // positions of coordinators
-        this.coordinators = new Uint8Array(2);
+    public getPieceCount(p: Piece): number {
+        return this.pieceCounts[isPieceOfSide(p, Side.White) ? 0 : 1]![getPieceType(p)]!;
+    }
 
-        // positions of chameleons
-        this.chameleons = new Uint8Array(4);
-
-        // fullmove counter
-        this.fullmove = 1;
-
-        // keeps track of the history of halfmoves (to allow for undoing moves)
-        this.halfmoves = [];
+    public getPiece(sq: number): Piece {
+        return this.squares[sq]!;
     }
 
     // picks up the piece at the sq
     // returns the value of the picked up piece
-    pickup(sq){
-        const val = this.squares[sq];
+    public pickup(sq: number): Piece {
+        const val = this.getPiece(sq);
 
         if (!val)
             return 0;
 
         this.squares[sq] = 0;
 
-        const isWhite = Piece.ofColor(val, Piece.white);
-        this.pieceCounts[isWhite ? 0 : 1][Piece.getType(val)]--;
+        const isWhite = isPieceOfSide(val, Side.White);
+        this.pieceCounts[isWhite ? 0 : 1]![getPieceType(val)]!--;
 
         // update piece square look ups
-        if (Piece.ofType(val, Piece.coordinator)){
+        if (isPieceOfType(val, PieceType.Coordinator)){
             // remove coordinator from list
-            this.coordinators[Piece.getColor(val) / 8 - 1] = 255;
-        }else if (Piece.ofType(val, Piece.chameleon)){
+            this.coordinators[getPieceSide(val) / 8 - 1] = 255;
+        }else if (isPieceOfType(val, PieceType.Chameleon)){
             // remove chameleon from list
             if (isWhite){
                 if (this.chameleons[0] == sq){
-                    this.chameleons[0] = this.chameleons[1];
+                    this.chameleons[0] = this.chameleons[1]!;
                     this.chameleons[1] = 255;
                 }else if (this.chameleons[1] == sq)
                     this.chameleons[1] = 255;
@@ -62,7 +61,7 @@ export class RawBoard {
                 }
             }else{
                 if (this.chameleons[2] == sq){
-                    this.chameleons[2] = this.chameleons[3];
+                    this.chameleons[2] = this.chameleons[3]!;
                     this.chameleons[3] = 255;
                 }else if (this.chameleons[3] == sq)
                     this.chameleons[3] = 255;
@@ -71,7 +70,7 @@ export class RawBoard {
                     throw new Error(`Tried to pick up a chameleon at square ${sq} but it was never stored in the lookup`);
                 }
             }
-        }else if (Piece.ofType(val, Piece.king)){
+        }else if (isPieceOfType(val, PieceType.King)){
             if (isWhite){
                 this.kings[0] = 255;
             }else{
@@ -84,7 +83,7 @@ export class RawBoard {
 
     // places down the given piece at the sq
     // assumes that there is currently no piece at the given sq.
-    placedown(sq, piece){
+    public placedown(sq: number, piece: Piece): void {
         // TODO: code relies on having duplicate captures, but once that's fixed, this should
         // error.
         if (this.squares[sq])
@@ -92,17 +91,17 @@ export class RawBoard {
 
         this.squares[sq] = piece;
 
-        const isWhite = Piece.ofColor(piece, Piece.white);
-        this.pieceCounts[isWhite ? 0 : 1][Piece.getType(piece)]++;
+        const isWhite = isPieceOfSide(piece, Side.White);
+        this.pieceCounts[isWhite ? 0 : 1]![getPieceType(piece)]!++;
 
         // update piece square look ups
-        if (Piece.ofType(piece, Piece.coordinator)){
-            const idx = Piece.getColor(piece) / 8 - 1;
+        if (isPieceOfType(piece, PieceType.Coordinator)){
+            const idx = getPieceSide(piece) / 8 - 1;
             if (this.coordinators[idx] == 255)
                 this.coordinators[idx] = sq;
             else
                 throw new Error("Cannot have more than 1 coordinator on one side in a position");
-        }else if (Piece.ofType(piece, Piece.chameleon)){
+        }else if (isPieceOfType(piece, PieceType.Chameleon)){
             if (isWhite){
                 if (this.chameleons[0] == 255)
                     this.chameleons[0] = sq;
@@ -122,7 +121,7 @@ export class RawBoard {
                     throw new Error("Cannot have more than 2 chameleons on one side in a position");
                 }
             }
-        }else if (Piece.ofType(piece, Piece.king)){
+        }else if (isPieceOfType(piece, PieceType.King)){
             if (isWhite){
                 if (this.kings[0] != 255)
                     throw new Error("Cannot have more than 1 king on one side in a position");
@@ -136,24 +135,24 @@ export class RawBoard {
     }
 
     // returns any unique identifiers to a position (arrangement of pieces and whose turn it is)
-    getPosition(){
+    public getPosition(): string {
         return `${this.squares.join(".")}.${this.turn}`;
     }
 
     // returns true if the given pieceType is within a 1 square in any direction to the given sq
     // AND if that piece is of opposite color to the given piece.
-    inVicinity(sq, piece, pieceType){
+    public inVicinity(sq: number, piece: Piece, pieceType: PieceType): boolean {
         // go through all 8 directions
         for (let i = 0; i < 8; i++){
 
             // prevent wrapping around board
-            if (numSquaresToEdge[sq][i] == 0)
+            if (numSquaresToEdge[sq]![i] == 0)
                 continue;
 
-            const target = sq + dirOffsets[i];
-            const targetValue = this.squares[target];
+            const target = sq + dirOffsets[i]!;
+            const targetValue = this.getPiece(target);
 
-            if (Piece.ofType(targetValue, pieceType) && !Piece.ofColor(piece, targetValue)){
+            if (isPieceOfType(targetValue, pieceType) && !arePiecesSameType(piece, targetValue)){
                 return true;
             }
 
@@ -162,39 +161,37 @@ export class RawBoard {
     }
 
     // returns true if a given piece is within the sphere of influence of an enemy immobilizer.
-    isImmobilized(sq, piece){
-        if (this.inVicinity(sq, piece, Piece.immobilizer))
+    public isImmobilized(sq: number, piece: Piece): boolean {
+        if (this.inVicinity(sq, piece, PieceType.Immobilizer))
             return true;
-        if (Piece.ofType(piece, Piece.immobilizer))
-            return this.inVicinity(sq, piece, Piece.chameleon);
+        if (isPieceOfType(piece, PieceType.Immobilizer))
+            return this.inVicinity(sq, piece, PieceType.Chameleon);
         return false;
     }
 
     // retrieves the current player's king's square
-    getKingSq(){
-        return this.turn == Piece.black ? this.kings[0] : this.kings[1];
+    /*
+    public getKingSq(): number {
+        return this.turn == Side.Black ? this.kings[0]! : this.kings[1]!;
     }
+    */
 
     // actually retrieves the current player's king's square
-    getCurKingSq(){
-        return this.turn == Piece.white ? this.kings[0] : this.kings[1];
-    }
-
-    getEnemyKingSq(){
-        return this.turn == Piece.white ? this.kings[1] : this.kings[0];
+    public getKingSq(enemy: boolean): number {
+        return this.kings[this.turn == (enemy ? Side.Black : Side.White) ? 0 : 1]!;
     }
 
     // retrieves the current player's coordinator's square
-    getCurCoordSq(){
-        return this.turn == Piece.white ? this.coordinators[0] : this.coordinators[1];
+    public getCoordSq(enemy: boolean): number {
+        return this.coordinators[this.turn == (enemy ? Side.Black : Side.White) ? 0 : 1]!;
     }
 
-    nextTurn(){
-        this.turn = this.turn == Piece.white ? Piece.black : Piece.white;
+    protected nextTurn(): void {
+        this.turn = this.turn == Side.White ? Side.Black : Side.White;
     }
     
     // loads a FEN into this board state
-    loadFEN(fen){
+    public loadFEN(fen: string): void {
         // clear board first
         this.squares = new Uint8Array(64);
         this.coordinators[0] = 255;
@@ -213,35 +210,35 @@ export class RawBoard {
         let segments = fen.split(" ");
 
         // rewrite board state
-        let state = segments[0];
+        let state = segments[0]!;
         let f = 0;
         let r = 7;
         for (let i = 0; i < state.length; i++){
-            let c = state[i];
+            let c = state[i]!;
             
             if (c == "/"){
                 r--;
                 f = 0;
-            }else if (FENToPiece[c]){
-                let piece = FENToPiece[c];
+            }else if (getPieceTypeFromFENChar(c)){
+                let piece = getPieceTypeFromFENChar(c);
                 let sq = f + r * 8;
                 this.squares[sq] = piece;
                 f++;
 
-                const isWhite = Piece.ofColor(piece, Piece.white);
-                this.pieceCounts[isWhite ? 0 : 1][Piece.getType(piece)]++;
+                const isWhite = isPieceOfSide(piece, Side.White);
+                this.pieceCounts[isWhite ? 0 : 1]![getPieceType(piece)]!++;
 
                 // if the piece is a king, record it
-                if (Piece.ofType(piece, Piece.king)){
+                if (isPieceOfType(piece, PieceType.King)){
                     isWhite ? this.kings[0] = sq : this.kings[1] = sq;
                 }
 
                 // if the piece is a coordinator, record it
-                if (Piece.ofType(piece, Piece.coordinator)){
+                if (isPieceOfType(piece, PieceType.Coordinator)){
                     isWhite ? this.coordinators[0] = sq : this.coordinators[1] = sq;
                 }
 
-                if (Piece.ofType(piece, Piece.chameleon)){
+                if (isPieceOfType(piece, PieceType.Chameleon)){
                     if (isWhite){
                         if (this.chameleons[0] == 255){
                             this.chameleons[0] = sq;
@@ -262,22 +259,22 @@ export class RawBoard {
         }
 
         // set proper turn
-        if (segments[1].toLowerCase() == "w"){
-            this.turn = Piece.white;
+        if (segments[1]!.toLowerCase() == "w"){
+            this.turn = Side.White;
         }else{
-            this.turn = Piece.black;
+            this.turn = Side.Black;
         }
 
         // halfmove clock
-        this.halfmoves = [ parseInt(segments[2]) || 0 ];
+        this.halfmoves = [ parseInt(segments[2]!) || 0 ];
 
         // fullmove clock
-        this.fullmove = parseInt(segments[3]);
+        this.fullmove = parseInt(segments[3]!);
         if (isNaN(this.fullmove))
             this.fullmove = 1;
     }
 
-    getFEN(){
+    public getFEN(): string {
         let FEN = "";
 
         // write board state into FEN
@@ -286,11 +283,12 @@ export class RawBoard {
             for (let f = 0; f < 8; f++){
                 let v = this.squares[f + r * 8];
                 if (v){
-                    if (empty) FEN += empty;
+                    if (empty)
+                        FEN += empty;
                     empty = 0;
 
-                    let pieceFEN = PieceTypeToFEN[Piece.getType(v)];
-                    FEN += Piece.ofColor(v, Piece.white) ? pieceFEN.toUpperCase() : pieceFEN.toLowerCase();
+                    let pieceFEN = getFENCharFromPieceType(getPieceType(v));
+                    FEN += isPieceOfSide(v, Side.White) ? pieceFEN.toUpperCase() : pieceFEN.toLowerCase();
                 }else{
                     empty++;
                 }
@@ -302,7 +300,7 @@ export class RawBoard {
         FEN = FEN.substring(0, FEN.length - 1);
 
         // set proper turn
-        let turn = Piece.ofColor(this.turn, Piece.white) ? "w" : "b";
+        let turn = this.turn == Side.White ? "w" : "b";
 
         FEN += ` ${turn} ${this.halfmoves[0]} ${this.fullmove}`;
 
