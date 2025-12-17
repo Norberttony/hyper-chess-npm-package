@@ -5,7 +5,7 @@ import {
     setAllPiecesToPool, setAllMoveHighlightsToPool, setAllLastMoveHighlightsToPool,
     getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph
 } from "./pool.js";
-import { getPieceSide, getPieceType, Side } from "../index.js";
+import { getPieceSide, getPieceType, Move, Side } from "../index.js";
 import { VariationMove } from "./pgn/variation.js";
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum
@@ -191,6 +191,13 @@ export class BoardGraphics extends VariationsBoard {
     // ========================== //
     // === HANDLING MAKE MOVE === //
     // ========================== //
+
+    public override playMove(move: Move): VariationMove | undefined {
+        const variation = super.playMove(move);
+        if (variation)
+            this.dispatchEvent("new-variation", { variation });
+        return variation;
+    }
 
     // returns true if the player can move the piece at the given square. Otherwise, returns false.
     public canMove(sq: number): boolean {

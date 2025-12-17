@@ -151,7 +151,7 @@ export class VariationsBoard extends Board {
     }
 
     // assumes move is legal
-    public playMove(move: Move, SAN = this.getMoveSAN(move)): void {
+    public playMove(move: Move, SAN = this.getMoveSAN(move)): VariationMove | undefined {
         // search for an existing variation with this move
         for (const v of this.currentVariation.next){
             if (v.san == SAN){
@@ -168,13 +168,12 @@ export class VariationsBoard extends Board {
 
         this.currentVariation = variation;
 
-        // this.dispatchEvent("new-variation", { variation });
-
         // continue the main variation if necessary
         if (variation.prev == this.mainVariation)
             this.mainVariation = variation;
 
         super.makeMove(move);
+        return variation;
     }
 
     // parses a list of PGN tokens
