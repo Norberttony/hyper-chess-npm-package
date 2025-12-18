@@ -65,6 +65,6 @@ export class ExtrasWidget extends BoardWidget {
     }
 
     private updatePGNText(): void {
-        this.pgnText.value = this.boardgfx.pgnData.toString();
+        this.pgnText.value = this.boardgfx.getPGNData().toString();
     }
 }

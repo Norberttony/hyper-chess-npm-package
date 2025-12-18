@@ -13,8 +13,8 @@ export class RawBoard {
     protected turn: Side = Side.White;
 
     // quick look-ups for piece squares (first index is white second is black)
-    protected kings = new Uint8Array(2);
-    protected coordinators = new Uint8Array(2);
+    private kings = new Uint8Array(2);
+    private coordinators = new Uint8Array(2);
     protected chameleons = new Uint8Array(4);
 
     protected fullmove: number = 1;
@@ -206,7 +206,8 @@ export class RawBoard {
 
         // 0 = board state
         // 1 = turn
-        // 2 = fullmove number (number of fullmoves, starts at 1, incremented after black's move)
+        // 2 = halfmove clock (number of ply since last capture)
+        // 3 = fullmove number (number of fullmoves, starts at 1, incremented after black's move)
         let segments = fen.split(" ");
 
         // rewrite board state
@@ -214,45 +215,15 @@ export class RawBoard {
         let f = 0;
         let r = 7;
         for (let i = 0; i < state.length; i++){
-            let c = state[i]!;
-            
+            const c = state[i]!;
             if (c == "/"){
                 r--;
                 f = 0;
             }else if (getPieceFromFENChar(c)){
-                let piece = getPieceFromFENChar(c);
-                let sq = f + r * 8;
-                this.squares[sq] = piece;
+                const piece = getPieceFromFENChar(c);
+                const sq = f + r * 8;
+                this.placedown(sq, piece);
                 f++;
-
-                const isWhite = isPieceOfSide(piece, Side.White);
-                this.pieceCounts[isWhite ? 0 : 1]![getPieceType(piece)]!++;
-
-                // if the piece is a king, record it
-                if (isPieceOfType(piece, PieceType.King)){
-                    isWhite ? this.kings[0] = sq : this.kings[1] = sq;
-                }
-
-                // if the piece is a coordinator, record it
-                if (isPieceOfType(piece, PieceType.Coordinator)){
-                    isWhite ? this.coordinators[0] = sq : this.coordinators[1] = sq;
-                }
-
-                if (isPieceOfType(piece, PieceType.Chameleon)){
-                    if (isWhite){
-                        if (this.chameleons[0] == 255){
-                            this.chameleons[0] = sq;
-                        }else{
-                            this.chameleons[1] = sq;
-                        }
-                    }else{
-                        if (this.chameleons[2] == 255){
-                            this.chameleons[2] = sq;
-                        }else{
-                            this.chameleons[3] = sq;
-                        }
-                    }
-                }
             }else{
                 f += parseInt(c);
             }
@@ -287,7 +258,7 @@ export class RawBoard {
                         FEN += empty;
                     empty = 0;
 
-                    let pieceFEN = getFENCharFromPieceType(getPieceType(v));
+                    const pieceFEN = getFENCharFromPieceType(getPieceType(v));
                     FEN += isPieceOfSide(v, Side.White) ? pieceFEN.toUpperCase() : pieceFEN.toLowerCase();
                 }else{
                     empty++;
@@ -300,8 +271,7 @@ export class RawBoard {
         FEN = FEN.substring(0, FEN.length - 1);
 
         // set proper turn
-        let turn = this.turn == Side.White ? "w" : "b";
-
+        const turn = this.turn == Side.White ? "w" : "b";
         FEN += ` ${turn} ${this.halfmoves[0]} ${this.fullmove}`;
 
         return FEN;

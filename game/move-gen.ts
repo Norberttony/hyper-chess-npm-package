@@ -79,7 +79,7 @@ export class MoveGenerator extends RawBoard {
             return;
 
         // for copying coordinator moves
-        const enemyCoordSq = this.coordinators[this.turn == Side.White ? 1 : 0]!;
+        const enemyCoordSq = this.getCoordSq(true);;
         const enemyCoordRank = getRankFromSq(enemyCoordSq);
         const enemyCoordFile = getFileFromSq(enemyCoordSq);
 
@@ -88,7 +88,7 @@ export class MoveGenerator extends RawBoard {
         const kingFile = getFileFromSq(kingSq);
 
         // for copying king moves
-        const coordSq = this.coordinators[this.turn == Side.White ? 0 : 1]!;
+        const coordSq = this.getCoordSq(false);
         const coordRank = getRankFromSq(coordSq);
         const coordFile = getFileFromSq(coordSq);
 

@@ -141,23 +141,23 @@ export class PGNWidget extends BoardWidget {
     private PGNUpVariation(): void {
         this.selectedVariation--;
         if (this.selectedVariation < 0)
-            this.selectedVariation = this.boardgfx.currentVariation.next.length - 1;
+            this.selectedVariation = this.boardgfx.getCurrentVariation().next.length - 1;
     }
 
     private PGNDownVariation(): void {
-        const max = this.boardgfx.currentVariation.next.length;
+        const max = this.boardgfx.getCurrentVariation().next.length;
         this.selectedVariation = (this.selectedVariation + 1) % max;
     }
 
     private PGNMoveFirst(): void {
         // displays position with no moves made on the board
-        this.boardgfx.jumpToVariation(this.boardgfx.variationRoot);
+        this.boardgfx.jumpToVariation(this.boardgfx.getVariationRoot());
         this.boardgfx.applyChanges();
     }
 
     private PGNMoveLast(): void {
         // displays position of the last committed move in the main variation
-        let iter = this.boardgfx.currentVariation;
+        let iter = this.boardgfx.getCurrentVariation();
         while (iter.next[0]){
             iter = iter.next[0];
         }
@@ -305,7 +305,7 @@ export class PGNWidget extends BoardWidget {
             this.resultElem = pgn_resultElem;
         }
         this.resultElem.innerHTML = `<span>${resultText}</span><br /><span style = "font-size: large;">${flavorText} ${termination}</span>`;
-        this.boardgfx.pgnData.setHeader("Result", resultText);
+        this.boardgfx.getPGNData().setHeader("Result", resultText);
     }
 
     private onLoadFEN(event: LoadFENEvent): void {
@@ -313,11 +313,11 @@ export class PGNWidget extends BoardWidget {
     
         // none of the previous PGN is relevant to this new position, so...
         this.pgnElem.innerHTML = "";
-        this.boardgfx.pgnData.clear();
+        this.boardgfx.getPGNData().clear();
     
         if (fen.replace(/ /g, "") != StartingFEN.replace(/ /g, "")){
-            this.boardgfx.pgnData.setHeader("Variant", "From Position");
-            this.boardgfx.pgnData.setHeader("FEN", fen);
+            this.boardgfx.getPGNData().setHeader("Variant", "From Position");
+            this.boardgfx.getPGNData().setHeader("FEN", fen);
         }
     }
     
@@ -330,7 +330,7 @@ export class PGNWidget extends BoardWidget {
     private onDeleteVariation(event: DeleteVariationEvent): void {
         const { variation } = event.detail;
 
-        if (variation == this.boardgfx.mainVariation && this.resultElem && this.resultElem.parentNode){
+        if (variation == this.boardgfx.getMainVariation() && this.resultElem && this.resultElem.parentNode){
             this.resultElem.parentNode.removeChild(this.resultElem);
             delete this.resultElem;
         }
@@ -349,7 +349,6 @@ export class PGNWidget extends BoardWidget {
         }
     }
 }
-
 
 function selectPGNElem(pgnElem: HTMLElement, elem: HTMLElement): void {
     (document.getElementsByClassName("pgn-viewer__pgn-elem--selected")[0] || elem || document.body).classList.remove("pgn-viewer__pgn-elem--selected");

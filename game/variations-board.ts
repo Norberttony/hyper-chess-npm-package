@@ -6,23 +6,39 @@ import { Move } from "./move.js";
 export class VariationsBoard extends Board {
     // variations in the position are stored via a tree. The root is the very
     // first empty variation (sentinel node).
-    public variationRoot: VariationMove = new VariationMove();
+    protected variationRoot: VariationMove = new VariationMove();
 
     // This set-up allows quickly adding more moves at the end of the main variation, without
     // performing any additional tree searches.
-    public mainVariation: VariationMove = this.variationRoot;
+    protected mainVariation: VariationMove = this.variationRoot;
 
     // currentVariation points to the currently active variation that a piece of code or the
     // user is viewing. It is not necessarily the variation currently displayed to the user.
-    public currentVariation = this.variationRoot;
+    protected currentVariation = this.variationRoot;
 
     // pgnData allows reading in the current variation.
-    public pgnData = new PGNData(this.variationRoot);
+    protected pgnData = new PGNData(this.variationRoot);
 
     private startingFEN: string = StartingFEN;
 
     constructor(){
         super();
+    }
+
+    public getVariationRoot(): VariationMove {
+        return this.variationRoot;
+    }
+
+    public getMainVariation(): VariationMove {
+        return this.mainVariation;
+    }
+
+    public getCurrentVariation(): VariationMove {
+        return this.currentVariation;
+    }
+
+    public getPGNData(): PGNData {
+        return this.pgnData;
     }
 
     public getStartingFEN(): string {
