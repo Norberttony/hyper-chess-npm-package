@@ -19,12 +19,20 @@ export class VariationsBoard extends Board {
     // pgnData allows reading in the current variation.
     public pgnData = new PGNData(this.variationRoot);
 
+    private startingFEN: string = StartingFEN;
+
     constructor(){
         super();
     }
 
+    public getStartingFEN(): string {
+        return this.startingFEN;
+    }
+
     public override loadFEN(fen: string): void {
         super.loadFEN(fen);
+
+        this.startingFEN = fen;
 
         // just get rid of everything after variation root and have gc handle it
         this.currentVariation = this.variationRoot;
@@ -52,6 +60,19 @@ export class VariationsBoard extends Board {
         // start reading san
         const pgnSplit = extractMoves(pgn).split(" ");
         this.readVariation(pgnSplit, 0);
+    }
+
+    public getMovesToCurrentVariation(): Move[] {
+        const moves: Move[] = [];
+        
+        let iter: VariationMove | undefined = this.currentVariation;
+        while (iter){
+            if (iter.move)
+                moves.unshift(iter.move);
+            iter = iter.prev;
+        }
+
+        return moves;
     }
 
     // chooses one of the next variations to play

@@ -114,7 +114,7 @@ export class Board extends MoveGenerator {
     }
 
     // gets move given SAN
-    public getMoveOfSAN(san: string): Move {
+    public getMoveOfSAN(san: string): Move | undefined {
         // take a short cut by considering the destination square of the san and the move piece's type
         san = removeGlyphs(san);
         const toSq = algebraicToSquare(san.substring(san.length - 2) as AlgebraicSquare);
@@ -163,11 +163,11 @@ export class Board extends MoveGenerator {
             }
         }
 
-        console.error(san, possibleMoves, this.getFEN());
-        throw new Error(`Move of SAN ${san} could not be found.`);
+        console.error(`Could not find move ${san} at position ${this.getFEN()} from the possible candidates`, possibleMoves);
+        return undefined;
     }
 
-    public getMoveOfLAN(LAN: string){
+    public getMoveOfLAN(LAN: string): Move | undefined {
         const moves = this.generateMoves(true);
 
         for (const m of moves){
@@ -175,9 +175,7 @@ export class Board extends MoveGenerator {
                 return m;
             }
         }
-
-        console.error("At position", this.getFEN());
-        throw new Error(`Cannot find move of lan ${LAN}`);
+        return undefined;
     }
 
     // returns the SAN For the given move

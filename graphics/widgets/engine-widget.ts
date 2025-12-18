@@ -93,8 +93,10 @@ export class EngineWidget extends BoardWidget {
                         pvSan += `${fullmove}. `
                     else
                         fullmove++;
-                    pvSan += b.getMoveSAN(move) + " ";
-                    b.makeMove(move);
+                    if (move){
+                        pvSan += b.getMoveSAN(move) + " ";
+                        b.makeMove(move);
+                    }
                 }
 
                 this.pvElem.innerText = pvSan;
@@ -129,7 +131,8 @@ export class EngineWidget extends BoardWidget {
     startThinking(){
         if (this.engine.isRunning){
             this.protocol.stopThink();
-            this.protocol.setFEN(this.boardgfx.getFEN());
+            const lanMoves: string[] = this.boardgfx.getMovesToCurrentVariation().map(v => v.lan);
+            this.protocol.setFEN(this.boardgfx.getStartingFEN(), lanMoves);
             this.protocol.startThink();
         }
     }

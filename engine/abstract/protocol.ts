@@ -59,7 +59,7 @@ export abstract class BotProtocol {
         this.thinkStats = {};
     }
 
-    public abstract setFEN(fen: string): void;
+    public abstract setFEN(fen: string, moves: string[]): void;
     public abstract playMove(lan: string): void;
     public abstract thinkForMoveTime(ms: number, allowTimeout: boolean, timeoutPaddingMs: number): Promise<string | undefined>;
     public abstract thinkTimedGame(time: GameTime, allowTimeout: boolean, isWhite: boolean, timeoutPaddingMs: number): Promise<string | undefined>;

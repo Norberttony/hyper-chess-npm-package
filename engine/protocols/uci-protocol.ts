@@ -37,9 +37,14 @@ export class UCIBotProtocol extends BotProtocol {
         }
     }
 
-    public setFEN(fen: string): void {
+    // moves is an array of LAN
+    public setFEN(fen: string, moves: string[] = []): void {
+        this.moves = moves;
         this.startFEN = fen;
-        this.bot.write(`position fen ${fen}`);
+        if (this.moves.length == 0)
+            this.bot.write(`position fen ${fen}`);
+        else
+            this.bot.write(`position fen ${fen} moves ${this.moves.join(" ")}`);
     }
 
     public playMove(lan: string): void {
