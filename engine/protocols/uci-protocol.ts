@@ -3,6 +3,7 @@ import { StartingFEN } from "../../game/board.js";
 import { readWords } from "./utils.js";
 import type { BotProcess } from "../abstract/bot-process.js";
 import { GameTime, Score } from "../utils.js";
+import { LAN } from "../../game/coords.js";
 
 export class UCIBotProtocol extends BotProtocol {
     private startFEN: string = "";
@@ -37,8 +38,7 @@ export class UCIBotProtocol extends BotProtocol {
         }
     }
 
-    // moves is an array of LAN
-    public setFEN(fen: string, moves: string[] = []): void {
+    public setFEN(fen: string, moves: LAN[] = []): void {
         this.moves = moves;
         this.startFEN = fen;
         if (this.moves.length == 0)
@@ -47,7 +47,7 @@ export class UCIBotProtocol extends BotProtocol {
             this.bot.write(`position fen ${fen} moves ${this.moves.join(" ")}`);
     }
 
-    public playMove(lan: string): void {
+    public playMove(lan: LAN): void {
         this.moves.push(lan);
         this.bot.write(`position fen ${this.startFEN} moves ${this.moves.join(" ")}`);
     }

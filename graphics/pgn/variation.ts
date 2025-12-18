@@ -1,3 +1,4 @@
+import { SAN } from "../../game/san.js";
 import { removeGlyphs, Side } from "../../index.js";
 import { Move } from "../../index.js";
 
@@ -15,7 +16,7 @@ export class VariationMove {
     public comment: string = "";
     public fiftyMoveRuleCounter: number = 0;
 
-    constructor(move?: Move, public san?: string){
+    constructor(move?: Move, public san?: SAN){
         // allows (un)doing the move whenever user scrolls through pgn
         if (move)
             this.move = move.clone();

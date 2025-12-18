@@ -1,3 +1,4 @@
+import { LAN } from "../../game/coords.js";
 import type { GameTime, ThinkStats } from "../utils.js";
 import type { BotProcess } from "./bot-process.js";
 
@@ -59,8 +60,8 @@ export abstract class BotProtocol {
         this.thinkStats = {};
     }
 
-    public abstract setFEN(fen: string, moves: string[]): void;
-    public abstract playMove(lan: string): void;
+    public abstract setFEN(fen: string, moves: LAN[]): void;
+    public abstract playMove(lan: LAN): void;
     public abstract thinkForMoveTime(ms: number, allowTimeout: boolean, timeoutPaddingMs: number): Promise<string | undefined>;
     public abstract thinkTimedGame(time: GameTime, allowTimeout: boolean, isWhite: boolean, timeoutPaddingMs: number): Promise<string | undefined>;
     public abstract thinkForDepth(depth: number): Promise<string | undefined>;

@@ -4,6 +4,7 @@ import { WebBotProcess } from "../../engine/web/web-bot-process.js";
 import type { BoardGraphics } from "../board-graphics.js";
 import { UCIBotProtocol } from "../../engine/protocols/uci-protocol.js";
 import { ThinkStats } from "../../engine/utils.js";
+import { LAN } from "../../game/coords.js";
 
 export class EngineWidget extends BoardWidget {
     private engine: WebBotProcess = new WebBotProcess("./scripts/hyper-active/main.js");
@@ -83,14 +84,14 @@ export class EngineWidget extends BoardWidget {
 
             // get pv
             if (stats.pv){
-                const pv = stats.pv.split(" ");
+                const pv = stats.pv.split(" ") as LAN[];
                 const b = new Board(this.boardgfx.getFEN());
                 let fullmove = this.boardgfx.getFullMove();
                 let pvSan = this.boardgfx.getTurn() == Side.White ? "" : `${fullmove}... `;
                 for (const m of pv){
                     const move = b.getMoveOfLAN(m);
                     if (b.getTurn() == Side.White)
-                        pvSan += `${fullmove}. `
+                        pvSan += `${fullmove}. `;
                     else
                         fullmove++;
                     if (move){
@@ -131,7 +132,7 @@ export class EngineWidget extends BoardWidget {
     startThinking(){
         if (this.engine.isRunning){
             this.protocol.stopThink();
-            const lanMoves: string[] = this.boardgfx.getMovesToCurrentVariation().map(v => v.lan);
+            const lanMoves: LAN[] = this.boardgfx.getMovesToCurrentVariation().map(v => v.lan);
             this.protocol.setFEN(this.boardgfx.getStartingFEN(), lanMoves);
             this.protocol.startThink();
         }

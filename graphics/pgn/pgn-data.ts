@@ -57,11 +57,11 @@ export class PGNData {
             if (this.headers[hdr])
                 pgn += `[${hdr} "${this.headers[hdr]}"]\n`;
         }
-        pgn += `\n${this.san}`;
+        pgn += `\n${this.sanLine}`;
         return pgn;
     }
 
-    // generates SAN for this descendant node
+    // generates a SAN line for this descendant node
     public sanHelper(node: VariationMove | undefined, count: number): string {
         let san = "";
         let iter: VariationMove | undefined = node;
@@ -110,7 +110,7 @@ export class PGNData {
         return san;
     }
 
-    get san(){
+    public get sanLine(): string {
         return this.sanHelper(this.pgnRoot.next[0], 0);
     }
 }

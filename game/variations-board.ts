@@ -2,6 +2,8 @@ import { Board, StartingFEN } from "./board.js";
 import { VariationMove, PGNData, extractHeaders, extractMoves } from "../graphics/pgn/index.js";
 import { PGNHeader } from "../graphics/pgn/pgn-data.js";
 import { Move } from "./move.js";
+import { SAN } from "./san.js";
+import { LAN } from "./coords.js";
 
 export class VariationsBoard extends Board {
     // variations in the position are stored via a tree. The root is the very
@@ -159,7 +161,7 @@ export class VariationsBoard extends Board {
             variation.prev!.next.splice(variation.prev!.next.indexOf(variation), 1);
     }
 
-    public addMoveToEnd(san: string): void {
+    public addMoveToEnd(san: SAN): void {
         const previous = this.currentVariation;
         const doSwitch = this.currentVariation != this.mainVariation;
 
@@ -173,12 +175,12 @@ export class VariationsBoard extends Board {
             this.jumpToVariation(previous);
     }
 
-    public addMoveToEndLAN(lan: string): void {
+    public addMoveToEndLAN(lan: LAN): void {
         const previous = this.currentVariation;
         const doSwitch = this.currentVariation != this.mainVariation;
 
         this.jumpToVariation(this.mainVariation);
-        
+
         const move = this.getMoveOfLAN(lan);
         if (move)
             this.makeMove(move);
@@ -241,9 +243,10 @@ export class VariationsBoard extends Board {
                 // avoid having to search for a move that clearly doesn't exist.
                 continue;
             }else{
-                const move = this.getMoveOfSAN(pgn);
+                const san = pgn as SAN;
+                const move = this.getMoveOfSAN(san);
                 if (move){
-                    this.playMove(move, pgn);
+                    this.playMove(move, san);
                     toUndo++;
                 }
             }

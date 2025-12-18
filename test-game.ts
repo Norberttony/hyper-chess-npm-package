@@ -2,10 +2,11 @@ import fs from "node:fs";
 import pathModule from "node:path";
 import { Board } from "./game/board.js";
 import { Move } from "./game/move.js";
+import { LAN } from "./game/coords.js";
 
 const perftPath = pathModule.join(".", "perft.json");
 
-let pv: string[] = [];
+let pv: LAN[] = [];
 try {
     console.log("[!!!] Only running tests that are <= 50k nodes because the program is slow");
 
@@ -38,7 +39,6 @@ catch(err){
     console.error("An error occurred during testing:", err);
     console.error("Last PV was", pv);
 }
-
 
 function countMoves(depth: number, board: Board, pv: string[] = [], prevMove?: Move): number[] {
     if (depth == 0){
