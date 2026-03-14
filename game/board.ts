@@ -122,7 +122,7 @@ export class Board extends MoveGenerator {
         const pieceValue = getPieceFromFENChar(fenChar);
 
         if (toSq < 0 || toSq >= 64 || isNaN(toSq))
-            throw new Error(`Square ${toSq} is out of range`);
+            return;
 
         const possibleMoves: Move[] = [];
         for (let j = 0; j < dirOffsets.length; j++){

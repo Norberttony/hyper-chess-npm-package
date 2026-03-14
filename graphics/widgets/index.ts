@@ -1,8 +1,8 @@
-export { AnimationWidget } from "./animations.js";
-export { AnnotatorWidget } from "./annotator-widget.js";
-export { AudioWidget } from "./audio-widget.js";
-export { BoardWidget, WIDGET_LOCATIONS, getWidgetLocName } from "./board-widget.js";
-export { EngineWidget } from "./engine-widget.js";
-export { ExtrasWidget } from "./extras-widget.js";
-export { PGNWidget } from "./pgn-widget.js";
-export { PlayersWidget } from "./players-widget.js";
+export * from "./animations.js";
+export * from "./annotator-widget.js";
+export * from "./audio-widget.js";
+export * from "./board-widget.js";
+export * from "./engine-widget.js";
+export * from "./extras-widget.js";
+export * from "./pgn-widget.js";
+export * from "./players-widget.js";

@@ -1,3 +1,3 @@
-export { VariationMove } from "./variation.js";
-export { PGNData } from "./pgn-data.js";
-export { extractHeaders, extractMoves } from "../../pgn/index.js";
+export * from "./variation.js";
+export * from "./pgn-data.js";
+export * from "../../pgn/index.js";
