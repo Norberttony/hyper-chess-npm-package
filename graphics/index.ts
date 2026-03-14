@@ -1,2 +1,2 @@
-export { BoardGraphics } from "./board-graphics.js";
-export { initInput } from "./input.js";
+export * from "./board-graphics.js";
+export * from "./input.js";
