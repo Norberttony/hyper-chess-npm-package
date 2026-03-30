@@ -133,7 +133,7 @@ export class BoardGraphics extends VariationsBoard {
     // =========================== //
 
     applyChanges(userInput = false){
-        this.display();
+        window.requestAnimationFrame(() => this.display());
 
         const cv = this.currentVariation;
         const gv = this.graphicalVariation;

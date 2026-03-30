@@ -59,9 +59,6 @@ export function setElemToPool(elem){
 
     for (const key in elem.dataset)
         delete elem.dataset[key];
-
-    elem.onpointerdown = function(){}
-    elem.onpointerup = function(){}
 }
 
 // puts a class into the pool
