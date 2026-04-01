@@ -5,7 +5,8 @@ import { getFirstElemOfClass } from "./widgets/board-widget.js";
 import { WIDGET_NAMES } from "./widgets/index.js";
 import {
     setAllPiecesToPool, setAllMoveHighlightsToPool, setAllLastMoveHighlightsToPool,
-    getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph
+    getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph, fetchElem,
+    setClassToPool
 } from "./pool.js";
 
 import { Piece } from "../index.js";
@@ -51,6 +52,12 @@ export class BoardGraphics extends VariationsBoard {
             this.draggingElem = createBoardDraggingElem(skeleton);
             boardDiv.onpointerdown = this.piecePointerDown;
         }
+
+        // populate element pool
+        for (let i = 0; i < 64; i++){
+            fetchElem("temp", 0, 0, false, this.piecesDiv);
+        }
+        setClassToPool("temp", this.piecesDiv);
     }
 
     get isFlipped(){
@@ -154,11 +161,14 @@ export class BoardGraphics extends VariationsBoard {
         if (cv.move){
             const toX = cv.move.to % 8;
             const toY = Math.floor(cv.move.to / 8);
+            const pieceElem = this.getPieceElem(toX, toY);
             
             // attach any relevant glyphs
-            for (const g of cv.glyphs){
-                attachGlyph(this.getPieceElem(toX, toY), g);
-            }
+            window.requestAnimationFrame(() => {
+                for (const g of cv.glyphs){
+                    attachGlyph(pieceElem, g);
+                }
+            });
         }
 
         // check and dispatch event for any results
@@ -228,11 +238,9 @@ export class BoardGraphics extends VariationsBoard {
             const toY = Math.floor(lastMove.to / 8);
             const fromX = lastMove.from % 8;
             const fromY = Math.floor(lastMove.from / 8);
-            
-            const sq1 = getLastMoveHighlightFromPool(toX, toY, this.isFlipped);
-            const sq2 = getLastMoveHighlightFromPool(fromX, fromY, this.isFlipped);
-            this.piecesDiv.appendChild(sq1);
-            this.piecesDiv.appendChild(sq2);
+
+            getLastMoveHighlightFromPool(toX, toY, this.isFlipped, this.piecesDiv);
+            getLastMoveHighlightFromPool(fromX, fromY, this.isFlipped, this.piecesDiv);
         }
 
         // display all pieces on the board
@@ -240,7 +248,7 @@ export class BoardGraphics extends VariationsBoard {
             for (let f = 0; f < 8; f++){
                 const v = this.squares[r * 8 + f];
                 if (v){
-                    const piece = getPieceFromPool(f, r, this.isFlipped, Piece.getType(v), Piece.getColor(v));
+                    const piece = getPieceFromPool(f, r, this.isFlipped, Piece.getType(v), Piece.getColor(v), this.piecesDiv);
                     this.piecesDiv.appendChild(piece);
                 }
             }

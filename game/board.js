@@ -173,6 +173,15 @@ export class Board extends MoveGenerator {
         }
     }
 
+    getMoveOfLANPseudoLegal(lan){
+        const moves = this.generateMoves(false);
+        for (const m of moves){
+            if (m.uci == lan){
+                return m;
+            }
+        }
+    }
+
     // returns the SAN For the given move
     getMoveSAN(move, pseudoMoves = this.generateMoves(false), withGlyphs = true){
         let SAN;

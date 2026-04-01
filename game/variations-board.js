@@ -132,13 +132,13 @@ export class VariationsBoard extends Board {
             this.jumpToVariation(previous);
     }
 
-    addMoveToEndLAN(lan){
+    addMoveToEndLAN(lan, pseudoLegal = false){
         const previous = this.currentVariation;
         const doSwitch = this.currentVariation != this.mainVariation;
 
         this.jumpToVariation(this.mainVariation);
-        
-        const move = this.getMoveOfLAN(lan);
+
+        const move = pseudoLegal ? this.getMoveOfLANPseudoLegal(lan) : this.getMoveOfLAN(lan);
         if (move)
             this.makeMove(move);
 

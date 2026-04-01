@@ -5,13 +5,17 @@ import { PieceTypeToFEN, Piece } from "../index.js";
 // is put into a pool for later use.
 
 // fetches an element from the pool
-export function fetchElem(className, f, r, boardFlipped){
-    let elem = document.getElementById("element-pool");
+export function fetchElem(className, f, r, boardFlipped, container = document){
+    const elems = container.getElementsByClassName("element-pool");
+
+    let elem = elems[0];
     if (!elem){
         elem = document.createElement("div");
+        if (container != document){
+            container.appendChild(elem);
+        }
     }
 
-    elem.id = "";
     setElemLocation(elem, f, r, boardFlipped);
     elem.className = className;
 
@@ -24,18 +28,18 @@ export function setElemLocation(elem, f, r, boardFlipped){
 }
 
 // either creates a completely new move highlight, or fetches an unused element.
-export function getMoveHighlightFromPool(f, r, boardFlipped){
-    return fetchElem("board-graphics__move-highlight", f, r, boardFlipped);
+export function getMoveHighlightFromPool(f, r, boardFlipped, container = document){
+    return fetchElem("board-graphics__move-highlight", f, r, boardFlipped, container);
 }
 
 // either creates a completely new move highlight, or fetches an unused element.
-export function getLastMoveHighlightFromPool(f, r, boardFlipped){
-    return fetchElem("board-graphics__move-highlight--last", f, r, boardFlipped);
+export function getLastMoveHighlightFromPool(f, r, boardFlipped, container = document){
+    return fetchElem("board-graphics__move-highlight--last", f, r, boardFlipped, container);
 }
 
 // either creates a completely new piece, or fetches an unused element.
-export function getPieceFromPool(f, r, boardFlipped, pieceType, pieceColor){
-    let piece = fetchElem("board-graphics__piece", f, r, boardFlipped);
+export function getPieceFromPool(f, r, boardFlipped, pieceType, pieceColor, container = document){
+    let piece = fetchElem("board-graphics__piece", f, r, boardFlipped, container);
 
     const coords = `${f}_${r}`;
     const fen = PieceTypeToFEN[pieceType];
@@ -53,12 +57,8 @@ export function getPieceFromPool(f, r, boardFlipped, pieceType, pieceColor){
 
 // puts an element back into the pool.
 export function setElemToPool(elem){
-    elem.id = "element-pool";
-    elem.className = "";
+    elem.className = "element-pool";
     elem.innerHTML = "";
-
-    for (const key in elem.dataset)
-        delete elem.dataset[key];
 }
 
 // puts a class into the pool
