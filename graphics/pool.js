@@ -47,8 +47,7 @@ export function getPieceFromPool(f, r, boardFlipped, pieceType, pieceColor, cont
     piece.dataset.coords = coords;
     piece.dataset.pieceType = fen;
     
-    piece.classList.add(coords);
-    piece.classList.add(`board-graphics__piece--type-${fen}`);
+    piece.classList.add(coords, `board-graphics__piece--type-${fen}`);
     
     piece.style.backgroundPositionY = pieceColor == Piece.white ? "0%" : "100%";
     

@@ -140,7 +140,7 @@ export class BoardGraphics extends VariationsBoard {
     // =========================== //
 
     applyChanges(userInput = false){
-        window.requestAnimationFrame(() => this.display());
+        this.display();
 
         const cv = this.currentVariation;
         const gv = this.graphicalVariation;
@@ -226,33 +226,34 @@ export class BoardGraphics extends VariationsBoard {
     }
 
     display(){
-        setAllPiecesToPool(this.skeleton);
-        setAllMoveHighlightsToPool(this.skeleton);
-        setAllLastMoveHighlightsToPool(this.skeleton);
+        window.requestAnimationFrame(() => {
+            setAllPiecesToPool(this.skeleton);
+            setAllMoveHighlightsToPool(this.skeleton);
+            setAllLastMoveHighlightsToPool(this.skeleton);
 
-        const lastMove = this.currentVariation != this.variationRoot ? this.currentVariation.move : undefined;
+            const lastMove = this.currentVariation != this.variationRoot ? this.currentVariation.move : undefined;
 
-        // highlight move from and move to
-        if (lastMove){
-            const toX = lastMove.to % 8;
-            const toY = Math.floor(lastMove.to / 8);
-            const fromX = lastMove.from % 8;
-            const fromY = Math.floor(lastMove.from / 8);
+            // highlight move from and move to
+            if (lastMove){
+                const toX = lastMove.to % 8;
+                const toY = Math.floor(lastMove.to / 8);
+                const fromX = lastMove.from % 8;
+                const fromY = Math.floor(lastMove.from / 8);
 
-            getLastMoveHighlightFromPool(toX, toY, this.isFlipped, this.piecesDiv);
-            getLastMoveHighlightFromPool(fromX, fromY, this.isFlipped, this.piecesDiv);
-        }
+                getLastMoveHighlightFromPool(toX, toY, this.isFlipped, this.piecesDiv);
+                getLastMoveHighlightFromPool(fromX, fromY, this.isFlipped, this.piecesDiv);
+            }
 
-        // display all pieces on the board
-        for (let r = 0; r < 8; r++){
-            for (let f = 0; f < 8; f++){
-                const v = this.squares[r * 8 + f];
-                if (v){
-                    const piece = getPieceFromPool(f, r, this.isFlipped, Piece.getType(v), Piece.getColor(v), this.piecesDiv);
-                    this.piecesDiv.appendChild(piece);
+            // display all pieces on the board
+            for (let r = 0; r < 8; r++){
+                for (let f = 0; f < 8; f++){
+                    const v = this.squares[r * 8 + f];
+                    if (v){
+                        getPieceFromPool(f, r, this.isFlipped, Piece.getType(v), Piece.getColor(v), this.piecesDiv);
+                    }
                 }
             }
-        }
+        });
     }
 
     getPieceElem(f, r){

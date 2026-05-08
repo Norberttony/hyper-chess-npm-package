@@ -1,6 +1,6 @@
 {
   "name": "hyper-chess-board",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "Provides legal move generation and front-end display for the chess variant Hyper Chess",
   "main": "index.js",
   "exports": {
