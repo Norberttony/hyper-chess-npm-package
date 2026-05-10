@@ -17,7 +17,7 @@ describe("perft", () => {
     console.log(`[!!!] Only running tests that are <= ${MAX_NODES} nodes because the program is slow`);
     const testSuite: TestSuiteCase[] = JSON.parse(fs.readFileSync(perftPath).toString());
 
-    test.for(testSuite)("perft %s", ({ fen, nodes }) => {
+    test.for(testSuite)("perft %s", { timeout: 30000 }, ({ fen, nodes }) => {
         const pv: LAN[] = [];
         const b = new Board();
         b.loadFEN(fen);

@@ -24,7 +24,6 @@ export interface GameResult {
 // they are not stored.
 export class Board extends MoveGenerator {
     private result?: GameResult;
-    private repeats: { [pos: string]: number } = {};
 
     constructor(fen = StartingFEN){
         super();
@@ -33,9 +32,6 @@ export class Board extends MoveGenerator {
 
     public override loadFEN(fen: string): void {
         super.loadFEN(fen);
-        this.repeats = {
-            [this.getPosition()]: 1
-        };
         delete this.result;
     }
 
@@ -51,20 +47,14 @@ export class Board extends MoveGenerator {
     public override makeMove(move: Move): void {
         super.makeMove(move);
 
-        const pos = this.getPosition();
-        const reps = (this.repeats[pos] || 0) + 1;
-        this.repeats[pos] = reps;
-        if (reps >= 3)
+        if (this.getOccurrencesOfCurrentPosition() >= 3)
             this.setResult("threefold", Side.None);
 
-        if (this.halfmoves[0]! >= 100)
+        if (this.history[0]!.halfmove >= 100)
             this.setResult("fifty move rule", Side.None);
     }
 
     public override unmakeMove(move: Move): void {
-        const pos = this.getPosition();
-        this.repeats[pos]!--;
-
         super.unmakeMove(move);
         delete this.result;
     }

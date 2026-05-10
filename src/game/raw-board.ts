@@ -6,6 +6,12 @@ import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
 // exists is to separate the move generator from generic board operations, such
 // as checking where pieces are.
 
+export interface HistoryBoardState {
+    halfmove: number,
+    squares: BigUint64Array,
+    turn: Side
+}
+
 export class RawBoard {
     // contains the type and side of every piece on all 64 squares (Side | PieceType)
     private squares = new Uint8Array(64);
@@ -19,7 +25,7 @@ export class RawBoard {
 
     protected fullmove: number = 1;
     // keeps track of the history of halfmoves (to allow for undoing moves)
-    protected halfmoves: number[] = [];
+    protected history: HistoryBoardState[] = [];
 
     constructor(){}
 
@@ -37,6 +43,34 @@ export class RawBoard {
 
     public getPiece(sq: number): Piece {
         return this.squares[sq]!;
+    }
+
+    public getSquares(): Uint8Array {
+        return this.squares;
+    }
+
+    public getOccurrencesOfCurrentPosition(): number {
+        let amt: number = 0;
+        const mySquares = new BigUint64Array(this.squares.buffer, this.squares.byteOffset);
+        for (const { squares, turn, halfmove } of this.history){
+            if (turn != this.turn)
+                continue;
+
+            let areEqual: boolean = true;
+            for (let i = 0; i < mySquares.length; i++){
+                if (squares[i] !== mySquares[i]){
+                    areEqual = false;
+                    break;
+                }
+            }
+            if (areEqual)
+                amt++;
+            // a halfmove is 0 only whenever a capture occurs. This isn't true
+            // for games like Chess, but it is true for Hyper Chess.
+            if (halfmove == 0)
+                break;
+        }
+        return amt;
     }
 
     // picks up the piece at the sq
@@ -141,11 +175,6 @@ export class RawBoard {
         }
     }
 
-    // returns any unique identifiers to a position (arrangement of pieces and whose turn it is)
-    public getPosition(): string {
-        return `${this.squares.join(".")}.${this.turn}`;
-    }
-
     // returns true if the given pieceType is within a 1 square in any direction to the given sq
     // AND if that piece is of opposite color to the given piece.
     public inVicinity(sq: number, piece: Piece, pieceType: PieceType): boolean {
@@ -237,7 +266,11 @@ export class RawBoard {
         }
 
         // halfmove clock
-        this.halfmoves = [ parseInt(segments[2]!) || 0 ];
+        this.history = [ {
+            halfmove: parseInt(segments[2]!) || 0,
+            squares: new BigUint64Array(this.squares.slice().buffer, this.squares.byteOffset),
+            turn: this.turn
+        } ];
 
         // fullmove clock
         this.fullmove = parseInt(segments[3]!);
@@ -272,7 +305,7 @@ export class RawBoard {
 
         // set proper turn
         const turn = this.turn == Side.White ? "w" : "b";
-        FEN += ` ${turn} ${this.halfmoves[0]} ${this.fullmove}`;
+        FEN += ` ${turn} ${this.history[0]?.halfmove} ${this.fullmove}`;
 
         return FEN;
     }

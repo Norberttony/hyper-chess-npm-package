@@ -502,9 +502,14 @@ export class MoveGenerator extends RawBoard {
     // if the move is not legal, then some funny behavior could occur.
     public makeMove(move: Move): void {
         // update halfmove counter
-        this.halfmoves.unshift(this.halfmoves[0]! + 1);
+        let halfmove = this.history[0]!.halfmove + 1;
         if (move.captures.length > 0)
-            this.halfmoves[0] = 0;
+            halfmove = 0;
+        this.history.unshift({
+            halfmove,
+            squares: new BigUint64Array(this.getSquares().slice().buffer, this.getSquares().byteOffset),
+            turn: this.turn
+        });
 
         // go through all of the captures
         for (const { sq } of move.captures)
@@ -525,7 +530,7 @@ export class MoveGenerator extends RawBoard {
     // un-does a move on the board (make sure that the move being undone is the most recent made move)
     public unmakeMove(move: Move): void {
         // update halfmove counter
-        this.halfmoves.shift();
+        this.history.shift();
 
         // unmove the piece and uncapture whatever it captured.
         this.placedown(move.from, this.pickup(move.to));
