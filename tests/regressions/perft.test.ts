@@ -1,44 +1,49 @@
 import fs from "node:fs";
 import pathModule from "node:path";
-import { Board } from "./game/board.js";
-import { Move } from "./game/move.js";
-import { LAN } from "./game/coords.js";
+import { describe, expect, test } from "vitest";
+import { Board } from "../../src/game/board.js";
+import { Move } from "../../src/game/move.js";
+import { LAN } from "../../src/game/coords.js";
 
-const perftPath = pathModule.join(".", "perft.json");
+const perftPath = pathModule.join(".", "tests", "fixtures", "perft.json");
 
-let pv: LAN[] = [];
-try {
-    console.log("[!!!] Only running tests that are <= 50k nodes because the program is slow");
+interface TestSuiteCase {
+    fen: string,
+    nodes: Record<string, number>
+}
 
-    const testSuite = JSON.parse(fs.readFileSync(perftPath).toString());
+describe("perft", () => {
+    const MAX_NODES = 1000;
+    console.log(`[!!!] Only running tests that are <= ${MAX_NODES} nodes because the program is slow`);
+    const testSuite: TestSuiteCase[] = JSON.parse(fs.readFileSync(perftPath).toString());
 
-    const b = new Board();
-
-    for (const { fen, nodes } of testSuite){
+    test.for(testSuite)("perft %s", ({ fen, nodes }) => {
+        const pv: LAN[] = [];
+        const b = new Board();
         b.loadFEN(fen);
+
+        // we'll be comparing this FEN to avoid any slight formatting changes
+        // like adding/removing extra spaces.
         const startFEN = b.getFEN();
-        console.log(fen);
+
         for (const depthStr of Object.keys(nodes)){
             const depth = parseInt(depthStr);
-            const expected = nodes[depthStr];
-            if (expected > 50000)
-                continue;
-            const actual = countMoves(depth, b, pv)[0];
-            const finalFENMatch = b.getFEN() == startFEN;
-            console.log(actual, expected);
-            if (actual != expected)
-                throw new Error(`Perft results did not match for fen ${fen} at depth ${depthStr}; final FEN match: ${finalFENMatch}`);
-            if (!finalFENMatch)
-                throw new Error(`Perft results matched but the final FEN (${b.getFEN()}) did not match the initial FEN ${startFEN}`);
-        }
-    }
+            const expected = nodes[depthStr]!;
 
-    console.log("Test finished successfully!");
-}
-catch(err){
-    console.error("An error occurred during testing:", err);
-    console.error("Last PV was", pv);
-}
+            // for speed purposes
+            if (expected > MAX_NODES)
+                continue;
+
+            const actual = countMoves(depth, b, pv)[0];
+
+            // ensure we're back where we started
+            expect(b.getFEN()).toBe(startFEN);
+
+            // ensure node count matches
+            expect(actual).toBe(expected);
+        }
+    });
+});
 
 function countMoves(depth: number, board: Board, pv: string[] = [], prevMove?: Move): number[] {
     if (depth == 0){

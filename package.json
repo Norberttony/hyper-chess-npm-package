@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "node dist/test-game.js"
+    "test": "vitest"
   },
   "author": "Norbert Krajewski",
   "license": "ISC",
@@ -22,6 +22,7 @@
   ],
   "devDependencies": {
     "@types/node": "^25.0.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
   }
 }
