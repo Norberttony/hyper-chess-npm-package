@@ -4,6 +4,8 @@ import { PGNHeader } from "../graphics/pgn/pgn-data.js";
 import { Move } from "./move.js";
 import { SAN } from "./san.js";
 import { LAN } from "./coords.js";
+import { Side } from "./piece.js";
+import { GameResult } from "./board.js";
 
 export class VariationsBoard extends Board {
     // variations in the position are stored via a tree. The root is the very
@@ -25,6 +27,30 @@ export class VariationsBoard extends Board {
 
     constructor(){
         super();
+    }
+
+    public override makeMove(move: Move): void {
+        this.playMove(move);
+        const res = this.isGameOver();
+        if (res)
+            this.currentVariation.result = res;
+    }
+
+    public override unmakeMove(move: Move): void {
+        if (this.currentVariation.prev?.move?.equals(move))
+            this.previousVariation();
+        else
+            throw new Error("Cannot unmake a move that was not in the previous variation");
+    }
+
+    public override getResult(): GameResult | undefined {
+        return this.currentVariation.result || super.getResult();
+    }
+
+    public override setResult(termination: string, winner: Side): GameResult {
+        const res: GameResult = super.setResult(termination, winner);
+        this.currentVariation.result = res;
+        return res;
     }
 
     public getVariationRoot(): VariationMove {
@@ -98,7 +124,7 @@ export class VariationsBoard extends Board {
         const variation = this.currentVariation.next[index];
         if (variation){
             if (variation.move)
-                this.makeMove(variation.move);
+                super.makeMove(variation.move);
             this.currentVariation = variation;
             return true;
         }
@@ -109,7 +135,7 @@ export class VariationsBoard extends Board {
     public previousVariation(): boolean {
         if (this.currentVariation.prev){
             if (this.currentVariation.move)
-                this.unmakeMove(this.currentVariation.move);
+                super.unmakeMove(this.currentVariation.move);
             this.currentVariation = this.currentVariation.prev;
             return true;
         }
@@ -169,7 +195,7 @@ export class VariationsBoard extends Board {
         
         const move = this.getMoveOfSAN(san);
         if (move)
-            this.makeMove(move);
+            super.makeMove(move);
 
         if (doSwitch)
             this.jumpToVariation(previous);
@@ -183,7 +209,7 @@ export class VariationsBoard extends Board {
 
         const move = this.getMoveOfLAN(lan);
         if (move)
-            this.makeMove(move);
+            super.makeMove(move);
 
         if (doSwitch)
             this.jumpToVariation(previous);

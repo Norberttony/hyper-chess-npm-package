@@ -24,6 +24,26 @@ export class Move {
         return new Move(this.to, this.from, [ ...this.captures ]);
     }
 
+    public equals(move: Move): boolean {
+        // different squares?
+        if (this.from != move.from || this.to != move.to)
+            return false;
+
+        // different number of captures?
+        if (this.captures.length != move.captures.length)
+            return false;
+
+        // different captures?
+        for (const c1 of this.captures){
+            for (const c2 of move.captures){
+                if (c1.captured != c2.captured || c1.sq != c2.sq)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
     public get lan(): LAN {
         return `${squareToAlgebraic(this.from)}${squareToAlgebraic(this.to)}` as LAN;
     }

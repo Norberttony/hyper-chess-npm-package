@@ -39,6 +39,10 @@ export class Board extends MoveGenerator {
         delete this.result;
     }
 
+    public getResult(): GameResult | undefined {
+        return this.isGameOver();
+    }
+
     protected setResult(termination: string, winner: Side): GameResult {
         this.result = { termination, winner };
         return this.result;

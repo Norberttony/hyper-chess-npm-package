@@ -1,6 +1,7 @@
 import { SAN } from "../../game/san.js";
 import { removeGlyphs, Side } from "../../index.js";
 import { Move } from "../../index.js";
+import { GameResult } from "../../index.js";
 
 // the variation object operates as a linked list with a single previous node and a list of next
 // nodes.
@@ -15,6 +16,8 @@ export class VariationMove {
     public glyphs: string[] = [];
     public comment: string = "";
     public fiftyMoveRuleCounter: number = 0;
+
+    public result?: GameResult;
 
     constructor(move?: Move, public san?: SAN){
         // allows (un)doing the move whenever user scrolls through pgn
