@@ -18,7 +18,7 @@ export class BoardGraphics extends VariationsBoard {
     public piecesDiv: HTMLElement;
     public draggingElem: HTMLElement;
 
-    private widgets: { [name: string]: BoardWidget };
+    private widgets: { [name: string]: BoardWidget } = {};
     private widgetNames: Set<string> = new Set<string>();
 
     private allowInputFrom: { [side: number]: boolean };
@@ -27,7 +27,11 @@ export class BoardGraphics extends VariationsBoard {
 
     public graphicalVariation: VariationMove;
 
-    constructor(allowDragging = true, displayRanksAndFiles = false, skeleton = null){
+    constructor(
+        public allowDragging = true,
+        public displayRanksAndFiles = false,
+        skeleton: HTMLElement | null = null
+    ){
         super();
         this.skeleton = createSkeleton(skeleton);
         this.skeleton.classList.add("board-graphics--board-blue", "board-graphics--pieces-cburnett");
@@ -41,7 +45,6 @@ export class BoardGraphics extends VariationsBoard {
         boardDiv.appendChild(piecesDiv);
 
         // set attributes
-        this.widgets = {};
         this.boardDiv = boardDiv;
         this.piecesDiv = piecesDiv;
         this.allowInputFrom = { [Side.White]: allowDragging, [Side.Black]: allowDragging };

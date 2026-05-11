@@ -34,5 +34,7 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
     "preserveConstEnums": false
-  }
+  },
+  "include": [ "src" ],
+  "exclude": [ "test" ]
 }
