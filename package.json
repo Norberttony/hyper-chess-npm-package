@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
-    "./pgn": "./dist/pgn/index.js"
+    "./pgn": "./dist/pgn/index.js",
+    "./graphics": "./dist/graphics/index.js"
   },
   "scripts": {
     "build": "tsc",
