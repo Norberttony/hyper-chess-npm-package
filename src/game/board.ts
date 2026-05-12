@@ -44,19 +44,27 @@ export class Board extends MoveGenerator {
         return this.result;
     }
 
-    public override makeMove(move: Move): void {
+    private _boardMakeMove(move: Move): void {
         super.makeMove(move);
-
+    
         if (this.getOccurrencesOfCurrentPosition() >= 3)
             this.setResult("threefold", Side.None);
-
+    
         if (this.history[0]!.halfmove >= 100)
             this.setResult("fifty move rule", Side.None);
     }
 
-    public override unmakeMove(move: Move): void {
+    public override makeMove(move: Move): void {
+        this._boardMakeMove(move);
+    }
+
+    private _boardUnmakeMove(move: Move): void {
         super.unmakeMove(move);
         delete this.result;
+    }
+
+    public override unmakeMove(move: Move): void {
+        this._boardUnmakeMove(move);
     }
 
     // checks if the current player is checkmated... or stalemated...
@@ -217,7 +225,7 @@ export class Board extends MoveGenerator {
         SAN = `${SANChar}${resolvedSquare}${move.captures.length > 0 ? "x": ""}${squareToAlgebraic(move.to)}` as SAN;
 
         if (withGlyphs){
-            this.makeMove(move);
+            this._boardMakeMove(move);
     
             // is game over?
             let result = this.isGameOver();
@@ -243,7 +251,7 @@ export class Board extends MoveGenerator {
                 if (isCheck)
                     attachGlyph(SAN, "+");
             }
-            this.unmakeMove(move);
+            this._boardUnmakeMove(move);
         }
     
         return SAN;

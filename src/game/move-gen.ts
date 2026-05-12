@@ -11,6 +11,14 @@ export class MoveGenerator extends RawBoard {
         super();
     }
 
+    public makeMove(move: Move): void {
+        this._makeMove(move);
+    }
+
+    public unmakeMove(move: Move): void {
+        this._unmakeMove(move);
+    }
+
     // returns true if a certain square is attacked
     public isAttacked(sq: number){
         // go through every move
@@ -488,19 +496,19 @@ export class MoveGenerator extends RawBoard {
 
     // checks if a move is legal
     public isMoveLegal(move: Move): boolean {
-        this.makeMove(move);
+        this._makeMove(move);
 
         // if the move causes the current king to stay in check, then it can't be legal
         const attacksKing = this.isAttacked(this.getKingSq(true));
 
-        this.unmakeMove(move);
+        this._unmakeMove(move);
 
         return !attacksKing;
     }
 
     // performs a move on the board. this method assumes that the given move is LEGAL
     // if the move is not legal, then some funny behavior could occur.
-    public makeMove(move: Move): void {
+    private _makeMove(move: Move): void {
         // update halfmove counter
         let halfmove = this.history[0]!.halfmove + 1;
         if (move.captures.length > 0)
@@ -528,7 +536,7 @@ export class MoveGenerator extends RawBoard {
     }
 
     // un-does a move on the board (make sure that the move being undone is the most recent made move)
-    public unmakeMove(move: Move): void {
+    private _unmakeMove(move: Move): void {
         // update halfmove counter
         this.history.shift();
 

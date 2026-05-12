@@ -31,9 +31,6 @@ export class VariationsBoard extends Board {
 
     public override makeMove(move: Move): void {
         this.playMove(move);
-        const res = this.isGameOver();
-        if (res)
-            this.currentVariation.result = res;
     }
 
     public override unmakeMove(move: Move): void {
@@ -216,7 +213,7 @@ export class VariationsBoard extends Board {
     }
 
     // assumes move is legal
-    public playMove(move: Move, SAN = this.getMoveSAN(move)): VariationMove | undefined {
+    public playMove(move: Move, SAN = super.getMoveSAN(move)): VariationMove | undefined {
         // search for an existing variation with this move
         for (const v of this.currentVariation.next){
             if (v.san == SAN){
@@ -238,6 +235,11 @@ export class VariationsBoard extends Board {
             this.mainVariation = variation;
 
         super.makeMove(move);
+
+        const res = super.isGameOver();
+        if (res)
+            this.currentVariation.result = res;
+
         return variation;
     }
 

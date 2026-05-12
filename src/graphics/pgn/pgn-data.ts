@@ -22,10 +22,11 @@ export class PGNData {
     private initHeaders(): void {
         this.headers = {
             "Event": "Hyper Chess Analysis",
-            "Site": window.location.href,
             "Result": "*",
             "Variant": "Standard"
         };
+        if (typeof window !== "undefined")
+            this.headers.Site = window.location.href;
     }
 
     public clearHeaders(): void {
