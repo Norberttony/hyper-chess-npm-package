@@ -14,35 +14,38 @@ interface TestSuiteCase {
 
 describe("perft", () => {
     const MAX_NODES = 1000;
-    console.log(`[!!!] Only running tests that are <= ${MAX_NODES} nodes because the program is slow`);
     const testSuite: TestSuiteCase[] = JSON.parse(fs.readFileSync(perftPath).toString());
 
-    test.for(testSuite)("perft %s", { timeout: 30000 }, ({ fen, nodes }) => {
-        const pv: LAN[] = [];
-        const b = new Board();
-        b.loadFEN(fen);
-
-        // we'll be comparing this FEN to avoid any slight formatting changes
-        // like adding/removing extra spaces.
-        const startFEN = b.getFEN();
-
+    for (const { fen, nodes } of testSuite){
         for (const depthStr of Object.keys(nodes)){
             const depth = parseInt(depthStr);
             const expected = nodes[depthStr]!;
 
             // for speed purposes
-            if (expected > MAX_NODES)
-                continue;
+            const run = expected > MAX_NODES ? test.skip : test;
 
-            const actual = countMoves(depth, b, pv)[0];
+            run(`perft fen=${fen} depth=${depth} expectedNodes=${expected}`,
+                { timeout: 30000 },
+                () => {
+                    const pv: LAN[] = [];
+                    const b = new Board();
+                    b.loadFEN(fen);
+            
+                    // we'll be comparing this FEN to avoid any slight
+                    // formatting changes like adding/removing extra spaces.
+                    const startFEN = b.getFEN();
 
-            // ensure we're back where we started
-            expect(b.getFEN()).toBe(startFEN);
+                    const actual = countMoves(depth, b, pv)[0];
 
-            // ensure node count matches
-            expect(actual).toBe(expected);
+                    // ensure we're back where we started
+                    expect(b.getFEN()).toBe(startFEN);
+
+                    // ensure node count matches
+                    expect(actual).toBe(expected);
+                }
+            );
         }
-    });
+    }
 });
 
 function countMoves(depth: number, board: Board, pv: string[] = [], prevMove?: Move): number[] {
