@@ -1,0 +1,13 @@
+[Date "2025.12.03"]
+[Round "2.2"]
+[Event "\"Tournament\""]
+[Site "Hyper Chess Battle Ring"]
+[White "white-player"]
+[Black "black-player"]
+[Result "1/2-1/2"]
+[Termination "threefold"]
+[TimeControl "0.6666666666666666+0.4"]
+[FEN "1n1qkbnr/pbppp3/1pu4p/5pp1/5PP1/P4U2/NPPPP2P/R1BQKBN1 w 9 7"]
+[Variant "From Position"]
+
+7. Pee4 Pee5 8. Pgh4 Pgh5 9. Ub3 Pdd5 10. Qg4 Nxg3 11. Nxg4 Qg5 12. Ng1 Qxf6 13. Pa6 Ub5 14. Ug3 Qd6 15. Pxc6 Ub6 16. Ug8 Pxa5 17. Pbb4 Pexc5 18. Bcc4 Qe5 19. Pd6 Qxe6 20. Pxc6 Nd8 21. Bc2 Qe5 22. Pfe4 Ba6 23. Ng3 Qf6 24. Nb2 Pfe5 25. Bd1 Qe6 26. Na2 Qf5 27. Naf2 Qe6 28. Na2 Qf5 29. Naf2 Qe6 30. Na2 1/2-1/2

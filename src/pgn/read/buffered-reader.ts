@@ -6,7 +6,8 @@ export class BufferedReader {
     private fd: number | undefined = undefined;
     private buffer: Buffer;
     private position: number = 0;
-    private bufferPosition: number | undefined = undefined;
+    private bufferPosition: number = 0;
+    private bufferStartPosition: number | undefined = undefined;
     private bufferValidBytes: number = 0;
 
     constructor(private pathToFile: string, private chunkSizeBytes: number){
@@ -26,6 +27,14 @@ export class BufferedReader {
         });
     }
 
+    public setBufferPosition(pos: number): void {
+        this.bufferPosition = pos;
+    }
+
+    public getBufferPosition(): number {
+        return this.bufferPosition;
+    }
+
     public setPosition(pos: number): void {
         this.position = pos;
     }
@@ -38,8 +47,8 @@ export class BufferedReader {
         return this.buffer.subarray(0, this.bufferValidBytes);
     }
 
-    public getBufferPosition(): number | undefined {
-        return this.bufferPosition;
+    public getBufferStartPosition(): number | undefined {
+        return this.bufferStartPosition;
     }
 
     // populates buffer with next bytes, starting from position
@@ -57,13 +66,37 @@ export class BufferedReader {
                 (err, bytesRead: number) => {
                     if (err)
                         return rej(err.message);
-                    this.bufferPosition = readAt;
+                    this.bufferStartPosition = readAt;
                     this.position += bytesRead;
                     this.bufferValidBytes = bytesRead;
                     res(this.buffer.subarray(0, bytesRead));
                 }
             );
         });
+    }
+
+    public async extractParts(
+        callback: (i: number, v: number) => boolean
+    ): Promise<Buffer[]> {
+        const parts: Buffer[] = [];
+        
+        let offset: number = this.bufferPosition;
+
+        while (true){
+            for (let i = offset; i < this.buffer.length; i++){
+                this.bufferPosition = i;
+                const v: number = this.buffer[i]!;
+                if (callback(i, v)){
+                    parts.push(Buffer.from(this.buffer.subarray(offset, i)));
+                    return parts;
+                }
+            }
+            parts.push(Buffer.from(this.buffer.subarray(offset)));
+            offset = 0;
+            await this.read();
+            if (this.buffer.length == 0)
+                throw new Error("Cannot extract more parts: EOF");
+        }
     }
 
     public isOpen(): boolean {

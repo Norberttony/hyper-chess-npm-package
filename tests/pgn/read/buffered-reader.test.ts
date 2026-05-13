@@ -22,6 +22,7 @@ describe("BufferedReader", () => {
             );
             expect(reader.getPosition()).toBe(i + 2);
         }
+        expect(await reader.read()).toEqual(Buffer.from([]));
     });
 
     test("reads from position", async () => {
