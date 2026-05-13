@@ -66,6 +66,7 @@ export class BufferedReader {
                 (err, bytesRead: number) => {
                     if (err)
                         return rej(err.message);
+                    this.bufferPosition = 0;
                     this.bufferStartPosition = readAt;
                     this.position += bytesRead;
                     this.bufferValidBytes = bytesRead;
@@ -94,7 +95,7 @@ export class BufferedReader {
             parts.push(Buffer.from(this.buffer.subarray(offset)));
             offset = 0;
             await this.read();
-            if (this.buffer.length == 0)
+            if (this.getBuffer().length == 0)
                 throw new Error("Cannot extract more parts: EOF");
         }
     }

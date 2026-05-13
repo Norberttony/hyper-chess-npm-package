@@ -9,11 +9,7 @@ export async function handleTag(
     reader.setBufferPosition(reader.getBufferPosition() + 1);
 
     const headerParts: Buffer[] = await reader.extractParts(
-        (i: number, v: number) => {
-            if (v == DOUBLE_QUOTES)
-                return true;
-            return false;
-        }
+        (i: number, v: number) => v == DOUBLE_QUOTES
     )
 
     // skip first character
