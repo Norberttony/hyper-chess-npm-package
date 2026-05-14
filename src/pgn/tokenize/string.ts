@@ -2,6 +2,8 @@ import { BufferedReader } from "../read/buffered-reader.js";
 import { PgnStringToken } from "./types.js";
 import { BACK_SLASH, DOUBLE_QUOTES } from "./types.js";
 
+// to-do: string implementation should start on a double quotes, not after it
+// furthermore, it should consume final quote
 export async function handleString(
     reader: BufferedReader
 ): Promise<PgnStringToken> {

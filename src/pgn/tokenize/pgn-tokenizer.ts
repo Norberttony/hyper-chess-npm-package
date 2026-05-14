@@ -3,6 +3,7 @@ import { PgnToken } from "./types.js";
 import { handleTag } from "./tag.js";
 import { isWhitespace } from "../read/utils.js";
 import { LEFT_SQ_BRACKET } from "./types.js";
+import { handleMovetext } from "./movetext.js";
 
 export class PgnTokenizer {
     constructor(private reader: BufferedReader){}
@@ -20,6 +21,9 @@ export class PgnTokenizer {
                 }else if (v == LEFT_SQ_BRACKET){
                     this.reader.setBufferPosition(i);
                     return await handleTag(this.reader);
+                }else{
+                    this.reader.setBufferPosition(i);
+                    return await handleMovetext(this.reader);
                 }
             }
             await this.reader.read();

@@ -8,3 +8,7 @@ export function isWhitespace(byte: number): boolean {
         byte === 11    // \v
     );
 }
+
+export function isNumber(byte: number): boolean {
+    return byte >= 48 && byte <= 57;
+}
