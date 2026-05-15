@@ -7,12 +7,9 @@ export const DASH = '-'.charCodeAt(0);
 export const FORWARD_SLASH = '/'.charCodeAt(0);
 export const ZERO = '0'.charCodeAt(0);
 export const ONE = '1'.charCodeAt(0);
+export const TWO = '2'.charCodeAt(0);
 export const ASTERISK = '*'.charCodeAt(0);
-
-export interface PgnStringToken {
-    type: "string",
-    content: string
-}
+export const NEWLINE = '\n'.charCodeAt(0);
 
 export interface PgnNumberToken {
     type: "number",
@@ -28,7 +25,7 @@ export interface PgnFractionToken {
 export interface PgnTagToken {
     type: "tag",
     header: string,
-    value: PgnStringToken
+    value: string
 }
 
 export interface PgnMoveNumToken {

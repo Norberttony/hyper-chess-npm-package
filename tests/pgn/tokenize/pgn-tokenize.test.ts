@@ -21,9 +21,12 @@ describe("PgnTokenizer", () => {
         ).toString());
         let actualIdx: number = 0;
 
+        const tokens: PgnToken[] = [];
         let token: PgnToken | undefined;
-        while (token = await tokenizer.nextToken()){
+        while (token = tokenizer.nextToken()){
             expect(token).toEqual(actualTokens[actualIdx++]);
+            if (tokens.length > actualTokens.length)
+                break;
         }
     });
 });

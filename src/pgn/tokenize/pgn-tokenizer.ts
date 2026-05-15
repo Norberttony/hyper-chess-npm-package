@@ -8,27 +8,17 @@ import { handleMovetext } from "./movetext.js";
 export class PgnTokenizer {
     constructor(private reader: BufferedReader){}
 
-    public async nextToken(): Promise<PgnToken | undefined> {
-        if (this.reader.getBufferStartPosition() === undefined)
-            await this.reader.read();
-
-        while (true){
-            const buffer = this.reader.getBuffer();
-            for (let i = this.reader.getBufferPosition(); i < buffer.length; i++){
-                const v: number = buffer[i]!;
-                if (isWhitespace(v)){
-                    continue;
-                }else if (v == LEFT_SQ_BRACKET){
-                    this.reader.setBufferPosition(i);
-                    return await handleTag(this.reader);
-                }else{
-                    this.reader.setBufferPosition(i);
-                    return await handleMovetext(this.reader);
-                }
+    public nextToken(): PgnToken | undefined {
+        while (true && !this.reader.isAtEnd()){
+            const v: number = this.reader.get();
+            if (isWhitespace(v)){
+                this.reader.advance();
+            }else if (v == LEFT_SQ_BRACKET){
+                return handleTag(this.reader);
+            }else{
+                return handleMovetext(this.reader);
             }
-            await this.reader.read();
-            if (this.reader.getBuffer().length == 0)
-                return undefined;
         }
+        return undefined;
     }
 }

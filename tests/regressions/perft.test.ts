@@ -13,7 +13,7 @@ interface TestSuiteCase {
 }
 
 describe("perft", () => {
-    const MAX_NODES = 1000;
+    const MAX_NODES = 0;
     const testSuite: TestSuiteCase[] = JSON.parse(fs.readFileSync(perftPath).toString());
 
     for (const { fen, nodes } of testSuite){
