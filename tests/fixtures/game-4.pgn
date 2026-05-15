@@ -1,0 +1,13 @@
+[Date "2025.12.03"]
+[Round "4.1"]
+[Event "Tournament"]
+[Site "Hyper Chess Battle Ring"]
+[White "orderfirst-fix-779653cadeb9c6f3203f78dc805926ee437cf618"]
+[Black "check-moves-bonus-0753cae7970560e5b04f3c4a1ede23a54c39fa0b"]
+[Result "1-0"]
+[Termination "checkmate"]
+[TimeControl "0.6666666666666666+0.4"]
+[FEN "1nbqkbnr/p2p1ppp/2u1p3/5N2/1pp2P2/2P2UP1/PPQPP2P/R1B1KBN1 b 0 6"]
+[Variant "From Position"]
+
+6... Pd5 7. Ud3 Ph4 8. Pg6 Pee5 9. Nh5 Pxg5 10. Nxh3 Pgf5 11. Pa5 Ub6 12. Pa3 Pg4 13. Uc3 Pfe5 14. Qe4 Qg5 15. Qxf3 Qxh6 16. Qe4 Pf2 17. Qxe3 Nd5 18. Nh1 Ud4 19. Pab3 Qb6 20. Ra4 Qb5 21. Nxc6 Bcxc5 22. Kxd1 Qxc6 23. Pxg2 Bcf5 24. Bb1 Be4 25. Qg3 Kd8 26. Ph2 Qb5 27. Nh4 Bh1+ 28. Kc2 Pg5 29. Pe4 Qxc5 30. Qg2 Bf3 31. Pf2 Nf4 32. Ue5 Ke8 33. Nh5 Pg4 34. Ud4 Pb6 35. Bfc1 Rf8 36. Nxb5 Kd8 37. Pb4 Pxa4 38. Ug7 Nxd4 39. Ue7 Paxb4 40. Qg1 Bhg2 41. Qe1 Bf6 42. Qe6 Pd6 43. Qc8+ Pb8 44. Qc7+ Pb6 45. Qxb8 Bg3 46. Qc8+ Pb8 47. Qd7+ Bd6 48. Qc7+ Pb6 49. Qxb8 Ne5 50. Qc8+ Nb8 51. Kc3 Pce4 52. Kb3 Pc4 53. Bg6 Pd6 54. Be8# 1-0

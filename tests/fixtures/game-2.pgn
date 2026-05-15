@@ -1,0 +1,9 @@
+[Date "2025.12.03"]
+[Site "Hyper Chess Battle Ring"]
+[White "white-player"]
+[Black "black-player"]
+[TimeControl "0.6666666666666666+0.4"]
+[FEN "unb1kbnr/pp1pq1pp/2p5/p7/P4P1P/5UP1/1PPP4/RNBQKBN1 b 9 9"]
+[Variant "From Position"]
+
+9... Pbb5 10. Pbb4 Pgg6 11. Pd5 Pcb6 12. Pe5 Pd4 13. Qd3 Qc5 14. Qxd2 Qxd6 15. Pf6 Pc6 16. Pxh6 Qxc7 17. Pc5 Qd6 18. Ug4 Kd8 19. Qb4 Be8 20. Phh5 Qxe7 21. Qxc3 Qf8 22. Pf7 Pg5 23. Qc5 Bed7 24. Qd5 Pc3 25. Uf4 Nc7 26. Qe6 Bd5 27. Nd3 Bc6 28. Uf6 Qb4 29. Ug7 Qxc4 30. Nd6 Nxe5 31. Qxe7+ Kd7 32. Bcf4 Kxe7 33. Uf8 Rd4+ 34. Nxc5 Qe6 35. Rxa6+ B8b7 36. Bf6# 1-0
