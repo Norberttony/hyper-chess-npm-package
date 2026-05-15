@@ -14,23 +14,27 @@ describe("BufferedReader", () => {
     });
     afterEach(() => reader.close());
 
-    test("reads chunk by chunk", async () => {
+    test("able to get, peek, and detect end", async () => {
         const a = "a".charCodeAt(0);
-        for (let i = 0; i < 26; i += 2){
-            expect(await reader.read()).toEqual(
-                Buffer.from([ a + i, a + i + 1 ])
-            );
-            expect(reader.getPosition()).toBe(i + 2);
+        for (let i = 0; i < 26; i++){
+            expect(reader.get()).toBe(a + i);
+            expect(reader.peek()).toBe(i < 25 ? a + i + 1 : 0);
+            expect(reader.peekNext()).toBe(i < 24 ? a + i + 2: 0);
+            reader.advance();
         }
-        expect(await reader.read()).toEqual(Buffer.from([]));
+        expect(reader.isAtEnd()).toBeTruthy();
     });
 
-    test("reads from position", async () => {
+    test("matches and copies correctly", async () => {
         const a = "a".charCodeAt(0);
-        const offset = 4;
-        reader.setPosition(offset);
-        expect(await reader.read()).toEqual(
-            Buffer.from([ a + offset, a + offset + 1 ])
-        );
+        expect(reader.match(a)).toBeTruthy();
+        expect(reader.match(a)).toBeFalsy();
+
+        reader.copyStart();
+        while (!reader.isAtEnd())
+            reader.advance();
+
+        const content: string = reader.copyEnd().join("");
+        expect(content).toBe("bcdefghijklmnopqrstuvwxyz");
     });
 });

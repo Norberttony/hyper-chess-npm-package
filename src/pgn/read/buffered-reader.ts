@@ -1,17 +1,104 @@
 import fs from "node:fs";
+import { isWhitespace } from "./utils.js";
+
+interface BufferWrapper {
+    data: Buffer;
+    validBytes: number;
+}
 
 // to-do: add a string decoder which will handle variable-length encodings and
 // prevent corruption.
 export class BufferedReader {
     private fd: number | undefined = undefined;
-    private buffer: Buffer;
+    private buffer: BufferWrapper;
+    private nextBuffer: BufferWrapper;
     private position: number = 0;
     private bufferPosition: number = 0;
-    private bufferStartPosition: number | undefined = undefined;
-    private bufferValidBytes: number = 0;
+
+    private copyBufferPosStart: number = 0;
+    private parts: Buffer[] | undefined = undefined;
 
     constructor(private pathToFile: string, private chunkSizeBytes: number){
-        this.buffer = Buffer.alloc(this.chunkSizeBytes);
+        // at least size of 2 to allow for peek and peekNext to work
+        if (chunkSizeBytes < 2){
+            throw new Error(
+                `chunkSizeBytes must be set to greater than 2 (is ${chunkSizeBytes})`
+            );
+        }
+        this.buffer = {
+            data: Buffer.alloc(this.chunkSizeBytes),
+            validBytes: 0
+        };
+        this.nextBuffer = {
+            data: Buffer.alloc(this.chunkSizeBytes),
+            validBytes: 0
+        };
+    }
+
+    public copyStart(): void {
+        this.parts = [];
+        this.copyBufferPosStart = this.bufferPosition;
+    }
+
+    private addPart(): void {
+        if (this.parts){
+            const slice: Buffer = this.buffer.data.subarray(
+                this.copyBufferPosStart, this.bufferPosition
+            );
+            this.parts.push(Buffer.from(slice));
+        }
+    }
+
+    public copyEnd(): Buffer[] {
+        this.addPart();
+        const parts: Buffer[] = this.parts!;
+        this.parts = undefined;
+        return parts;
+    }
+
+    public isAtEnd(): boolean {
+        return this.bufferPosition >= this.buffer.validBytes;
+    }
+
+    public advance(): void {
+        this.position++;
+        this.bufferPosition++;
+
+        if (this.isAtEnd()){
+            this.addPart();
+            this.copyBufferPosStart = 0;
+            this.readNextBuffer();
+        }
+    }
+
+    // gets the byte at the current position
+    public get(): number {
+        if (this.isAtEnd())
+            return 0;
+        return this.buffer.data[this.bufferPosition]!;
+    }
+
+    public match(byte: number): boolean {
+        if (this.isAtEnd())
+            return false;
+        if (this.get() == byte){
+            this.advance();
+            return true;
+        }
+        return false;
+    }
+
+    public peek(): number {
+        return this.getNAway(1);
+    }
+
+    public peekNext(): number {
+        return this.getNAway(2);
+    }
+
+    public skipWhitespace(): void {
+        while (isWhitespace(this.get()))
+            this.advance();
     }
 
     public async open(): Promise<void> {
@@ -22,82 +109,11 @@ export class BufferedReader {
                     throw err;
                 }
                 this.fd = fd;
+                this.read(this.buffer);
+                this.read(this.nextBuffer);
                 res();
             });
         });
-    }
-
-    public setBufferPosition(pos: number): void {
-        this.bufferPosition = pos;
-    }
-
-    public getBufferPosition(): number {
-        return this.bufferPosition;
-    }
-
-    public setPosition(pos: number): void {
-        this.position = pos;
-    }
-
-    public getPosition(): number {
-        return this.position;
-    }
-
-    public getBuffer(): Buffer {
-        return this.buffer.subarray(0, this.bufferValidBytes);
-    }
-
-    public getBufferStartPosition(): number | undefined {
-        return this.bufferStartPosition;
-    }
-
-    // populates buffer with next bytes, starting from position
-    public async read(): Promise<Buffer> {
-        return new Promise((res, rej) => {
-            if (!this.fd)
-                return rej("File is closed");
-            const readAt = this.position;
-            fs.read(
-                this.fd,
-                this.buffer,
-                0,
-                this.buffer.byteLength,
-                readAt,
-                (err, bytesRead: number) => {
-                    if (err)
-                        return rej(err.message);
-                    this.bufferPosition = 0;
-                    this.bufferStartPosition = readAt;
-                    this.position += bytesRead;
-                    this.bufferValidBytes = bytesRead;
-                    res(this.buffer.subarray(0, bytesRead));
-                }
-            );
-        });
-    }
-
-    public async extractParts(
-        callback: (i: number, v: number) => boolean
-    ): Promise<Buffer[]> {
-        const parts: Buffer[] = [];
-        
-        let offset: number = this.bufferPosition;
-
-        while (true){
-            for (let i = offset; i < this.buffer.length; i++){
-                this.bufferPosition = i;
-                const v: number = this.buffer[i]!;
-                if (callback(i, v)){
-                    parts.push(Buffer.from(this.buffer.subarray(offset, i)));
-                    return parts;
-                }
-            }
-            parts.push(Buffer.from(this.buffer.subarray(offset)));
-            offset = 0;
-            await this.read();
-            if (this.getBuffer().length == 0)
-                throw new Error("Cannot extract more parts: EOF");
-        }
     }
 
     public isOpen(): boolean {
@@ -108,6 +124,52 @@ export class BufferedReader {
         if (this.fd){
             fs.close(this.fd);
             this.fd = undefined;
+        }
+    }
+
+    private readNextBuffer(): void {
+        this.bufferPosition -= this.buffer.validBytes;
+
+        // swap buffers
+        const temp: BufferWrapper = this.buffer;
+        this.buffer = this.nextBuffer;
+        this.nextBuffer = temp;
+
+        // read new content for nextBuffer to match
+        this.read(this.nextBuffer);
+    }
+
+    // populates buffer with next bytes, starting from position
+    private read(buffer: BufferWrapper): void {
+        if (!this.fd)
+            throw new Error("File is closed");
+        buffer.validBytes = fs.readSync(
+            this.fd,
+            buffer.data,
+            0,
+            buffer.data.byteLength,
+            null
+        );
+    }
+
+    private getNAway(n: number): number {
+        let p = this.bufferPosition + n;
+        if (p >= this.chunkSizeBytes * 2){
+            throw new Error(
+                `Tried peeking ${p} when cannot peek farther than 2 * chunkSizeBytes = ${2 * this.chunkSizeBytes}`
+            );
+        }
+        if (p >= this.buffer.validBytes){
+            // goes past this buffer, try next
+            p -= this.buffer.validBytes;
+            if (p >= this.nextBuffer.validBytes){
+                // goes past all buffers, return null character (0)
+                return 0;
+            }else{
+                return this.nextBuffer.data[p]!;
+            }
+        }else{
+            return this.buffer.data[p]!;
         }
     }
 }
