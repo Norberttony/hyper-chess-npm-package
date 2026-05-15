@@ -1,0 +1,67 @@
+import { AbstractReader } from "./abstract-reader.js";
+import { isWhitespace } from "./utils.js";
+
+export class Reader extends AbstractReader {
+    private position: number = 0;
+    private copyStartPos: number = 0;
+
+    constructor(private content: string){
+        super();
+    }
+
+    public copyStart(): void {
+        this.copyStartPos = this.position;
+    }
+
+    public copyEnd(): string {
+        return this.content.substring(this.copyStartPos, this.position);
+    }
+
+    public copyReject(): void {}
+
+    public isAtEnd(): boolean {
+        return this.position >= this.content.length;
+    }
+
+    public advance(): void {
+        this.position++;
+    }
+
+    // gets the byte at the current position
+    public get(): number {
+        if (this.isAtEnd())
+            return 0;
+        return this.content[this.position]!.charCodeAt(0);
+    }
+
+    public match(byte: number): boolean {
+        if (this.isAtEnd())
+            return false;
+        if (this.get() == byte){
+            this.advance();
+            return true;
+        }
+        return false;
+    }
+
+    public peek(): number {
+        return this.getNAway(1);
+    }
+
+    public peekNext(): number {
+        return this.getNAway(2);
+    }
+
+    public skipWhitespace(): void {
+        while (isWhitespace(this.get()))
+            this.advance();
+    }
+
+    private getNAway(n: number): number {
+        const p = this.position + n;
+        if (p >= this.content.length)
+            return 0;
+        else
+            return this.content[p]!.charCodeAt(0);
+    }
+}

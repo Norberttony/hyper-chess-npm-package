@@ -1,9 +1,9 @@
-import { BufferedReader } from "../read/buffered-reader.js";
+import { AbstractReader } from "../read/abstract-reader.js";
 import { isWhitespace } from "../read/utils.js";
 import { BACK_SLASH, DOUBLE_QUOTES, LEFT_SQ_BRACKET, NEWLINE, PgnTagToken, RIGHT_SQ_BRACKET } from "./types.js";
 
 // assumes that the first character is left square bracket '['
-export function handleTag(reader: BufferedReader): PgnTagToken {
+export function handleTag(reader: AbstractReader): PgnTagToken {
     if (!reader.match(LEFT_SQ_BRACKET))
         throw new Error(
             `handleTag: expected first character to be ${LEFT_SQ_BRACKET} but got ${reader.get()} instead`
@@ -19,7 +19,7 @@ export function handleTag(reader: BufferedReader): PgnTagToken {
     )
         reader.advance();
 
-    const header: string = reader.copyEnd().join("");
+    const header: string = reader.copyEnd();
 
     // incomplete tag! missing value!
     if (reader.get() == RIGHT_SQ_BRACKET || reader.isAtEnd())
@@ -35,7 +35,7 @@ export function handleTag(reader: BufferedReader): PgnTagToken {
         reader.advance();
     }
 
-    const value: string = reader.copyEnd().join("");
+    const value: string = reader.copyEnd();
 
     reader.advance();
     // skip next right bracket or the end of the line

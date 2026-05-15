@@ -1,14 +1,15 @@
 import fs from "node:fs";
+import { AbstractReader } from "./abstract-reader.js";
 import { isWhitespace } from "./utils.js";
 
-interface BufferWrapper {
+export interface BufferWrapper {
     data: Buffer;
     validBytes: number;
 }
 
 // to-do: add a string decoder which will handle variable-length encodings and
 // prevent corruption.
-export class BufferedReader {
+export class BufferedReader extends AbstractReader {
     private fd: number | undefined = undefined;
     private buffer: BufferWrapper;
     private nextBuffer: BufferWrapper;
@@ -19,6 +20,7 @@ export class BufferedReader {
     private parts: Buffer[] | undefined = undefined;
 
     constructor(private pathToFile: string, private chunkSizeBytes: number){
+        super();
         // at least size of 2 to allow for peek and peekNext to work
         if (chunkSizeBytes < 2){
             throw new Error(
@@ -49,11 +51,15 @@ export class BufferedReader {
         }
     }
 
-    public copyEnd(): Buffer[] {
+    public copyEnd(): string {
         this.addPart();
         const parts: Buffer[] = this.parts!;
         this.parts = undefined;
-        return parts;
+        return parts.join("");
+    }
+
+    public copyReject(): void {
+        this.parts = undefined;
     }
 
     public isAtEnd(): boolean {
@@ -68,6 +74,8 @@ export class BufferedReader {
             this.addPart();
             this.copyBufferPosStart = 0;
             this.readNextBuffer();
+            if (this.isAtEnd())
+                this.close();
         }
     }
 
