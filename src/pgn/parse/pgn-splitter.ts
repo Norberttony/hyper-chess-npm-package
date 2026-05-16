@@ -1,6 +1,7 @@
 import { AbstractReader } from "../read/abstract-reader.js";
 import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
 import { PgnToken } from "../tokenize/types.js";
+import { Pgn, PgnHeaders } from "./types.js";
 
 export class PgnSplitter {
     private tokenizer: PgnTokenizer;
@@ -8,6 +9,31 @@ export class PgnSplitter {
 
     constructor(reader: AbstractReader){
         this.tokenizer = new PgnTokenizer(reader);
+    }
+
+    public nextPgn(): Pgn | undefined {
+        const tokens = this.nextPgnInTokens();
+        if (tokens.length == 0)
+            return undefined;
+
+        const headers: PgnHeaders = {};
+        const moves: string[] = [];
+        let result: string = "*";
+
+        for (const token of tokens){
+            if (token.type == "tag")
+                headers[token.header] = token.value;
+            else if (token.type == "move")
+                moves.push(token.content);
+            else if (token.type == "result")
+                result = token.value;
+        }
+
+        return {
+            headers,
+            moves,
+            result,
+        };
     }
 
     // returns the next PGN as a list of tokens.

@@ -35,7 +35,7 @@ export function handleTag(reader: AbstractReader): PgnTagToken {
         reader.advance();
     }
 
-    const value: string = reader.copyEnd();
+    const value: string = reader.copyEnd().replaceAll("\\\"", "\"");
 
     reader.advance();
     // skip next right bracket or the end of the line
