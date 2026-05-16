@@ -1,10 +1,9 @@
 import path from "node:path";
 import { AbstractReader } from "../../../src/pgn/read/abstract-reader";
 import { describe, expect, test, beforeEach } from "vitest";
+import { fixturesPath } from "../../shared/utils";
 
 export type AbstractReaderFactory = (filePath: string) => Promise<AbstractReader>;
-
-const fixturesPath = path.join(".", "tests", "fixtures");
 
 export function testReader(name: string, factory: AbstractReaderFactory){
     describe(name, () => {

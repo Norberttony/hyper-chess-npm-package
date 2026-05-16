@@ -11,17 +11,6 @@ export const TWO = '2'.charCodeAt(0);
 export const ASTERISK = '*'.charCodeAt(0);
 export const NEWLINE = '\n'.charCodeAt(0);
 
-export interface PgnNumberToken {
-    type: "number",
-    num: number
-}
-
-export interface PgnFractionToken {
-    type: "fraction",
-    numerator: number,
-    denominator: number
-}
-
 export interface PgnTagToken {
     type: "tag",
     header: string,
