@@ -1,11 +1,12 @@
 import fs from "node:fs";
 import pathModule from "node:path";
 import { describe, expect, test } from "vitest";
+import { fixturesPath } from "../shared/utils.js";
 import { Board } from "../../src/game/board.js";
 import { Move } from "../../src/game/move.js";
 import { LAN } from "../../src/game/coords.js";
 
-const perftPath = pathModule.join(".", "tests", "fixtures", "perft.json");
+const perftPath = pathModule.join(fixturesPath, "perft.json");
 
 interface TestSuiteCase {
     fen: string,
