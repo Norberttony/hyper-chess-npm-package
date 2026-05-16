@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, test, expect, beforeEach } from "vitest";
-import { fixturesPath, readJSONFile } from "../../shared/utils";
+import { fixturesPath, gameFixturesAmt, readJSONFile } from "../../shared/utils";
 import { PgnSplitter } from "../../../src/pgn/parse/pgn-splitter";
 import { PgnToken } from "../../../src/pgn/tokenize/types";
 import { Reader } from "../../../src/pgn/read/reader";
@@ -19,7 +19,7 @@ describe("PgnSplitter", () => {
 
     beforeEach(() => {
         cases = [];
-        for (let i = 1; i <= 4; i++){
+        for (let i = 1; i <= gameFixturesAmt; i++){
             const pgnPath = path.join(fixturesPath, `game-${i}.pgn`);
             const pgn: string = fs.readFileSync(pgnPath).toString();
 
@@ -39,8 +39,11 @@ describe("PgnSplitter", () => {
     test("splits concatenated PGN correctly", () => {
         const splitter = new PgnSplitter(new Reader(pgnDb));
 
-        for (const { tokens } of cases)
-            expect(splitter.nextPgnInTokens()).toEqual(tokens);
+        for (const { tokens } of cases){
+            const t = splitter.nextPgnInTokens();
+            console.log(JSON.stringify(t));
+            expect(t).toEqual(tokens);
+        }
         expect(splitter.nextPgnInTokens()).toEqual([]);
     });
 

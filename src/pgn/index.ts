@@ -1,5 +1,4 @@
 export * from "./parse/pgn-splitter.js";
-export * from "./parse/types.js";
 export * from "./parse/utils.js";
 export * from "./read/abstract-reader.js";
 export * from "./read/buffered-reader.js";

@@ -1,3 +1,5 @@
+export const LEFT_BRACE = '{'.charCodeAt(0);
+export const RIGHT_BRACE = '}'.charCodeAt(0);
 export const LEFT_SQ_BRACKET = '['.charCodeAt(0);
 export const RIGHT_SQ_BRACKET = ']'.charCodeAt(0);
 export const DOUBLE_QUOTES = '"'.charCodeAt(0);
@@ -12,25 +14,35 @@ export const ASTERISK = '*'.charCodeAt(0);
 export const NEWLINE = '\n'.charCodeAt(0);
 
 export interface PgnTagToken {
-    type: "tag",
-    header: string,
-    value: string
+    type: "tag";
+    header: string;
+    value: string;
 }
 
 export interface PgnMoveNumToken {
-    type: "move num",
-    num: number,
-    threeDots: boolean
+    type: "move num";
+    num: number;
+    threeDots: boolean;
 }
 
 export interface PgnMoveToken {
-    type: "move",
-    content: string
+    type: "move";
+    content: string;
 }
 
 export interface PgnResultToken {
-    type: "result",
-    value: string
+    type: "result";
+    value: string;
 }
 
-export type PgnToken = PgnTagToken | PgnMoveNumToken | PgnMoveToken | PgnResultToken;
+export interface PgnCommentToken {
+    type: "comment";
+    content: string;
+}
+
+export type PgnToken =
+    | PgnTagToken
+    | PgnMoveNumToken
+    | PgnMoveToken
+    | PgnResultToken
+    | PgnCommentToken;

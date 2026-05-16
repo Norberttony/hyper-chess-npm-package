@@ -5,9 +5,10 @@ import { PgnTokenizer } from "../../../src/pgn/tokenize/pgn-tokenizer";
 import { BufferedReader } from "../../../src/pgn/read/buffered-reader";
 import { PgnToken } from "../../../src/pgn/tokenize/types";
 import { fixturesPath } from "../../shared/utils";
+import { gameFixturesAmt } from "../../shared/utils";
 
 describe("PgnTokenizer", () => {
-    for (let i = 1; i <= 4; i++){
+    for (let i = 1; i <= gameFixturesAmt; i++){
         const fileName = `game-${i}.pgn`;
         test(`fetches all tokens in ${fileName}`, async () => {
             const reader = new BufferedReader(
