@@ -1,17 +1,36 @@
 import { AbstractReader } from "../read/abstract-reader.js";
-import { PgnMoveToken, PgnMoveNumToken, PgnResultToken, DOT, DASH, ASTERISK, ONE, TWO, FORWARD_SLASH } from "./types.js";
+import { PgnMovetextToken, DOT, DASH, ASTERISK, ONE, TWO, FORWARD_SLASH, LEFT_PARENTHESIS, RIGHT_PARENTHESIS, LEFT_BRACE } from "./types.js";
 import { isNumber, isWhitespace } from "../read/utils.js";
 import { handleNumber } from "./number.js";
+import { handleComment } from "./comment.js";
 
-export function handleMovetext(
-    reader: AbstractReader
-): PgnMoveToken | PgnMoveNumToken | PgnResultToken {
-
+export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
     // asterisk indicates ongoing or incomplete game
     if (reader.match(ASTERISK)){
         return {
             type: "result",
             value: "*"
+        };
+    }
+
+    // handle variations
+    if (reader.match(LEFT_PARENTHESIS)){
+        const movetextTokens: PgnMovetextToken[] = [];
+        while (!reader.isAtEnd() && reader.get() != RIGHT_PARENTHESIS){
+            const v: number = reader.get();
+            if (isWhitespace(v)){
+                reader.advance();
+            }else if (v == LEFT_BRACE){
+                movetextTokens.push(handleComment(reader));
+            }else{
+                movetextTokens.push(handleMovetext(reader));
+            }
+        }
+        // skip right parenthesis
+        reader.advance();
+        return {
+            type: "variation",
+            movetext: movetextTokens
         };
     }
     

@@ -10,7 +10,7 @@ export class PgnTokenizer {
     constructor(private reader: AbstractReader){}
 
     public nextToken(): PgnToken | undefined {
-        while (true && !this.reader.isAtEnd()){
+        while (!this.reader.isAtEnd()){
             const v: number = this.reader.get();
             if (isWhitespace(v)){
                 this.reader.advance();

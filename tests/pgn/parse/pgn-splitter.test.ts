@@ -41,7 +41,6 @@ describe("PgnSplitter", () => {
 
         for (const { tokens } of cases){
             const t = splitter.nextPgnInTokens();
-            console.log(JSON.stringify(t));
             expect(t).toEqual(tokens);
         }
         expect(splitter.nextPgnInTokens()).toEqual([]);

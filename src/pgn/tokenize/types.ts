@@ -2,6 +2,8 @@ export const LEFT_BRACE = '{'.charCodeAt(0);
 export const RIGHT_BRACE = '}'.charCodeAt(0);
 export const LEFT_SQ_BRACKET = '['.charCodeAt(0);
 export const RIGHT_SQ_BRACKET = ']'.charCodeAt(0);
+export const LEFT_PARENTHESIS = '('.charCodeAt(0);
+export const RIGHT_PARENTHESIS = ')'.charCodeAt(0);
 export const DOUBLE_QUOTES = '"'.charCodeAt(0);
 export const BACK_SLASH = '\\'.charCodeAt(0);
 export const DOT = '.'.charCodeAt(0);
@@ -40,9 +42,18 @@ export interface PgnCommentToken {
     content: string;
 }
 
-export type PgnToken =
-    | PgnTagToken
+export interface PgnVariationToken {
+    type: "variation";
+    movetext: PgnMovetextToken[];
+}
+
+export type PgnMovetextToken =
     | PgnMoveNumToken
     | PgnMoveToken
     | PgnResultToken
-    | PgnCommentToken;
+    | PgnCommentToken
+    | PgnVariationToken;
+
+export type PgnToken =
+    | PgnTagToken
+    | PgnMovetextToken;
