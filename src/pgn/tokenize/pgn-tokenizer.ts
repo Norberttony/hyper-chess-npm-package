@@ -1,10 +1,11 @@
 import { AbstractReader } from "../read/abstract-reader.js";
-import { LEFT_BRACE, PgnToken } from "./types.js";
+import { LEFT_BRACE, PgnToken, SAN_GLYPHS } from "./types.js";
 import { handleTag } from "./tag.js";
 import { isWhitespace } from "../read/utils.js";
 import { LEFT_SQ_BRACKET } from "./types.js";
 import { handleMovetext } from "./movetext.js";
 import { handleComment } from "./comment.js";
+import { handleSanGlyph } from "./san-glyph.js";
 
 export class PgnTokenizer {
     constructor(private reader: AbstractReader){}
@@ -18,6 +19,8 @@ export class PgnTokenizer {
                 return handleComment(this.reader);
             }else if (v == LEFT_SQ_BRACKET){
                 return handleTag(this.reader);
+            }else if (SAN_GLYPHS.has(v)){
+                return handleSanGlyph(this.reader);
             }else{
                 return handleMovetext(this.reader);
             }

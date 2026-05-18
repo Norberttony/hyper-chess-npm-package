@@ -1,5 +1,5 @@
 import { Board, StartingFEN } from "./board.js";
-import { VariationMove, PGNData, extractHeaders, extractMoves } from "../graphics/pgn/index.js";
+import { VariationMove, PGNData, extractHeaders } from "../graphics/pgn/index.js";
 import { PGNHeader } from "../graphics/pgn/pgn-data.js";
 import { Move } from "./move.js";
 import { SAN } from "./san.js";
@@ -99,8 +99,8 @@ export class VariationsBoard extends Board {
             this.pgnData.setHeader(name as PGNHeader, value);
 
         // start reading san
-        const pgnSplit = extractMoves(pgn).split(" ");
-        this.readVariation(pgnSplit, 0);
+        // const pgnSplit = extractMoves(pgn).split(" ");
+        // this.readVariation(pgnSplit, 0);
     }
 
     public getMovesToCurrentVariation(): Move[] {

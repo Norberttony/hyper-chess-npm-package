@@ -14,6 +14,14 @@ export const ONE = '1'.charCodeAt(0);
 export const TWO = '2'.charCodeAt(0);
 export const ASTERISK = '*'.charCodeAt(0);
 export const NEWLINE = '\n'.charCodeAt(0);
+export const HASHTAG = '#'.charCodeAt(0);
+export const PLUS = '+'.charCodeAt(0);
+export const QUESTION_MARK = '?'.charCodeAt(0);
+export const EXCLAMATION_MARK = '!'.charCodeAt(0);
+
+export const SAN_GLYPHS = new Set<number>([
+    HASHTAG, PLUS, QUESTION_MARK, EXCLAMATION_MARK,
+]);
 
 // any characters that cannot be part of a move.
 export const NON_MOVE_CHARACTERS = new Set<number>([
@@ -23,6 +31,9 @@ export const NON_MOVE_CHARACTERS = new Set<number>([
 
     // whitespace characters
     32, 9, 10, 13, 12, 11,
+
+    // glyphs
+    ...[ ...SAN_GLYPHS ],
 ]);
 
 export interface PgnTagToken {
@@ -39,6 +50,11 @@ export interface PgnMoveNumToken {
 
 export interface PgnMoveToken {
     type: "move";
+    content: string;
+}
+
+export interface PgnSanGlyphToken {
+    type: "san glyph";
     content: string;
 }
 
@@ -60,6 +76,7 @@ export interface PgnVariationToken {
 export type PgnMovetextToken =
     | PgnMoveNumToken
     | PgnMoveToken
+    | PgnSanGlyphToken
     | PgnResultToken
     | PgnCommentToken
     | PgnVariationToken;

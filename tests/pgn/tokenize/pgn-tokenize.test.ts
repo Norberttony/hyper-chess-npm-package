@@ -22,10 +22,14 @@ describe("PgnTokenizer", () => {
                 path.join(fixturesPath, `game-${i}-tokens.json`)
             ).toString());
             let actualIdx: number = 0;
+
+            const tokens: PgnToken[] = [];
     
             let token: PgnToken | undefined;
-            while (token = tokenizer.nextToken())
+            while (token = tokenizer.nextToken()){
+                tokens.push(token);
                 expect(token).toEqual(actualTokens[actualIdx++]);
+            }
         });
     }
 });
