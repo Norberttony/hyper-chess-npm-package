@@ -18,6 +18,7 @@ export const HASHTAG = '#'.charCodeAt(0);
 export const PLUS = '+'.charCodeAt(0);
 export const QUESTION_MARK = '?'.charCodeAt(0);
 export const EXCLAMATION_MARK = '!'.charCodeAt(0);
+export const DOLLAR_SIGN = '$'.charCodeAt(0);
 
 export const SAN_GLYPHS = new Set<number>([
     HASHTAG, PLUS, QUESTION_MARK, EXCLAMATION_MARK,
@@ -34,6 +35,7 @@ export const NON_MOVE_CHARACTERS = new Set<number>([
 
     // glyphs
     ...[ ...SAN_GLYPHS ],
+    DOLLAR_SIGN,
 ]);
 
 export interface PgnTagToken {
@@ -58,6 +60,12 @@ export interface PgnSanGlyphToken {
     content: string;
 }
 
+// Represents a Numeric Annotation Glyph (NAG) in the PGN
+export interface PgnNagToken {
+    type: "nag";
+    id: number;
+}
+
 export interface PgnResultToken {
     type: "result";
     value: string;
@@ -77,6 +85,7 @@ export type PgnMovetextToken =
     | PgnMoveNumToken
     | PgnMoveToken
     | PgnSanGlyphToken
+    | PgnNagToken
     | PgnResultToken
     | PgnCommentToken
     | PgnVariationToken;

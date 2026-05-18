@@ -10,6 +10,6 @@
 [FEN "1nbqkbnr/p2p1ppp/2u1p3/5N2/1pp2P2/2P2UP1/PPQPP2P/R1B1KBN1 b 0 6"]
 [Variant "From Position"]
 
-1... Pd5 2. Ud3 Ph4 3. Pg6 Pee5 4. Nh5 Pxg5 5. Nxh3 Pgf5 6. Pa5 Ub6 7. Pa3 Pg4
-8. Uc3( 8. Bf3 Ng5 9. Kf2 ) Pfe5 9.Qe4 Qg5 10. Qxf3 Qxh6 11. Qe4 Pf2 12. Qxe3 Nd5 13. Nh1 Ud4 14. Pab3 Qb6 15. Ra4 Qb5 16. Nxc6 Bcxc5
-17. Kxd1 Qxc6 ( 17...Ke7 18. Uf6 Qb6 19. Nh7+ ( 19. Nh6 Pa8 20. Nh7+ Bg7 21. Nxf7+( 21. Pxb5 Nf8{a bit of a helpmate}22. Nxf7# 1-0) ) Bg7{This comment is after 21... Bg7} 20. Nxf7+)18. Pxg2 Bcf5 19. Bb1 Be4 20. Qg3 Kd8 21. Ph2 Qb5 22. Nh4 Bh1+ 23. Kc2 Pg5 24. Pe4 Qxc5 25. Qg2 Bf3 26. Pf2 Nf4 27. Ue5 Ke8 28. Nh5 Pg4 29. Ud4 Pb6 30. Bfc1 Rf8 31. Nxb5 Kd8 32. Pb4 Pxa4 33. Ug7 Nxd4 34. Ue7 Paxb4 35. Qg1 Bhg2 36. Qe1 Bf6 37. Qe6 Pd6 38. Qc8+ Pb8 39. Qc7+ Pb6 40. Qxb8 Bg3 41. Qc8+ Pb8 42. Qd7+ Bd6 43. Qc7+ Pb6 44. Qxb8 Ne5 45. Qc8+ Nb8 46. Kc3 Pce4 47. Kb3 Pc4 48. Bg6 Pd6 49. Be8#
+1... Pd5 2. Ud3 Ph4 3. Pg6 Pee5 4. Nh5 Pxg5 $1234567890 5. Nxh3 Pgf5 6. Pa5 Ub6 7. Pa3 Pg4
+8. Uc3( 8. Bf3 Ng5 9. Kf2 ) Pfe5 9.Qe4 Qg5 10. Qxf3 Qxh6 11. Qe4 Pf2 12. Qxe3 Nd5 $98989 13. Nh1 Ud4 14. Pab3 Qb6 15. Ra4 Qb5 16. Nxc6 Bcxc5
+17. Kxd1 Qxc6 $8( 17...Ke7 18. Uf6 $3 Qb6 19. Nh7+( 19. Nh6 Pa8 20. Nh7+ $10( 21. Pxb5 Nf8{a bit of a helpmate}22. Nxf7# 1-0) Bg7 21. Nxf7+ $93) Bg7{This comment is after 21... Bg7} 20. Nxf7+)18. Pxg2 Bcf5 19. Bb1 Be4 20. Qg3 Kd8 21. Ph2 Qb5 22. Nh4 Bh1+ 23. Kc2 Pg5 24. Pe4 Qxc5 25. Qg2 Bf3 26. Pf2 Nf4 27. Ue5 Ke8 28. Nh5 Pg4 29. Ud4 Pb6 30. Bfc1 Rf8 31. Nxb5 Kd8 32. Pb4 $9 Pxa4 33. Ug7 Nxd4 34. Ue7 Paxb4 35. Qg1 Bhg2 36. Qe1 Bf6 37. Qe6 Pd6 38. Qc8+ Pb8 39. Qc7+ Pb6 40. Qxb8 Bg3 41. Qc8+ Pb8 42. Qd7+ Bd6 43. Qc7+ Pb6 44. Qxb8 $3Ne5 45. Qc8+ Nb8 46. Kc3 Pce4 47. Kb3 Pc4 48. Bg6 Pd6 49. Be8#
