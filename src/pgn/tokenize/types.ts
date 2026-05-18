@@ -15,6 +15,16 @@ export const TWO = '2'.charCodeAt(0);
 export const ASTERISK = '*'.charCodeAt(0);
 export const NEWLINE = '\n'.charCodeAt(0);
 
+// any characters that cannot be part of a move.
+export const NON_MOVE_CHARACTERS = new Set<number>([
+    // tags, comments, variations, move numbers, results
+    LEFT_BRACE, RIGHT_BRACE, LEFT_SQ_BRACKET, RIGHT_SQ_BRACKET,
+    LEFT_PARENTHESIS, RIGHT_PARENTHESIS, DOT, DASH, ASTERISK,
+
+    // whitespace characters
+    32, 9, 10, 13, 12, 11,
+]);
+
 export interface PgnTagToken {
     type: "tag";
     header: string;

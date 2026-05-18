@@ -1,5 +1,5 @@
 import { AbstractReader } from "../read/abstract-reader.js";
-import { PgnMovetextToken, DOT, DASH, ASTERISK, ONE, TWO, FORWARD_SLASH, LEFT_PARENTHESIS, RIGHT_PARENTHESIS, LEFT_BRACE } from "./types.js";
+import { PgnMovetextToken, DOT, DASH, ASTERISK, ONE, TWO, FORWARD_SLASH, LEFT_PARENTHESIS, RIGHT_PARENTHESIS, LEFT_BRACE, NON_MOVE_CHARACTERS } from "./types.js";
 import { isNumber, isWhitespace } from "../read/utils.js";
 import { handleNumber } from "./number.js";
 import { handleComment } from "./comment.js";
@@ -81,7 +81,7 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
     // else...
 
     // scan until whitespace
-    while (!reader.isAtEnd() && !isWhitespace(reader.get()))
+    while (!reader.isAtEnd() && !NON_MOVE_CHARACTERS.has(reader.get()))
         reader.advance();
 
     const move: string = reader.copyEnd();
