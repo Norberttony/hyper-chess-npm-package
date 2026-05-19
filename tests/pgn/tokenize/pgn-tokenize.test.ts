@@ -28,10 +28,8 @@ describe("PgnTokenizer", () => {
             let token: PgnToken | undefined;
             while (token = tokenizer.nextToken()){
                 tokens.push(token);
-                // expect(token).toEqual(actualTokens[actualIdx++]);
+                expect(token).toEqual(actualTokens[actualIdx++]);
             }
-
-            console.log(fileName, JSON.stringify(tokens));
         });
     }
 });
