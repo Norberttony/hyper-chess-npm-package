@@ -1,11 +1,12 @@
 import { Board, StartingFEN } from "./board.js";
-import { VariationMove, PGNData, extractHeaders } from "../graphics/pgn/index.js";
-import { PGNHeader } from "../graphics/pgn/pgn-data.js";
+import { PgnSplitter, Reader, VariationMove } from "../graphics/pgn/index.js";
 import { Move } from "./move.js";
 import { SAN } from "./san.js";
 import { LAN } from "./coords.js";
 import { Side } from "./piece.js";
 import { GameResult } from "./board.js";
+import { Pgn } from "../pgn/parse/types.js";
+import { createVariationTree } from "./pgn-utils.js";
 
 export class VariationsBoard extends Board {
     // variations in the position are stored via a tree. The root is the very
@@ -20,8 +21,8 @@ export class VariationsBoard extends Board {
     // user is viewing. It is not necessarily the variation currently displayed to the user.
     protected currentVariation = this.variationRoot;
 
-    // pgnData allows reading in the current variation.
-    protected pgnData = new PGNData(this.variationRoot);
+    // represents the current Pgn object that represents this board.
+    protected pgn: Pgn = { headers: {}, moves: [], moveList: [], result: "*" };
 
     private startingFEN: string = StartingFEN;
 
@@ -62,8 +63,8 @@ export class VariationsBoard extends Board {
         return this.currentVariation;
     }
 
-    public getPGNData(): PGNData {
-        return this.pgnData;
+    public getPgn(): Pgn {
+        return this.pgn;
     }
 
     public getStartingFEN(): string {
@@ -81,26 +82,26 @@ export class VariationsBoard extends Board {
         this.variationRoot.next = [];
     }
 
-    public loadPGN(pgn: string): void {
+    public loadPGN(pgnStr: string): void {
         let fen: string = StartingFEN;
-        
-        const headers = extractHeaders(pgn);
+
+        const pgn: Pgn | undefined = new PgnSplitter(
+            new Reader(pgnStr)
+        ).nextPgn();
+        if (!pgn)
+            return;
         
         // check if we have to load from position
-        if (headers.Variant == "From Position" && headers.FEN){
-            fen = headers.FEN;
+        if (pgn.headers["Variant"] == "From Position" && pgn.headers["FEN"]){
+            fen = pgn.headers["FEN"];
         }
 
         this.loadFEN(fen);
 
-        // set headers of pgnData
-        this.pgnData.clearHeaders();
-        for (const [ name, value ] of Object.entries(headers))
-            this.pgnData.setHeader(name as PGNHeader, value);
-
         // start reading san
-        // const pgnSplit = extractMoves(pgn).split(" ");
-        // this.readVariation(pgnSplit, 0);
+        this.variationRoot = createVariationTree(pgn);
+        this.mainVariation = this.variationRoot;
+        this.currentVariation = this.variationRoot;
     }
 
     public getMovesToCurrentVariation(): Move[] {
@@ -241,44 +242,5 @@ export class VariationsBoard extends Board {
             this.currentVariation.result = res;
 
         return variation;
-    }
-
-    // parses a list of PGN tokens
-    public readVariation(pgnSplit: string[], start: number): number | undefined {
-        let toUndo = 0;
-
-        for (let i = start; i < pgnSplit.length; i++){
-            const pgn = pgnSplit[i]!;
-
-            if (pgn.startsWith("(")){
-
-                this.previousVariation();
-
-                // start a variation!
-                i = this.readVariation(pgnSplit, i + 1)!;
-
-                // continue with main variation
-                this.nextVariation(0);
-
-            }else if (pgn.startsWith(")")){
-
-                for (let j = 0; j < toUndo; j++){
-                    this.previousVariation();
-                }
-
-                return i;
-            }else if (pgn.length == 0){
-                // avoid having to search for a move that clearly doesn't exist.
-                continue;
-            }else{
-                const san = pgn as SAN;
-                const move = this.getMoveOfSAN(san);
-                if (move){
-                    this.playMove(move, san);
-                    toUndo++;
-                }
-            }
-        }
-        return;
     }
 }

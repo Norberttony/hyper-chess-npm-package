@@ -6,7 +6,7 @@ import {
     getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph
 } from "./pool.js";
 import { getPieceSide, getPieceType, Move, Side } from "../index.js";
-import { VariationMove } from "../pgn/parse/variation-move.js";
+import { VariationMove } from "./pgn/variation.js";
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum
 // that it allows is a board element with pieces displayed on it, but it can support any combination
@@ -131,8 +131,8 @@ export class BoardGraphics extends VariationsBoard {
     public override loadPGN(pgn: string): void {
         super.loadPGN(pgn);
 
-        const w = this.pgnData.headers.White;
-        const b = this.pgnData.headers.Black;
+        const w = this.pgn.headers["White"];
+        const b = this.pgn.headers["Black"];
         if (w && b)
             this.setNames(w, b);
 

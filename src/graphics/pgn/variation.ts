@@ -1,7 +1,7 @@
-import { SAN } from "../../game/san.js";
-import { removeGlyphs, Side } from "../../index.js";
-import { Move } from "../../index.js";
-import { GameResult } from "../../index.js";
+import { SAN, removeGlyphs } from "../../game/san.js";
+import { Side } from "../../game/piece.js";
+import { Move } from "../../game/move.js";
+import { GameResult } from "../../game/board.js";
 
 // the variation object operates as a linked list with a single previous node and a list of next
 // nodes.
@@ -14,7 +14,8 @@ export class VariationMove {
     public move?: Move;
 
     public glyphs: string[] = [];
-    public comment: string = "";
+    public nags: number[] = [];
+    public comments: string[] = [];
     public fiftyMoveRuleCounter: number = 0;
 
     public result?: GameResult;

@@ -1,11 +1,11 @@
 
-import { Side, StartingFEN } from "../../index.js";
+import { Side } from "../../index.js";
 import { BoardWidget, getFirstElemOfClass, WidgetLocation } from "./board-widget.js";
 import { addPointerHoldListener } from "../pgn/pgn-control.js";
 import type { BoardGraphics } from "../board-graphics.js";
-import { VariationMove } from "../../pgn/parse/variation-move.js";
+import { VariationMove } from "../pgn/variation.js";
 import { getResultTag } from "../../pgn/index.js";
-import { DeleteVariationEvent, LoadFENEvent, NewVariationEvent, ResultEvent, VariationChangeEvent } from "../board-events.js";
+import { DeleteVariationEvent, NewVariationEvent, ResultEvent, VariationChangeEvent } from "../board-events.js";
 
 // handles displaying any of the moves in a separate panel, splitting the PGN into variations as
 // necessary.
@@ -85,8 +85,8 @@ export class PGNWidget extends BoardWidget {
         boardgfx.skeleton.addEventListener("result", (event) => {
             this.onResult(event);
         });
-        boardgfx.skeleton.addEventListener("loadFEN", (event) => {
-            this.onLoadFEN(event);
+        boardgfx.skeleton.addEventListener("loadFEN", () => {
+            this.onLoadFEN();
         });
         boardgfx.skeleton.addEventListener("variation-change", (event) => {
             this.onVariationChange(event);
@@ -305,20 +305,11 @@ export class PGNWidget extends BoardWidget {
             this.resultElem = pgn_resultElem;
         }
         this.resultElem.innerHTML = `<span>${resultText}</span><br /><span style = "font-size: large;">${flavorText} ${termination}</span>`;
-        this.boardgfx.getPGNData().setHeader("Result", resultText);
     }
 
-    private onLoadFEN(event: LoadFENEvent): void {
-        const { fen } = event.detail;
-    
+    private onLoadFEN(): void {    
         // none of the previous PGN is relevant to this new position, so...
         this.pgnElem.innerHTML = "";
-        this.boardgfx.getPGNData().clear();
-    
-        if (fen.replace(/ /g, "") != StartingFEN.replace(/ /g, "")){
-            this.boardgfx.getPGNData().setHeader("Variant", "From Position");
-            this.boardgfx.getPGNData().setHeader("FEN", fen);
-        }
     }
     
     private onVariationChange(event: VariationChangeEvent): void {

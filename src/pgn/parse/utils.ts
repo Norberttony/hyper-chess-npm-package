@@ -7,6 +7,10 @@ import { SAN } from "../../game/san.js";
 import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
 import { PgnToken } from "../tokenize/types.js";
 
+export function parsePgn(pgn: string): Pgn | undefined {
+    return new PgnSplitter(new Reader(pgn)).nextPgn();
+}
+
 // splits the given string into each individual game.
 // returns an array of the individual games.
 export function splitPGNs(pgns: string): Pgn[] {
@@ -37,7 +41,7 @@ export function PgnHeadersToString(headers: PgnHeaders): string {
     return pgn;
 }
 
-export function convertToPgn(pgnObj: Pgn, board: Board): string {
+export function pgnToString(pgnObj: Pgn, board: Board = new Board()): string {
     let pgn = `${PgnHeadersToString(pgnObj.headers)}\n`;
 
     const fen: string = pgnObj.headers["From Position"] || StartingFEN;
