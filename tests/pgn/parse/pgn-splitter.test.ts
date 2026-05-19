@@ -49,8 +49,10 @@ describe("PgnSplitter", () => {
     test("nextPgn", () => {
         const splitter = new PgnSplitter(new Reader(pgnDb));
 
-        for (const { pgnObj } of cases)
-            expect(splitter.nextPgn()).toEqual(pgnObj);
+        for (const { pgnObj } of cases){
+            const nextPgnObj: Pgn = splitter.nextPgn()!;
+            expect(nextPgnObj).toEqual(pgnObj);
+        }
         expect(splitter.nextPgn()).toBeUndefined();
     });
 });

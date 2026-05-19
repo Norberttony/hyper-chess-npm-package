@@ -3,7 +3,7 @@ import { Side, StartingFEN } from "../../index.js";
 import { BoardWidget, getFirstElemOfClass, WidgetLocation } from "./board-widget.js";
 import { addPointerHoldListener } from "../pgn/pgn-control.js";
 import type { BoardGraphics } from "../board-graphics.js";
-import { VariationMove } from "../pgn/variation.js";
+import { VariationMove } from "../../pgn/parse/variation-move.js";
 import { getResultTag } from "../../pgn/index.js";
 import { DeleteVariationEvent, LoadFENEvent, NewVariationEvent, ResultEvent, VariationChangeEvent } from "../board-events.js";
 

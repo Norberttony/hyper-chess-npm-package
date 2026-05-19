@@ -3,8 +3,9 @@ import { Reader } from "../read/reader.js";
 import { Pgn, PgnHeaders } from "./types.js";
 import { Board, StartingFEN } from "../../game/board.js";
 import { Side } from "../../game/piece.js";
-import type { PGNHeader, PGNHeaders } from "../../graphics/pgn/pgn-data.js";
 import { SAN } from "../../game/san.js";
+import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
+import { PgnToken } from "../tokenize/types.js";
 
 // splits the given string into each individual game.
 // returns an array of the individual games.
@@ -29,16 +30,15 @@ export function getResultTag(winner: Side): string {
     return "*";
 }
 
-export function PGNHeadersToString(headers: PgnHeaders): string {
+export function PgnHeadersToString(headers: PgnHeaders): string {
     let pgn = "";
     for (const [ name, value ] of Object.entries(headers))
         pgn += `[${name} "${value}"]\n`;
     return pgn;
 }
 
-// takes in a list of moves
-export function convertToPGN(pgnObj: Pgn, board: Board): string {
-    let pgn = `${PGNHeadersToString(pgnObj.headers)}\n`;
+export function convertToPgn(pgnObj: Pgn, board: Board): string {
+    let pgn = `${PgnHeadersToString(pgnObj.headers)}\n`;
 
     const fen: string = pgnObj.headers["From Position"] || StartingFEN;
     board.loadFEN(fen);
@@ -63,28 +63,13 @@ export function convertToPGN(pgnObj: Pgn, board: Board): string {
 }
 
 // returns a dictionary where keys are header names and values are header values.
-export function extractHeaders(pgn: string): PGNHeaders {
-    const headers: PGNHeaders = {};
+export function extractHeaders(pgn: string): PgnHeaders {
+    const headers: PgnHeaders = {};
 
-    let leftBracket = pgn.indexOf("[");
-    while (leftBracket > -1){
-        let rightBracket = pgn.indexOf("]");
-        const field = pgn.substring(leftBracket, rightBracket + 1);
-
-        let leftQuote = field.indexOf("\"") + leftBracket;
-        let rightQuote = field.indexOf("\"", leftQuote + 1) + leftBracket;
-
-        if (leftQuote > -1 && rightQuote > -1){
-            let value = pgn.substring(leftQuote + 1, rightQuote).trim();
-            let name = pgn.substring(leftBracket + 1, leftQuote).trim() as PGNHeader;
-            headers[name] = value;
-        }
-
-        // remove header now that we've extracted it
-        pgn = pgn.substring(rightBracket + 1);
-
-        leftBracket = pgn.indexOf("[");
-    }
+    const tokenizer = new PgnTokenizer(new Reader(pgn));
+    let t: PgnToken | undefined;
+    while ((t = tokenizer.nextToken()) && t.type == "tag")
+        headers[t.header] = t.value;
 
     return headers;
 }

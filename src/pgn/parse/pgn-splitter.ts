@@ -1,7 +1,7 @@
 import { AbstractReader } from "../read/abstract-reader.js";
 import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
-import { PgnToken } from "../tokenize/types.js";
-import { Pgn, PgnHeaders } from "./types.js";
+import { PgnToken, PgnVariationToken } from "../tokenize/types.js";
+import { Pgn, PgnHeaders, PgnMove } from "./types.js";
 
 export class PgnSplitter {
     private tokenizer: PgnTokenizer;
@@ -18,6 +18,8 @@ export class PgnSplitter {
 
         const headers: PgnHeaders = {};
         const moves: string[] = [];
+        const moveList: PgnMove[] = [];
+        let prev: PgnMove | undefined = undefined;
         let result: string = "*";
 
         for (const token of tokens){
@@ -27,12 +29,14 @@ export class PgnSplitter {
                 moves.push(token.content);
             else if (token.type == "result")
                 result = token.value;
+            prev = this.handleToken(moveList, prev, token);
         }
 
         return {
             headers,
             moves,
             result,
+            moveList
         };
     }
 
@@ -63,5 +67,51 @@ export class PgnSplitter {
             this.lastToken = undefined;
 
         return pgnTokens;
+    }
+
+    private handleVariationToken(
+        token: PgnVariationToken,
+        prev: PgnMove
+    ): void {
+        let varPrev: PgnMove | undefined = undefined;
+        const moveList: PgnMove[] = [];
+        for (const t of token.movetext)
+            varPrev = this.handleToken(moveList, varPrev, t);
+        prev.variations.push(moveList);
+    }
+
+    private handleToken(
+        moveList: PgnMove[],
+        prev: PgnMove | undefined,
+        t: PgnToken
+    ): PgnMove | undefined {
+
+        if (t.type == "move"){
+            // create new pgn move and add it to children
+            const move: PgnMove = {
+                san: t.content,
+                comments: [],
+                nags: [],
+                glyphs: [],
+                variations: [],
+            };
+            moveList.push(move);
+            return move;
+        }
+        
+        if (!prev)
+            return;
+
+        if (t.type == "comment")
+            prev.comments.push(t.content);
+        else if (t.type == "nag")
+            prev.nags.push(t.id);
+        else if (t.type == "result")
+            prev.result = t.value;
+        else if (t.type == "san glyph")
+            prev.glyphs.push(t.content);
+        else if (t.type == "variation")
+            this.handleVariationToken(t, prev);
+        return prev;
     }
 }
