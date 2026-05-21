@@ -13,13 +13,8 @@ export class VariationBase<TType extends NodeType> {
     public next: VariationMove[] = [];
 
     public level: number = 0;
-    public move?: Move;
 
-    constructor(public readonly type: TType, public moveList: PgnMove[], move?: Move){
-        // allows (un)doing the move whenever user scrolls through pgn
-        if (move)
-            this.move = move.clone();
-    }
+    constructor(public readonly type: TType, public moveList: PgnMove[]){}
 
     public attach(pgnMove: PgnMove, move: Move): VariationMove {
         const moveList = this.next.length == 0 ? this.moveList : [ ];
@@ -65,8 +60,12 @@ export class VariationRoot extends VariationBase<"root"> {
 }
 
 export class VariationMove extends VariationBase<"move"> {
+    public move: Move;
+
     constructor(public pgnMove: PgnMove, moveList: PgnMove[], move: Move){
-        super("move", moveList, move);
+        super("move", moveList);
+        // allows (un)doing the move whenever user scrolls through pgn
+        this.move = move.clone();
     }
 
     public override get location(): number | undefined {

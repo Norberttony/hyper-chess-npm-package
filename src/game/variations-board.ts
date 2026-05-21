@@ -38,7 +38,10 @@ export class VariationsBoard extends Board {
     }
 
     public override unmakeMove(move: Move): void {
-        if (this.currentVariation.prev?.move?.equals(move))
+        const prev = this.currentVariation.prev;
+        if (!prev || prev.type == "root")
+            return;
+        if (prev.move.equals(move))
             this.previousVariation();
         else
             throw new Error("Cannot unmake a move that was not in the previous variation");
@@ -122,7 +125,7 @@ export class VariationsBoard extends Board {
         const moves: Move[] = [];
         
         let iter: VariationNode | undefined = this.currentVariation;
-        while (iter){
+        while (iter && iter.type == "move"){
             if (iter.move)
                 moves.unshift(iter.move);
             iter = iter.prev;
@@ -145,7 +148,7 @@ export class VariationsBoard extends Board {
 
     // goes back a variation
     public previousVariation(): boolean {
-        if (this.currentVariation.prev){
+        if (this.currentVariation.prev && this.currentVariation.type == "move"){
             if (this.currentVariation.move)
                 super.unmakeMove(this.currentVariation.move);
             this.currentVariation = this.currentVariation.prev;
