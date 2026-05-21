@@ -5,8 +5,8 @@ import { Side } from "../../src/game/piece";
 
 type BoardFactory = () => Board;
 
-export function sharedBoardTests(boardFactory: BoardFactory){
-    describe("Board results", () => {
+export function sharedBoardTests(name: string, boardFactory: BoardFactory){
+    describe(`${name} results`, () => {
         function makeMove(b: Board, lan: string, expected: GameResult | undefined){
             const m = b.getMoveOfLAN(lan as LAN)!;
             b.makeMove(m);
