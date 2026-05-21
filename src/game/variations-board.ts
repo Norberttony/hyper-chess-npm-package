@@ -11,15 +11,15 @@ import { createVariationTree } from "./pgn-utils.js";
 export class VariationsBoard extends Board {
     // variations in the position are stored via a tree. The root is the very
     // first empty variation (sentinel node).
-    protected variationRoot: VariationRoot;
+    private variationRoot: VariationRoot;
 
     // This set-up allows quickly adding more moves at the end of the main variation, without
     // performing any additional tree searches.
-    protected mainVariation: VariationNode;
+    private mainVariation: VariationNode;
 
     // currentVariation points to the currently active variation that a piece of code or the
     // user is viewing. It is not necessarily the variation currently displayed to the user.
-    protected currentVariation: VariationNode;
+    private currentVariation: VariationNode;
 
     // any meta information about the board that represents this game.
     private pgn: Pgn = { headers: {}, moves: [], moveList: [], result: "*" };

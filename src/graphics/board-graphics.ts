@@ -53,7 +53,7 @@ export class BoardGraphics extends VariationsBoard {
 
         // graphicalVariation points to the variation currently displayed to the user. If
         // currentVariation does not match with graphicalVariation, applyChanges should be called.
-        this.graphicalVariation = this.currentVariation;
+        this.graphicalVariation = this.getCurrentVariation();
 
         // determine if meant to create files and ranks.
         if (displayRanksAndFiles)
@@ -123,7 +123,7 @@ export class BoardGraphics extends VariationsBoard {
     public override loadFEN(fen: string): void {
         super.loadFEN(fen);
 
-        this.graphicalVariation = this.variationRoot;
+        this.graphicalVariation = this.getVariationRoot();
         this.applyChanges(false);
         this.dispatchEvent("loadFEN", { fen });
     }
@@ -146,7 +146,7 @@ export class BoardGraphics extends VariationsBoard {
     public applyChanges(userInput = false): void {
         this.display();
 
-        const cv = this.currentVariation;
+        const cv = this.getCurrentVariation();
         const gv = this.graphicalVariation;
 
         // no variation changes!
@@ -157,7 +157,7 @@ export class BoardGraphics extends VariationsBoard {
         if (cv.prev == gv || gv.prev == cv)
             this.dispatchEvent("single-scroll", { prevVariation: gv, variation: cv, userInput });
         
-        this.graphicalVariation = this.currentVariation;
+        this.graphicalVariation = cv;
 
         this.dispatchEvent("variation-change", { variation: cv });
 
@@ -205,7 +205,7 @@ export class BoardGraphics extends VariationsBoard {
     // returns true if the player can move the piece at the given square. Otherwise, returns false.
     public canMove(sq: number): boolean {
         // ensure user is not creating a variation when not allowed to.
-        if (!this.allowVariations && this.currentVariation.next.length > 0)
+        if (!this.allowVariations && this.getCurrentVariation().next.length > 0)
             return false;
 
         // prevent user from playing when a result is already set
@@ -240,8 +240,9 @@ export class BoardGraphics extends VariationsBoard {
         setAllMoveHighlightsToPool(this.skeleton);
         setAllLastMoveHighlightsToPool(this.skeleton);
 
-        const lastMove = this.currentVariation.type == "move" ?
-            this.currentVariation.move :
+        const cv = this.getCurrentVariation();
+        const lastMove = cv.type == "move" ?
+            cv.move :
             undefined;
 
         // highlight move from and move to
