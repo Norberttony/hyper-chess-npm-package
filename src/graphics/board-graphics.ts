@@ -6,7 +6,7 @@ import {
     getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph
 } from "./pool.js";
 import { getPieceSide, getPieceType, Move, Side } from "../index.js";
-import { VariationMove } from "./pgn/variation.js";
+import { VariationMove, VariationNode } from "./pgn/variation.js";
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum
 // that it allows is a board element with pieces displayed on it, but it can support any combination
@@ -25,7 +25,7 @@ export class BoardGraphics extends VariationsBoard {
     private allowVariations: boolean = true;
     private piecePointerDown: (event: PointerEvent) => void;
 
-    public graphicalVariation: VariationMove;
+    public graphicalVariation: VariationNode;
 
     constructor(
         public allowDragging = true,
@@ -131,8 +131,8 @@ export class BoardGraphics extends VariationsBoard {
     public override loadPGN(pgn: string): void {
         super.loadPGN(pgn);
 
-        const w = this.pgn.headers["White"];
-        const b = this.pgn.headers["Black"];
+        const w = this.getPgn().headers["White"];
+        const b = this.getPgn().headers["Black"];
         if (w && b)
             this.setNames(w, b);
 
@@ -162,12 +162,12 @@ export class BoardGraphics extends VariationsBoard {
         this.dispatchEvent("variation-change", { variation: cv });
 
         // apply any relevant glyphs
-        if (cv.move){
+        if (cv.type == "move"){
             const toX = cv.move.to % 8;
             const toY = Math.floor(cv.move.to / 8);
             
             // attach any relevant glyphs
-            for (const g of cv.glyphs){
+            for (const g of cv.pgnMove.glyphs){
                 const pieceElem = this.getPieceElem(toX, toY);
                 if (pieceElem)
                     attachGlyph(pieceElem, g);
@@ -240,7 +240,9 @@ export class BoardGraphics extends VariationsBoard {
         setAllMoveHighlightsToPool(this.skeleton);
         setAllLastMoveHighlightsToPool(this.skeleton);
 
-        const lastMove = this.currentVariation != this.variationRoot ? this.currentVariation.move : undefined;
+        const lastMove = this.currentVariation.type == "move" ?
+            this.currentVariation.move :
+            undefined;
 
         // highlight move from and move to
         if (lastMove){
