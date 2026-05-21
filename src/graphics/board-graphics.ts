@@ -6,7 +6,7 @@ import {
     getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph
 } from "./pool.js";
 import { getPieceSide, getPieceType, Move, Side } from "../index.js";
-import { VariationMove, VariationNode } from "./pgn/variation.js";
+import { VariationMove, VariationNode } from "../game/variation.js";
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum
 // that it allows is a board element with pieces displayed on it, but it can support any combination

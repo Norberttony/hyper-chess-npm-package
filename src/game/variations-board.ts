@@ -1,5 +1,6 @@
 import { Board, StartingFEN } from "./board.js";
-import { getResultTag, getWinner, PgnSplitter, Reader, VariationMove, VariationNode, VariationRoot } from "../graphics/pgn/index.js";
+import { getResultTag, getWinner, PgnSplitter, Reader } from "../pgn/index.js";
+import { VariationMove, VariationNode, VariationRoot } from "./variation.js";
 import { Move } from "./move.js";
 import { SAN } from "./san.js";
 import { LAN } from "./coords.js";

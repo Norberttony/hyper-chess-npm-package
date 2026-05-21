@@ -1,4 +1,4 @@
-import { VariationNode, VariationRoot } from "../graphics/pgn/variation.js";
+import { VariationNode, VariationRoot } from "./variation.js";
 import { Pgn, PgnMove } from "../pgn/parse/types.js";
 import { Board, StartingFEN } from "./board.js";
 import { SAN } from "./san.js";

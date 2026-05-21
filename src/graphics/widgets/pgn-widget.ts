@@ -1,9 +1,8 @@
-
 import { Side } from "../../index.js";
 import { BoardWidget, getFirstElemOfClass, WidgetLocation } from "./board-widget.js";
-import { addPointerHoldListener } from "../pgn/pgn-control.js";
+import { addPointerHoldListener } from "../pgn-control.js";
 import type { BoardGraphics } from "../board-graphics.js";
-import { VariationMove } from "../pgn/variation.js";
+import { VariationMove } from "../../game/variation.js";
 import { getResultTag } from "../../pgn/index.js";
 import { DeleteVariationEvent, NewVariationEvent, ResultEvent, VariationChangeEvent } from "../board-events.js";
 
