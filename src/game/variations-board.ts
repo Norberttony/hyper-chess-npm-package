@@ -1,33 +1,36 @@
 import { Board, StartingFEN } from "./board.js";
-import { PgnSplitter, Reader, VariationMove } from "../graphics/pgn/index.js";
+import { getResultTag, getWinner, PgnSplitter, Reader, VariationMove, VariationNode, VariationRoot } from "../graphics/pgn/index.js";
 import { Move } from "./move.js";
 import { SAN } from "./san.js";
 import { LAN } from "./coords.js";
 import { Side } from "./piece.js";
 import { GameResult } from "./board.js";
-import { Pgn } from "../pgn/parse/types.js";
+import { Pgn, PgnMove } from "../pgn/parse/types.js";
 import { createVariationTree } from "./pgn-utils.js";
 
 export class VariationsBoard extends Board {
     // variations in the position are stored via a tree. The root is the very
     // first empty variation (sentinel node).
-    protected variationRoot: VariationMove = new VariationMove();
+    protected variationRoot: VariationRoot;
 
     // This set-up allows quickly adding more moves at the end of the main variation, without
     // performing any additional tree searches.
-    protected mainVariation: VariationMove = this.variationRoot;
+    protected mainVariation: VariationNode;
 
     // currentVariation points to the currently active variation that a piece of code or the
     // user is viewing. It is not necessarily the variation currently displayed to the user.
-    protected currentVariation = this.variationRoot;
+    protected currentVariation: VariationNode;
 
-    // represents the current Pgn object that represents this board.
-    protected pgn: Pgn = { headers: {}, moves: [], moveList: [], result: "*" };
+    // any meta information about the board that represents this game.
+    private pgn: Pgn = { headers: {}, moves: [], moveList: [], result: "*" };
 
     private startingFEN: string = StartingFEN;
 
     constructor(){
         super();
+        this.variationRoot = new VariationRoot(this.pgn.moveList);
+        this.mainVariation = this.variationRoot;
+        this.currentVariation = this.variationRoot;
     }
 
     public override makeMove(move: Move): void {
@@ -42,24 +45,33 @@ export class VariationsBoard extends Board {
     }
 
     public override getResult(): GameResult | undefined {
-        return this.currentVariation.result || super.getResult();
+        if (this.currentVariation.type == "root")
+            return;
+        const res: string | undefined = this.currentVariation.pgnMove.result;
+        return res ? {
+            winner: getWinner(res),
+            termination: ""
+        } : super.getResult();
     }
 
     public override setResult(termination: string, winner: Side): GameResult {
         const res: GameResult = super.setResult(termination, winner);
-        this.currentVariation.result = res;
+        if (this.currentVariation.type == "root")
+            this.currentVariation.result = getResultTag(winner);
+        else
+            this.currentVariation.pgnMove.result = getResultTag(winner);
         return res;
     }
 
-    public getVariationRoot(): VariationMove {
+    public getVariationRoot(): VariationRoot {
         return this.variationRoot;
     }
 
-    public getMainVariation(): VariationMove {
+    public getMainVariation(): VariationNode {
         return this.mainVariation;
     }
 
-    public getCurrentVariation(): VariationMove {
+    public getCurrentVariation(): VariationNode {
         return this.currentVariation;
     }
 
@@ -89,8 +101,8 @@ export class VariationsBoard extends Board {
             new Reader(pgnStr)
         ).nextPgn();
         if (!pgn)
-            return;
-        
+            throw new Error("Could not load PGN");
+
         // check if we have to load from position
         if (pgn.headers["Variant"] == "From Position" && pgn.headers["FEN"]){
             fen = pgn.headers["FEN"];
@@ -99,15 +111,17 @@ export class VariationsBoard extends Board {
         this.loadFEN(fen);
 
         // start reading san
-        this.variationRoot = createVariationTree(pgn);
+        const { root, newPgn } = createVariationTree(pgn);
+        this.variationRoot = root;
         this.mainVariation = this.variationRoot;
         this.currentVariation = this.variationRoot;
+        this.pgn = newPgn;
     }
 
     public getMovesToCurrentVariation(): Move[] {
         const moves: Move[] = [];
         
-        let iter: VariationMove | undefined = this.currentVariation;
+        let iter: VariationNode | undefined = this.currentVariation;
         while (iter){
             if (iter.move)
                 moves.unshift(iter.move);
@@ -141,12 +155,14 @@ export class VariationsBoard extends Board {
     }
 
     // board jumps to the given variation
-    public jumpToVariation(variation: VariationMove): void {
-        const ca = this.currentVariation.findCommonAncestor(variation);
+    public jumpToVariation(variation: VariationNode): void {
+        const ca = this.currentVariation.type == "root" ?
+            this.currentVariation :
+            this.currentVariation.findCommonAncestor(variation);
 
         // build the path of nodes from the common ancestor to the given variation
         const path = [];
-        let iter: VariationMove | undefined = variation;
+        let iter: VariationNode | undefined = variation;
         while (iter != ca){
             if (iter){
                 path.unshift(iter.location);
@@ -166,10 +182,6 @@ export class VariationsBoard extends Board {
     }
 
     public deleteVariation(variation: VariationMove, isHelper = false): void {
-        // cannot delete root.
-        if (variation == this.variationRoot)
-            return;
-
         for (const n of variation.next)
             this.deleteVariation(n, true);
 
@@ -193,7 +205,7 @@ export class VariationsBoard extends Board {
         
         const move = this.getMoveOfSAN(san);
         if (move)
-            super.makeMove(move);
+            this.makeMove(move);
 
         if (doSwitch)
             this.jumpToVariation(previous);
@@ -207,7 +219,7 @@ export class VariationsBoard extends Board {
 
         const move = this.getMoveOfLAN(lan);
         if (move)
-            super.makeMove(move);
+            this.makeMove(move);
 
         if (doSwitch)
             this.jumpToVariation(previous);
@@ -217,17 +229,26 @@ export class VariationsBoard extends Board {
     public playMove(move: Move, SAN = super.getMoveSAN(move)): VariationMove | undefined {
         // search for an existing variation with this move
         for (const v of this.currentVariation.next){
-            if (v.san == SAN){
+            if (v.pgnMove!.san == SAN){
                 this.nextVariation(v.location);
                 return;
             }
         }
-        
-        // otherwise create a new variation
-        const variation = new VariationMove(move);
-        variation.san = SAN;
 
-        variation.attachTo(this.currentVariation);
+        const pgnMove: PgnMove = {
+            san: SAN,
+            comments: [],
+            glyphs: [],
+            nags: [],
+            variations: [],
+        };
+
+        // otherwise create a new variation
+        const variation = this.currentVariation.attach(pgnMove, move);
+
+        // update main move list
+        if (variation.isMain())
+            this.pgn.moves.push(variation.pgnMove.san);
 
         this.currentVariation = variation;
 
@@ -239,7 +260,7 @@ export class VariationsBoard extends Board {
 
         const res = super.isGameOver();
         if (res)
-            this.currentVariation.result = res;
+            this.currentVariation.pgnMove!.result = getResultTag(res.winner);
 
         return variation;
     }

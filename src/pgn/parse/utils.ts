@@ -34,6 +34,15 @@ export function getResultTag(winner: Side): string {
     return "*";
 }
 
+export function getWinner(resultTag: string): Side {
+    if (resultTag == "1-0")
+        return Side.White;
+    else if (resultTag == "0-1")
+        return Side.Black;
+    else
+        return Side.None;
+}
+
 export function PgnHeadersToString(headers: PgnHeaders): string {
     let pgn = "";
     for (const [ name, value ] of Object.entries(headers))
