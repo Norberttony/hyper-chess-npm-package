@@ -10,7 +10,8 @@
     "./graphics": "./dist/graphics/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "clean": "node scripts/clean.js",
+    "build": "npm run clean && tsc",
     "test": "vitest"
   },
   "author": "Norbert Krajewski",
