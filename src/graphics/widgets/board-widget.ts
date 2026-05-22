@@ -1,7 +1,16 @@
 import type { BoardGraphics } from "../board-graphics.js";
 
-export const WIDGET_LOCATIONS = [ "None", "Left", "Top_Bar", "Board", "Bottom_Bar", "Right_Black", "Right", "Right_White", "Bottom" ] as const;
-export type WidgetLocation = typeof WIDGET_LOCATIONS[number];
+export enum WidgetLocation {
+    None,
+    Left,
+    Top_Bar,
+    Board,
+    Bottom_Bar,
+    Right_Black,
+    Right,
+    Right_White,
+    Bottom,
+};
 
 export class BoardWidget {
     constructor(public boardgfx: BoardGraphics){
@@ -17,5 +26,5 @@ export function getFirstElemOfClass(container: Element, className: string): Elem
 }
 
 export function getWidgetLocName(loc: WidgetLocation): string {
-    return loc.replaceAll("_", "-").toLowerCase();
+    return loc.toString().replaceAll("_", "-").toLowerCase();
 }

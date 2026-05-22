@@ -10,7 +10,10 @@ export class ExtrasWidget extends BoardWidget {
     private pgnButton: HTMLElement;
     private fenButton: HTMLElement;
 
-    constructor(boardgfx: BoardGraphics, location: WidgetLocation = "Bottom"){
+    constructor(
+        boardgfx: BoardGraphics,
+        location: WidgetLocation = WidgetLocation.Bottom
+    ){
         super(boardgfx);
 
         const container = document.createElement("div");

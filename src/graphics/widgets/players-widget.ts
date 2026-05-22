@@ -1,5 +1,5 @@
 import { BoardGraphics } from "../board-graphics.js";
-import { BoardWidget } from "./board-widget.js";
+import { BoardWidget, WidgetLocation } from "./board-widget.js";
 
 // technically takes up two locations at once but oh well
 
@@ -12,11 +12,15 @@ export class PlayersWidget extends BoardWidget {
 
         const topPlyr = document.createElement("div");
         topPlyr.classList.add("board-graphics__top-player");
-        boardgfx.getWidgetContainer("Top_Bar").appendChild(topPlyr);
+        boardgfx.getWidgetContainer(
+            WidgetLocation.Top_Bar
+        ).appendChild(topPlyr);
 
         const bottomPlyr = document.createElement("div");
         bottomPlyr.classList.add("board-graphics__bottom-player");
-        boardgfx.getWidgetContainer("Bottom_Bar").appendChild(bottomPlyr);
+        boardgfx.getWidgetContainer(
+            WidgetLocation.Bottom_Bar
+        ).appendChild(bottomPlyr);
 
         this.topPlyr = topPlyr;
         this.bottomPlyr = bottomPlyr;
