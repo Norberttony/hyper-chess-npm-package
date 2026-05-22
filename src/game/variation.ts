@@ -1,6 +1,7 @@
 import { Side } from "./piece.js";
 import { Move } from "./move.js";
 import { PgnMove } from "../pgn/parse/types.js";
+import { GameResult } from "./board.js";
 
 // the variation object operates as a linked list with a single previous node and a list of next
 // nodes.
@@ -13,6 +14,7 @@ export class VariationBase<TType extends NodeType> {
     public next: VariationMove[] = [];
 
     public level: number = 0;
+    public result: GameResult | undefined;
 
     constructor(public readonly type: TType, public moveList: PgnMove[]){}
 
@@ -51,9 +53,6 @@ export class VariationBase<TType extends NodeType> {
 }
 
 export class VariationRoot extends VariationBase<"root"> {
-    // maybe the game just ends right away
-    public result?: string;
-
     constructor(moveList: PgnMove[]){
         super("root", moveList);
     }

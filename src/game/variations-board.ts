@@ -1,5 +1,5 @@
 import { Board, StartingFEN } from "./board.js";
-import { getResultTag, getWinner, PgnSplitter, Reader } from "../pgn/index.js";
+import { getResultTag, PgnSplitter, Reader } from "../pgn/index.js";
 import { VariationMove, VariationNode, VariationRoot } from "./variation.js";
 import { Move } from "./move.js";
 import { SAN } from "./san.js";
@@ -51,18 +51,14 @@ export class VariationsBoard extends Board {
     public override getResult(): GameResult | undefined {
         if (this.currentVariation.type == "root")
             return;
-        const res: string | undefined = this.currentVariation.pgnMove.result;
-        return res ? {
-            winner: getWinner(res),
-            termination: ""
-        } : super.getResult();
+        const res: GameResult | undefined = this.currentVariation.result;
+        return res || super.getResult();
     }
 
     public override setResult(termination: string, winner: Side): GameResult {
         const res: GameResult = super.setResult(termination, winner);
-        if (this.currentVariation.type == "root")
-            this.currentVariation.result = getResultTag(winner);
-        else
+        this.currentVariation.result = res;
+        if (this.currentVariation.type == "move")
             this.currentVariation.pgnMove.result = getResultTag(winner);
         return res;
     }
@@ -199,6 +195,8 @@ export class VariationsBoard extends Board {
         const moveList: PgnMove[] = variation.moveList;
         moveList.splice(moveList.indexOf(variation.pgnMove), moveList.length);
 
+        this.pgn.result = "*";
+
         if (variation == this.currentVariation)
             this.previousVariation();
 
@@ -268,9 +266,15 @@ export class VariationsBoard extends Board {
 
         super.makeMove(move);
 
-        const res = super.isGameOver();
-        if (res)
-            this.currentVariation.pgnMove!.result = getResultTag(res.winner);
+        const res: GameResult | undefined = super.isGameOver();
+        if (res){
+            const resultTag: string = getResultTag(res.winner);
+            this.currentVariation.result = res;
+            this.currentVariation.pgnMove!.result = resultTag;
+
+            if (this.currentVariation.isMain())
+                this.pgn.result = resultTag;
+        }
 
         return variation;
     }
