@@ -27,12 +27,11 @@ export class Board extends MoveGenerator {
 
     constructor(fen = StartingFen){
         super();
-        Board.prototype.loadFen.call(this, fen);
+        this._boardLoadFen(fen);
     }
 
     public override loadFen(fen: string): void {
-        super.loadFen(fen);
-        delete this.result;
+        this._boardLoadFen(fen);
     }
 
     public getResult(): GameResult | undefined {
@@ -42,6 +41,11 @@ export class Board extends MoveGenerator {
     protected setResult(termination: string, winner: Side): GameResult {
         this.result = { termination, winner };
         return this.result;
+    }
+
+    private _boardLoadFen(fen: string): void {
+        super.loadFen(fen);
+        delete this.result;
     }
 
     private _boardMakeMove(move: Move): void {
