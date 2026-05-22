@@ -1,11 +1,12 @@
 import { PgnSplitter } from "./pgn-splitter.js";
 import { Reader } from "../read/reader.js";
-import { Pgn, PgnHeaders } from "./types.js";
+import { Pgn, PgnHeaders, PgnMove } from "./types.js";
 import { Board, StartingFen } from "../../game/board.js";
 import { Side } from "../../game/piece.js";
 import { SAN } from "../../game/san.js";
 import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
 import { PgnToken } from "../tokenize/types.js";
+import { Move } from "../../game/move.js";
 
 export function parsePgn(pgn: string): Pgn | undefined {
     return new PgnSplitter(new Reader(pgn)).nextPgn();
@@ -45,23 +46,42 @@ export function getWinner(resultTag: string): Side {
 
 export function PgnHeadersToString(headers: PgnHeaders): string {
     let pgn = "";
-    for (const [ name, value ] of Object.entries(headers))
-        pgn += `[${name} "${value}"]\n`;
+    for (const [ name, value ] of Object.entries(headers)){
+        const s = value
+            .replaceAll("\\", "\\\\")
+            .replaceAll('"', '\\"');
+        pgn += `[${name} "${s}"]\n`;
+    }
     return pgn;
 }
 
-export function pgnToString(pgnObj: Pgn, board: Board = new Board()): string {
+export function pgnToString(pgnObj: Pgn): string {
     let pgn = `${PgnHeadersToString(pgnObj.headers)}\n`;
 
-    const fen: string = pgnObj.headers["From Position"] || StartingFen;
-    board.loadFen(fen);
+    const fen: string = pgnObj.headers["FEN"] || StartingFen;
+
+    const board = new Board(fen);
+
+    pgn += variationToString(pgnObj.moveList, board);
+
+    // add back in the result if there's no ending result tag
+    const lastMove = pgnObj.moveList[pgnObj.moveList.length - 1];
+    if (lastMove && lastMove.result == undefined)
+        pgn += pgnObj.result;
+    return pgn.trim();
+}
+
+function variationToString(moveList: PgnMove[], board: Board): string {
+    let pgn: string = "";
 
     // play out each move
     let counter = board.getFullMove();
     if (board.getTurn() == Side.Black)
         pgn += `${counter++}... `;
-    for (const san of pgnObj.moves){
-        const move = board.getMoveOfSAN(san as SAN)!;
+    for (const pgnMove of moveList){
+        const prevFen: string = board.getFen();
+        const san: string = `${pgnMove.san}${pgnMove.glyphs.join("")}`;
+        const move: Move = board.getMoveOfSAN(san as SAN)!;
         board.makeMove(move);
 
         if (board.getTurn() == Side.Black){
@@ -69,10 +89,21 @@ export function pgnToString(pgnObj: Pgn, board: Board = new Board()): string {
         }else{
             pgn += `${san} `;
         }
+
+        if (pgnMove.nags.length > 0)
+            pgn += `${pgnMove.nags.join(" ")} `;
+
+        for (const c of pgnMove.comments)
+            pgn += `{ ${c.trim()} } `;
+
+        for (const v of pgnMove.variations)
+            pgn += `(${variationToString(v, new Board(prevFen)).trim()}) `;
+
+        if (pgnMove.result)
+            pgn += `${pgnMove.result} `;
     }
 
-    pgn += pgnObj.result;
-    return pgn.trim();
+    return pgn;
 }
 
 // returns a dictionary where keys are header names and values are header values.

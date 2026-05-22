@@ -3,6 +3,7 @@ import { VariationsBoard } from "../../src/game/variations-board";
 import { PgnMove } from "../../src/pgn/parse/types";
 import { LAN } from "../../src/game/coords";
 import { VariationMove } from "../../src/game/variation";
+import { removeGlyphs, SAN } from "../../src/game/san";
 
 type VariationsBoardFactory = () => VariationsBoard;
 
@@ -108,12 +109,13 @@ export function sharedVariationsBoardTests(
     });
 }
 
-function move(san: string, variations: PgnMove[][] = []): PgnMove {
+export function move(san: string, variations: PgnMove[][] = []): PgnMove {
+    const glyph = san.replace(removeGlyphs(san as SAN), "");
     return {
-        san,
+        san: removeGlyphs(san as SAN),
         comments: [],
         nags: [],
-        glyphs: [],
+        glyphs: glyph != "" ? [ glyph ] : [],
         variations,
     };
 }
