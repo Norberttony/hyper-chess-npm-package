@@ -193,6 +193,12 @@ export class VariationsBoard extends Board {
         if (variation == this.mainVariation && variation.prev)
             this.mainVariation = variation.prev;
 
+        if (variation.isMain())
+            this.pgn.moves.splice(variation.level - 1, this.pgn.moves.length);
+
+        const moveList: PgnMove[] = variation.moveList;
+        moveList.splice(moveList.indexOf(variation.pgnMove), moveList.length);
+
         if (variation == this.currentVariation)
             this.previousVariation();
 

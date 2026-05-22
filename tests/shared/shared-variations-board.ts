@@ -56,9 +56,27 @@ export function sharedVariationsBoardTests(
             board.jumpToVariation(vm);
             expect(getSan(board)).toBe("Pe5");
         });
+
+        describe("deletes move", () => {
+            it("updates pgn object correctly", () => {
+                const e7e5 = play(board, "e7e5")!;
+                play(board, "d2d4");
+                board.deleteVariation(e7e5);
+                expect(board.getPgn().moves).toEqual([ "Pe4" ]);
+                expect(board.getPgn().moveList).toEqual([ move("Pe4") ]);
+            });
+
+            it("updates variation tree correctly", () => {
+                const e7e5 = play(board, "e7e5")!;
+                play(board, "d2d4");
+                board.deleteVariation(e7e5);
+                expect(getSan(board)).toBe("Pe4");
+                expect(board.nextVariation()).toBeFalsy();
+            });
+        });
     });
 
-    describe(`${name} variations`, () => {
+    describe(`${name} playing variations`, () => {
         it("updates pgn object correctly", () => {
             play(board, "e7e5");
 
@@ -73,6 +91,19 @@ export function sharedVariationsBoardTests(
                     [ move("Pd5") ]
                 ])
             ]);
+        });
+
+        it("updates variation tree correctly", () => {
+            play(board, "e7e5");
+
+            board.previousVariation();
+            play(board, "d7d5");
+
+            expect(getSan(board)).toBe("Pd5");
+            board.previousVariation();
+            expect(getSan(board)).toBe("Pe4");
+            board.nextVariation();
+            expect(getSan(board)).toBe("Pe5");
         });
     });
 }
