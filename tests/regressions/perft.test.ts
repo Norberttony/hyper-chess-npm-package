@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest";
 import { fixturesPath } from "../shared/utils.js";
 import { Board } from "../../src/game/board.js";
 import { Move } from "../../src/game/move.js";
-import { LAN } from "../../src/game/coords.js";
+import { Lan } from "../../src/game/coords.js";
 
 const perftPath = pathModule.join(fixturesPath, "perft.json");
 
@@ -28,7 +28,7 @@ describe("perft", () => {
             run(`perft fen=${fen} depth=${depth} expectedNodes=${expected}`,
                 { timeout: 30000 },
                 () => {
-                    const pv: LAN[] = [];
+                    const pv: Lan[] = [];
                     const b = new Board();
                     b.loadFen(fen);
             

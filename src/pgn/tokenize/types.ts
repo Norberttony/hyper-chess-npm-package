@@ -20,7 +20,7 @@ export const QUESTION_MARK = '?'.charCodeAt(0);
 export const EXCLAMATION_MARK = '!'.charCodeAt(0);
 export const DOLLAR_SIGN = '$'.charCodeAt(0);
 
-export const SAN_GLYPHS = new Set<number>([
+export const San_GLYPHS = new Set<number>([
     HASHTAG, PLUS, QUESTION_MARK, EXCLAMATION_MARK,
 ]);
 
@@ -34,7 +34,7 @@ export const NON_MOVE_CHARACTERS = new Set<number>([
     32, 9, 10, 13, 12, 11,
 
     // glyphs
-    ...[ ...SAN_GLYPHS ],
+    ...[ ...San_GLYPHS ],
     DOLLAR_SIGN,
 ]);
 

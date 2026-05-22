@@ -175,7 +175,7 @@ export class PgnWidget extends BoardWidget {
         const turn = variation.turn;
 
         // create a new SAN elem for this variation
-        const sanElem = newSANElem(this.boardgfx, this.pgnElem, variation.san, variation);
+        const sanElem = newSanElem(this.boardgfx, this.pgnElem, variation.san, variation);
         variation.element = sanElem;
 
         if (variation.isMain()){
@@ -198,10 +198,10 @@ export class PgnWidget extends BoardWidget {
                         nextMovelineElem.appendChild(sanElem);
                     }
                 }else if (nextElem && !isPgnSpecialBlock(nextElem)){
-                    const blankSANElem = newBlankSANElem(this.boardgfx, this.pgnElem);
-                    prevMoveline.appendChild(blankSANElem);
+                    const blankSanElem = newBlankSanElem(this.boardgfx, this.pgnElem);
+                    prevMoveline.appendChild(blankSanElem);
 
-                    const moveline = newMovelineElem(moveNum, newBlankSANElem(this.boardgfx, this.pgnElem));
+                    const moveline = newMovelineElem(moveNum, newBlankSanElem(this.boardgfx, this.pgnElem));
                     moveline.appendChild(sanElem);
 
                     // insert either after the special elements or just at the end.
@@ -367,7 +367,7 @@ function selectPgnElem(pgnElem: HTMLElement, elem: HTMLElement): void {
 }
 
 // creates and returns the new moveline with the given number and white elem.
-function newMovelineElem(num: number, whiteSANElem: HTMLElement): HTMLDivElement {
+function newMovelineElem(num: number, whiteSanElem: HTMLElement): HTMLDivElement {
     const moveline = document.createElement("div");
 
     moveline.classList.add("pgn-viewer__pgn-moveline");
@@ -377,7 +377,7 @@ function newMovelineElem(num: number, whiteSANElem: HTMLElement): HTMLDivElement
     numElem.innerText = `${num}.`;
     
     moveline.appendChild(numElem);
-    moveline.appendChild(whiteSANElem);
+    moveline.appendChild(whiteSanElem);
 
     return moveline;
 }
@@ -394,7 +394,7 @@ function splitMovelineElem(gameState: BoardGraphics, pgnElem: HTMLElement, movel
     const elem1 = movelineElem;
 
     const numText = (elem1.getElementsByClassName("pgn-viewer__pgn-elem--type-num")[0] as HTMLElement).innerText;
-    const elem2 = newMovelineElem(parseInt(numText.substring(0, numText.length - 1)), newBlankSANElem(gameState, pgnElem));
+    const elem2 = newMovelineElem(parseInt(numText.substring(0, numText.length - 1)), newBlankSanElem(gameState, pgnElem));
 
     const nextElem = elem1.nextElementSibling;
     if (nextElem)
@@ -407,12 +407,12 @@ function splitMovelineElem(gameState: BoardGraphics, pgnElem: HTMLElement, movel
     if (blackMove){
         elem2.appendChild(blackMove);
     }
-    elem1.appendChild(newBlankSANElem(gameState, pgnElem));
+    elem1.appendChild(newBlankSanElem(gameState, pgnElem));
 
     return [ elem1, elem2 ];
 }
 
-function newSANElem(gameState: BoardGraphics, pgnElem: HTMLElement, san: string, variation?: VariationMove): HTMLDivElement {
+function newSanElem(gameState: BoardGraphics, pgnElem: HTMLElement, san: string, variation?: VariationMove): HTMLDivElement {
     const div = document.createElement("div");
     div.classList.add("pgn-viewer__pgn-elem", "pgn-viewer__pgn-elem--type-san");
     div.innerText = san;
@@ -428,8 +428,8 @@ function newSANElem(gameState: BoardGraphics, pgnElem: HTMLElement, san: string,
     return div;
 }
 
-function newBlankSANElem(gameState: BoardGraphics, pgnElem: HTMLElement): HTMLDivElement {
-    const div = newSANElem(gameState, pgnElem, "...");
+function newBlankSanElem(gameState: BoardGraphics, pgnElem: HTMLElement): HTMLDivElement {
+    const div = newSanElem(gameState, pgnElem, "...");
     div.classList.add("pgn-viewer__pgn-elem", "pgn-viewer__pgn-elem--type-blank");
     return div;
 }

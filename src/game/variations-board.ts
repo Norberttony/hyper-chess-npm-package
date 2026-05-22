@@ -2,8 +2,8 @@ import { Board, StartingFen } from "./board.js";
 import { getResultTag, PgnSplitter, Reader } from "../pgn/index.js";
 import { VariationMove, VariationNode, VariationRoot } from "./variation.js";
 import { Move } from "./move.js";
-import { SAN } from "./san.js";
-import { LAN } from "./coords.js";
+import { San } from "./san.js";
+import { Lan } from "./coords.js";
 import { Side } from "./piece.js";
 import { GameResult } from "./board.js";
 import { Pgn, PgnMove } from "../pgn/parse/types.js";
@@ -205,13 +205,13 @@ export class VariationsBoard extends Board {
             variation.prev!.next.splice(variation.prev!.next.indexOf(variation), 1);
     }
 
-    public addMoveToEnd(san: SAN): void {
+    public addMoveToEnd(san: San): void {
         const previous = this.currentVariation;
         const doSwitch = this.currentVariation != this.mainVariation;
 
         this.jumpToVariation(this.mainVariation);
         
-        const move = this.getMoveOfSAN(san);
+        const move = this.getMoveOfSan(san);
         if (move)
             this.makeMove(move);
 
@@ -219,13 +219,13 @@ export class VariationsBoard extends Board {
             this.jumpToVariation(previous);
     }
 
-    public addMoveToEndLAN(lan: LAN): void {
+    public addMoveToEndLan(lan: Lan): void {
         const previous = this.currentVariation;
         const doSwitch = this.currentVariation != this.mainVariation;
 
         this.jumpToVariation(this.mainVariation);
 
-        const move = this.getMoveOfLAN(lan);
+        const move = this.getMoveOfLan(lan);
         if (move)
             this.makeMove(move);
 
@@ -234,17 +234,17 @@ export class VariationsBoard extends Board {
     }
 
     // assumes move is legal
-    public playMove(move: Move, SAN = super.getMoveSAN(move)): VariationMove | undefined {
+    public playMove(move: Move, San = super.getMoveSan(move)): VariationMove | undefined {
         // search for an existing variation with this move
         for (const v of this.currentVariation.next){
-            if (v.pgnMove!.san == SAN){
+            if (v.pgnMove!.san == San){
                 this.nextVariation(v.location);
                 return;
             }
         }
 
         const pgnMove: PgnMove = {
-            san: SAN,
+            san: San,
             comments: [],
             glyphs: [],
             nags: [],

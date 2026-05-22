@@ -1,6 +1,6 @@
 import { squareToAlgebraic } from "./coords.js";
 import { Piece } from "./piece.js";
-import { LAN } from "./coords.js";
+import { Lan } from "./coords.js";
 
 // The move class contains all relevant information about any move...
 //  - "to"          is a square index of where the moving piece is going to
@@ -44,7 +44,7 @@ export class Move {
         return true;
     }
 
-    public get lan(): LAN {
-        return `${squareToAlgebraic(this.from)}${squareToAlgebraic(this.to)}` as LAN;
+    public get lan(): Lan {
+        return `${squareToAlgebraic(this.from)}${squareToAlgebraic(this.to)}` as Lan;
     }
 }

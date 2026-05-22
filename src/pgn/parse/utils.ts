@@ -3,7 +3,7 @@ import { Reader } from "../read/reader.js";
 import { Pgn, PgnHeaders, PgnMove } from "./types.js";
 import { Board, StartingFen } from "../../game/board.js";
 import { Side } from "../../game/piece.js";
-import { SAN } from "../../game/san.js";
+import { San } from "../../game/san.js";
 import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
 import { PgnToken } from "../tokenize/types.js";
 import { Move } from "../../game/move.js";
@@ -81,7 +81,7 @@ function variationToString(moveList: PgnMove[], board: Board): string {
     for (const pgnMove of moveList){
         const prevFen: string = board.getFen();
         const san: string = `${pgnMove.san}${pgnMove.glyphs.join("")}`;
-        const move: Move = board.getMoveOfSAN(san as SAN)!;
+        const move: Move = board.getMoveOfSan(san as San)!;
         board.makeMove(move);
 
         if (board.getTurn() == Side.Black){

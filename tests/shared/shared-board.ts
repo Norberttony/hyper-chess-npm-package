@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Board, GameResult, StartingFen } from "../../src/game/board";
-import { LAN } from "../../src/game/coords";
+import { Lan } from "../../src/game/coords";
 import { Side } from "../../src/game/piece";
 
 type BoardFactory = () => Board;
@@ -8,7 +8,7 @@ type BoardFactory = () => Board;
 export function sharedBoardTests(name: string, boardFactory: BoardFactory){
     describe(`${name} results`, () => {
         function makeMove(b: Board, lan: string, expected: GameResult | undefined){
-            const m = b.getMoveOfLAN(lan as LAN)!;
+            const m = b.getMoveOfLan(lan as Lan)!;
             b.makeMove(m);
             expect(b.isGameOver()).toEqual(expected);
         }

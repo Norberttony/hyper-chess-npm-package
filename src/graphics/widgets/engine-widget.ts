@@ -4,7 +4,7 @@ import { WebBotProcess } from "../../engine/web/web-bot-process.js";
 import type { BoardGraphics } from "../board-graphics.js";
 import { UCIBotProtocol } from "../../engine/protocols/uci-protocol.js";
 import { ThinkStats } from "../../engine/utils.js";
-import { LAN } from "../../game/coords.js";
+import { Lan } from "../../game/coords.js";
 
 export class EngineWidget extends BoardWidget {
     private engine: WebBotProcess = new WebBotProcess("./scripts/hyper-active/main.js");
@@ -84,18 +84,18 @@ export class EngineWidget extends BoardWidget {
 
             // get pv
             if (stats.pv){
-                const pv = stats.pv.split(" ") as LAN[];
+                const pv = stats.pv.split(" ") as Lan[];
                 const b = new Board(this.boardgfx.getFen());
                 let fullmove = this.boardgfx.getFullMove();
                 let pvSan = this.boardgfx.getTurn() == Side.White ? "" : `${fullmove}... `;
                 for (const m of pv){
-                    const move = b.getMoveOfLAN(m);
+                    const move = b.getMoveOfLan(m);
                     if (b.getTurn() == Side.White)
                         pvSan += `${fullmove}. `;
                     else
                         fullmove++;
                     if (move){
-                        pvSan += b.getMoveSAN(move) + " ";
+                        pvSan += b.getMoveSan(move) + " ";
                         b.makeMove(move);
                     }
                 }
@@ -132,7 +132,7 @@ export class EngineWidget extends BoardWidget {
     startThinking(){
         if (this.engine.isRunning){
             this.protocol.stopThink();
-            const lanMoves: LAN[] = this.boardgfx.getMovesToCurrentVariation().map(v => v.lan);
+            const lanMoves: Lan[] = this.boardgfx.getMovesToCurrentVariation().map(v => v.lan);
             this.protocol.setFen(this.boardgfx.getStartingFen(), lanMoves);
             this.protocol.startThink();
         }

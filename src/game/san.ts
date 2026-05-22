@@ -1,20 +1,20 @@
 import { PieceType } from "./piece.js";
 
 export const PieceStrings = [ "?", "K", "Q", "B", "N", "R", "P", "U" ] as const;
-export type PieceSANChar = typeof PieceStrings[number];
+export type PieceSanChar = typeof PieceStrings[number];
 
-export type SAN = string & { __brand: "SAN" };
+export type San = string & { __brand: "San" };
 
 // removes all glyphs from SAN
-export function removeGlyphs(san: SAN): SAN {
-    san = san.replace(/[#+?!]/g, "") as SAN;
+export function removeGlyphs(san: San): San {
+    san = san.replace(/[#+?!]/g, "") as San;
     return san;
 }
 
-export function attachGlyph(san: SAN, glyph: string): SAN {
-    return `${san}${glyph}` as SAN;
+export function attachGlyph(san: San, glyph: string): San {
+    return `${san}${glyph}` as San;
 }
 
-export function getSANCharFromPieceType(p: PieceType): PieceSANChar {
+export function getSanCharFromPieceType(p: PieceType): PieceSanChar {
     return PieceStrings[p];
 }

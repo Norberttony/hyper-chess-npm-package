@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { VariationsBoard } from "../../src/game/variations-board";
 import { PgnMove } from "../../src/pgn/parse/types";
-import { LAN } from "../../src/game/coords";
+import { Lan } from "../../src/game/coords";
 import { VariationMove } from "../../src/game/variation";
-import { removeGlyphs, SAN } from "../../src/game/san";
+import { removeGlyphs, San } from "../../src/game/san";
 
 type VariationsBoardFactory = () => VariationsBoard;
 
@@ -110,9 +110,9 @@ export function sharedVariationsBoardTests(
 }
 
 export function move(san: string, variations: PgnMove[][] = []): PgnMove {
-    const glyph = san.replace(removeGlyphs(san as SAN), "");
+    const glyph = san.replace(removeGlyphs(san as San), "");
     return {
-        san: removeGlyphs(san as SAN),
+        san: removeGlyphs(san as San),
         comments: [],
         nags: [],
         glyphs: glyph != "" ? [ glyph ] : [],
@@ -121,7 +121,7 @@ export function move(san: string, variations: PgnMove[][] = []): PgnMove {
 }
 
 function play(board: VariationsBoard, lan: string): VariationMove | undefined {
-    const move = board.getMoveOfLAN(lan as LAN);
+    const move = board.getMoveOfLan(lan as Lan);
     if (!move)
         throw new Error(`Move ${lan} is not defined (FEN: ${board.getFen()})`);
     return board.playMove(move);

@@ -1,5 +1,5 @@
 import { AbstractReader } from "../read/abstract-reader.js";
-import { DOLLAR_SIGN, LEFT_BRACE, PgnToken, SAN_GLYPHS } from "./types.js";
+import { DOLLAR_SIGN, LEFT_BRACE, PgnToken, San_GLYPHS } from "./types.js";
 import { handleTag } from "./tag.js";
 import { isWhitespace } from "../read/utils.js";
 import { LEFT_SQ_BRACKET } from "./types.js";
@@ -20,7 +20,7 @@ export class PgnTokenizer {
                 return handleComment(this.reader);
             }else if (v == LEFT_SQ_BRACKET){
                 return handleTag(this.reader);
-            }else if (SAN_GLYPHS.has(v)){
+            }else if (San_GLYPHS.has(v)){
                 return handleSanGlyph(this.reader);
             }else if (v == DOLLAR_SIGN){
                 return handleNag(this.reader);

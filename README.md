@@ -10,7 +10,7 @@ npm install hyper-chess-board
 ## Examples
 The most powerful objects are Board and BoardGraphics. Board is meant as a low-level interface to move generation and legality checking.
 ```ts
-import { Board, Move, LAN } from "hyper-chess-board";
+import { Board, Move, Lan } from "hyper-chess-board";
 
 const board: Board = new Board();
 // load FEN
@@ -24,8 +24,8 @@ board.makeMove(first);
 console.log(board.getFen());
 // undo the move
 board.unmakeMove(first);
-// choose a specific move to play using long algebraic notation (LAN)
-const move = board.getMoveOfLAN("g4d7" as LAN)!;
+// choose a specific move to play using long algebraic notation (Lan)
+const move = board.getMoveOfLan("g4d7" as Lan)!;
 board.makeMove(move);
 
 // checking if the game has ended on the board

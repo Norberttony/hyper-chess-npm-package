@@ -1,5 +1,5 @@
 import { AbstractReader } from "../read/abstract-reader.js";
-import { PgnMovetextToken, DOT, DASH, ASTERISK, ONE, TWO, FORWARD_SLASH, LEFT_PARENTHESIS, RIGHT_PARENTHESIS, LEFT_BRACE, NON_MOVE_CHARACTERS, SAN_GLYPHS, DOLLAR_SIGN } from "./types.js";
+import { PgnMovetextToken, DOT, DASH, ASTERISK, ONE, TWO, FORWARD_SLASH, LEFT_PARENTHESIS, RIGHT_PARENTHESIS, LEFT_BRACE, NON_MOVE_CHARACTERS, San_GLYPHS, DOLLAR_SIGN } from "./types.js";
 import { isNumber, isWhitespace } from "../read/utils.js";
 import { handleNumber } from "./number.js";
 import { handleComment } from "./comment.js";
@@ -24,7 +24,7 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
                 reader.advance();
             }else if (v == LEFT_BRACE){
                 movetextTokens.push(handleComment(reader));
-            }else if (SAN_GLYPHS.has(v)){
+            }else if (San_GLYPHS.has(v)){
                 movetextTokens.push(handleSanGlyph(reader));
             }else if (v == DOLLAR_SIGN){
                 movetextTokens.push(handleNag(reader));

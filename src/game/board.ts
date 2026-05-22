@@ -1,11 +1,11 @@
 import {
     AlgebraicSquare,
-    algebraicToSquare, LAN, squareToAlgebraic,
+    algebraicToSquare, Lan, squareToAlgebraic,
     squareToAlgebraicFile, squareToAlgebraicRank
 } from "./coords.js";
 import { arePiecesSameType, getPieceSide, getPieceType, getPieceFromFenChar, isPieceOfType, PieceType, Side } from "./piece.js";
 import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
-import { attachGlyph, removeGlyphs, SAN, getSANCharFromPieceType } from "./san.js";
+import { attachGlyph, removeGlyphs, San, getSanCharFromPieceType } from "./san.js";
 import { MoveGenerator } from "./move-gen.js";
 import { Move } from "./move.js";
 
@@ -115,7 +115,7 @@ export class Board extends MoveGenerator {
     }
 
     // gets move given SAN
-    public getMoveOfSAN(san: SAN): Move | undefined {
+    public getMoveOfSan(san: San): Move | undefined {
         // take a short cut by considering the destination square of the san and the move piece's type
         san = removeGlyphs(san);
         const toSq = algebraicToSquare(san.substring(san.length - 2) as AlgebraicSquare);
@@ -158,8 +158,8 @@ export class Board extends MoveGenerator {
             if (m.to != toSq || this.getPiece(m.from) != pieceValue)
                 continue;
 
-            const SAN = this.getMoveSAN(m, possibleMoves, false);
-            if (removeGlyphs(SAN) == san){
+            const San = this.getMoveSan(m, possibleMoves, false);
+            if (removeGlyphs(San) == san){
                 return m;
             }
         }
@@ -168,11 +168,11 @@ export class Board extends MoveGenerator {
         return undefined;
     }
 
-    public getMoveOfLAN(LAN: LAN): Move | undefined {
+    public getMoveOfLan(Lan: Lan): Move | undefined {
         const moves = this.generateMoves(true);
 
         for (const m of moves){
-            if (m.lan == LAN){
+            if (m.lan == Lan){
                 return m;
             }
         }
@@ -180,8 +180,8 @@ export class Board extends MoveGenerator {
     }
 
     // returns the SAN For the given move
-    public getMoveSAN(move: Move, pseudoMoves = this.generateMoves(false), withGlyphs = true): SAN {
-        let SAN: SAN;
+    public getMoveSan(move: Move, pseudoMoves = this.generateMoves(false), withGlyphs = true): San {
+        let San: San;
 
         const movingPiece = this.getPiece(move.from);
     
@@ -220,8 +220,8 @@ export class Board extends MoveGenerator {
                 resolvedSquare += squareToAlgebraicRank(move.from);
         }
 
-        const SANChar = getSANCharFromPieceType(movingPieceType);
-        SAN = `${SANChar}${resolvedSquare}${move.captures.length > 0 ? "x": ""}${squareToAlgebraic(move.to)}` as SAN;
+        const SanChar = getSanCharFromPieceType(movingPieceType);
+        San = `${SanChar}${resolvedSquare}${move.captures.length > 0 ? "x": ""}${squareToAlgebraic(move.to)}` as San;
 
         if (withGlyphs){
             this._boardMakeMove(move);
@@ -229,7 +229,7 @@ export class Board extends MoveGenerator {
             // is game over?
             let result = this.isGameOver();
             if (result && result.termination == "checkmate"){
-                SAN = attachGlyph(SAN, "#");
+                San = attachGlyph(San, "#");
             }else{
                 // does this move threaten to take the king on the next turn?
                 this.nextTurn();
@@ -248,11 +248,11 @@ export class Board extends MoveGenerator {
                         break;
                 }
                 if (isCheck)
-                    attachGlyph(SAN, "+");
+                    attachGlyph(San, "+");
             }
             this._boardUnmakeMove(move);
         }
     
-        return SAN;
+        return San;
     }
 }
