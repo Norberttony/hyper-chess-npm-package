@@ -47,7 +47,7 @@ export class PlayersWidget extends BoardWidget {
         this.bottomPlyr.style.display = "";
     }
 
-    private setNames(white: string, black: string): void {
+    private setNames(white: string = "", black: string = ""): void {
         if (!this.boardgfx.isFlipped){
             this.topPlyr.innerText = black;
             this.bottomPlyr.innerText = white;

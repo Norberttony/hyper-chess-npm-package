@@ -112,7 +112,7 @@ export class BoardGraphics extends VariationsBoard {
         this.widgets[name] = widget;
     }
 
-    public setNames(whiteName: string, blackName: string): void {
+    public setNames(whiteName?: string, blackName?: string): void {
         this.dispatchEvent("player-names", { whiteName, blackName });
     }
 
@@ -133,8 +133,7 @@ export class BoardGraphics extends VariationsBoard {
 
         const w = this.getPgn().headers["White"];
         const b = this.getPgn().headers["Black"];
-        if (w && b)
-            this.setNames(w, b);
+        this.setNames(w, b);
 
         this.applyChanges(false);
     }

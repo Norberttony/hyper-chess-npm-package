@@ -1,4 +1,4 @@
-export type PlayerNamesEvent        = CustomEvent<{ whiteName: string, blackName: string }>;
+export type PlayerNamesEvent        = CustomEvent<{ whiteName?: string, blackName?: string }>;
 export type LoadFenEvent            = CustomEvent<{ fen: string }>;
 export type SingleScrollEvent       = CustomEvent<{ prevVariation: VariationMove, variation: VariationMove, userInput: boolean }>;
 export type VariationChangeEvent    = CustomEvent<{ variation: VariationMove }>;
@@ -8,7 +8,6 @@ export type NewVariationEvent       = CustomEvent<{ variation: VariationMove }>;
 export type FlipEvent               = CustomEvent<undefined>;
 
 declare global {
-
     interface GlobalEventHandlersEventMap {
         "player-names":     PlayerNamesEvent,
         "loadFen":          LoadFenEvent,
