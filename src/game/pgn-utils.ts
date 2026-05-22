@@ -1,6 +1,6 @@
 import { VariationNode, VariationRoot } from "./variation.js";
 import { Pgn, PgnMove } from "../pgn/parse/types.js";
-import { Board, StartingFEN } from "./board.js";
+import { Board, StartingFen } from "./board.js";
 import { SAN } from "./san.js";
 
 // returns the root VariationMove based on the given PGN.
@@ -9,7 +9,7 @@ export function createVariationTree(
 ): { root: VariationRoot, newPgn: Pgn } {
     const newPgn: Pgn = { ...pgn, moveList: [] };
     const root = new VariationRoot(newPgn.moveList);
-    const board = new Board(pgn.headers["FEN"] || StartingFEN);
+    const board = new Board(pgn.headers["FEN"] || StartingFen);
 
     createVariationTreeHelper(root, pgn.moveList, board);
 
@@ -23,7 +23,7 @@ function createVariationTreeHelper(
     board: Board
 ): void {
     for (const pgnMove of moveList){
-        const prevFen: string = board.getFEN();
+        const prevFen: string = board.getFen();
         const san: SAN = pgnMove.san as SAN;
         const move = board.getMoveOfSAN(san);
         if (!move){

@@ -30,16 +30,16 @@ describe("perft", () => {
                 () => {
                     const pv: LAN[] = [];
                     const b = new Board();
-                    b.loadFEN(fen);
+                    b.loadFen(fen);
             
                     // we'll be comparing this FEN to avoid any slight
                     // formatting changes like adding/removing extra spaces.
-                    const startFEN = b.getFEN();
+                    const startFen = b.getFen();
 
                     const actual = countMoves(depth, b, pv)[0];
 
                     // ensure we're back where we started
-                    expect(b.getFEN()).toBe(startFEN);
+                    expect(b.getFen()).toBe(startFen);
 
                     // ensure node count matches
                     expect(actual).toBe(expected);
@@ -65,7 +65,7 @@ function countMoves(depth: number, board: Board, pv: string[] = [], prevMove?: M
     const counter = [ 0, 0, 0, 0 ];
     const moves = board.generateMoves();
     for (const m of moves){
-        const startFEN = board.getFEN();
+        const startFen = board.getFen();
         board.makeMove(m);
         pv.push(m.lan);
 
@@ -77,9 +77,9 @@ function countMoves(depth: number, board: Board, pv: string[] = [], prevMove?: M
             console.log(m.lan, res[0]);
 
         board.unmakeMove(m);
-        const endFEN = board.getFEN();
-        if (startFEN != endFEN){
-            throw new Error(`startFEN does not match with endFEN, PV: ${pv.join(" ")}`);
+        const endFen = board.getFen();
+        if (startFen != endFen){
+            throw new Error(`startFen does not match with endFen, PV: ${pv.join(" ")}`);
         }
         pv.pop();
     }

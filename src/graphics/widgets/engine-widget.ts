@@ -85,7 +85,7 @@ export class EngineWidget extends BoardWidget {
             // get pv
             if (stats.pv){
                 const pv = stats.pv.split(" ") as LAN[];
-                const b = new Board(this.boardgfx.getFEN());
+                const b = new Board(this.boardgfx.getFen());
                 let fullmove = this.boardgfx.getFullMove();
                 let pvSan = this.boardgfx.getTurn() == Side.White ? "" : `${fullmove}... `;
                 for (const m of pv){
@@ -133,7 +133,7 @@ export class EngineWidget extends BoardWidget {
         if (this.engine.isRunning){
             this.protocol.stopThink();
             const lanMoves: LAN[] = this.boardgfx.getMovesToCurrentVariation().map(v => v.lan);
-            this.protocol.setFEN(this.boardgfx.getStartingFEN(), lanMoves);
+            this.protocol.setFen(this.boardgfx.getStartingFen(), lanMoves);
             this.protocol.startThink();
         }
     }

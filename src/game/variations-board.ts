@@ -1,4 +1,4 @@
-import { Board, StartingFEN } from "./board.js";
+import { Board, StartingFen } from "./board.js";
 import { getResultTag, PgnSplitter, Reader } from "../pgn/index.js";
 import { VariationMove, VariationNode, VariationRoot } from "./variation.js";
 import { Move } from "./move.js";
@@ -25,7 +25,7 @@ export class VariationsBoard extends Board {
     // any meta information about the board that represents this game.
     private pgn: Pgn = { headers: {}, moves: [], moveList: [], result: "*" };
 
-    private startingFEN: string = StartingFEN;
+    private startingFen: string = StartingFen;
 
     constructor(){
         super();
@@ -79,14 +79,14 @@ export class VariationsBoard extends Board {
         return this.pgn;
     }
 
-    public getStartingFEN(): string {
-        return this.startingFEN;
+    public getStartingFen(): string {
+        return this.startingFen;
     }
 
-    public override loadFEN(fen: string): void {
-        super.loadFEN(fen);
+    public override loadFen(fen: string): void {
+        super.loadFen(fen);
 
-        this.startingFEN = fen;
+        this.startingFen = fen;
 
         // just get rid of everything after variation root and have gc handle it
         this.currentVariation = this.variationRoot;
@@ -94,8 +94,8 @@ export class VariationsBoard extends Board {
         this.variationRoot.next = [];
     }
 
-    public loadPGN(pgnStr: string): void {
-        let fen: string = StartingFEN;
+    public loadPgn(pgnStr: string): void {
+        let fen: string = StartingFen;
 
         const pgn: Pgn | undefined = new PgnSplitter(
             new Reader(pgnStr)
@@ -108,7 +108,7 @@ export class VariationsBoard extends Board {
             fen = pgn.headers["FEN"];
         }
 
-        this.loadFEN(fen);
+        this.loadFen(fen);
 
         // start reading san
         const { root, newPgn } = createVariationTree(pgn);

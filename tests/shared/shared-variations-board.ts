@@ -14,7 +14,7 @@ export function sharedVariationsBoardTests(
 
     beforeEach(() => {
         board = boardFactory();
-        board.loadPGN("1. Pe4");
+        board.loadPgn("1. Pe4");
         board.nextVariation();
     });
 
@@ -121,7 +121,7 @@ function move(san: string, variations: PgnMove[][] = []): PgnMove {
 function play(board: VariationsBoard, lan: string): VariationMove | undefined {
     const move = board.getMoveOfLAN(lan as LAN);
     if (!move)
-        throw new Error(`Move ${lan} is not defined (FEN: ${board.getFEN()})`);
+        throw new Error(`Move ${lan} is not defined (FEN: ${board.getFen()})`);
     return board.playMove(move);
 }
 

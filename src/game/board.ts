@@ -3,7 +3,7 @@ import {
     algebraicToSquare, LAN, squareToAlgebraic,
     squareToAlgebraicFile, squareToAlgebraicRank
 } from "./coords.js";
-import { arePiecesSameType, getPieceSide, getPieceType, getPieceFromFENChar, isPieceOfType, PieceType, Side } from "./piece.js";
+import { arePiecesSameType, getPieceSide, getPieceType, getPieceFromFenChar, isPieceOfType, PieceType, Side } from "./piece.js";
 import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
 import { attachGlyph, removeGlyphs, SAN, getSANCharFromPieceType } from "./san.js";
 import { MoveGenerator } from "./move-gen.js";
@@ -13,7 +13,7 @@ import { Move } from "./move.js";
 
 // this code REPEATEDLY violates the DRY principle. read at your own risk.
 
-export const StartingFEN = "unbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNU w 0 1";
+export const StartingFen = "unbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNU w 0 1";
 
 export interface GameResult {
     termination: string,
@@ -25,13 +25,13 @@ export interface GameResult {
 export class Board extends MoveGenerator {
     private result?: GameResult;
 
-    constructor(fen = StartingFEN){
+    constructor(fen = StartingFen){
         super();
-        Board.prototype.loadFEN.call(this, fen);
+        Board.prototype.loadFen.call(this, fen);
     }
 
-    public override loadFEN(fen: string): void {
-        super.loadFEN(fen);
+    public override loadFen(fen: string): void {
+        super.loadFen(fen);
         delete this.result;
     }
 
@@ -109,7 +109,6 @@ export class Board extends MoveGenerator {
                     this.setResult("insufficient material", Side.None);
                 }
             }
-            
         }
 
         return this.result;
@@ -121,7 +120,7 @@ export class Board extends MoveGenerator {
         san = removeGlyphs(san);
         const toSq = algebraicToSquare(san.substring(san.length - 2) as AlgebraicSquare);
         const fenChar = this.turn == Side.White ? san[0]! : san[0]!.toLowerCase();
-        const pieceValue = getPieceFromFENChar(fenChar);
+        const pieceValue = getPieceFromFenChar(fenChar);
 
         if (toSq < 0 || toSq >= 64 || isNaN(toSq))
             return;
@@ -165,7 +164,7 @@ export class Board extends MoveGenerator {
             }
         }
 
-        console.error(`Could not find move ${san} at position ${this.getFEN()} from the possible candidates`, possibleMoves);
+        console.error(`Could not find move ${san} at position ${this.getFen()} from the possible candidates`, possibleMoves);
         return undefined;
     }
 

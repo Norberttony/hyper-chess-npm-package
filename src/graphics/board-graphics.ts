@@ -120,16 +120,16 @@ export class BoardGraphics extends VariationsBoard {
     // === LOADING FEN AND PGN === //
     // =========================== //
 
-    public override loadFEN(fen: string): void {
-        super.loadFEN(fen);
+    public override loadFen(fen: string): void {
+        super.loadFen(fen);
 
         this.graphicalVariation = this.getVariationRoot();
         this.applyChanges(false);
-        this.dispatchEvent("loadFEN", { fen });
+        this.dispatchEvent("loadFen", { fen });
     }
 
-    public override loadPGN(pgn: string): void {
-        super.loadPGN(pgn);
+    public override loadPgn(pgn: string): void {
+        super.loadPgn(pgn);
 
         const w = this.getPgn().headers["White"];
         const b = this.getPgn().headers["Black"];

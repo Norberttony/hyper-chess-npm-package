@@ -14,14 +14,14 @@ import { Board, Move, LAN } from "hyper-chess-board";
 
 const board: Board = new Board();
 // load FEN
-board.loadFEN("2b1kb2/upU2np1/r1p5/7B/P4QBP/7N/2PPPP2/1P4K1 w 0 45");
+board.loadFen("2b1kb2/upU2np1/r1p5/7B/P4QBP/7N/2PPPP2/1P4K1 w 0 45");
 // generate all legal moves
 const moves: Move[] = board.generateMoves();
 // play the first move
 const first: Move = moves[0]!;
 board.makeMove(first);
 // print the new FEN
-console.log(board.getFEN());
+console.log(board.getFen());
 // undo the move
 board.unmakeMove(first);
 // choose a specific move to play using long algebraic notation (LAN)
@@ -35,17 +35,17 @@ const res: GameResult | undefined = board.isGameOver();
 BoardGraphics generates and updates an interactive user interface for controlling the underlying board state. It's capable of storing and traversing variations. Be sure to include all of the relevant CSS files in your HTML page, located under ./graphics
 
 ```ts
-import { BoardGraphics, PGNWidget } from "hyper-chess-board/graphics";
+import { BoardGraphics, PgnWidget } from "hyper-chess-board/graphics";
 
 const boardGraphics: BoardGraphics = new BoardGraphics(true, true, document.body);
-new PGNWidget(boardGraphics, "Right");
+new PgnWidget(boardGraphics, "Right");
 
 // load FEN and display it
-boardGraphics.loadFEN("2b1kb2/upU2np1/r1p5/7B/P4QBP/7N/2PPPP2/1P4K1 w 0 45");
+boardGraphics.loadFen("2b1kb2/upU2np1/r1p5/7B/P4QBP/7N/2PPPP2/1P4K1 w 0 45");
 boardGraphics.display();
 
 // load a PGN game and display it
-boardGraphics.loadPGN(`[Date "2025.12.03"]
+boardGraphics.loadPgn(`[Date "2025.12.03"]
 [Round "3.1"]
 [Event "Test Battle"]
 [Site "Hyper Chess Battle Ring"]

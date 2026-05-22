@@ -1,17 +1,17 @@
 import { BotProtocol } from "../abstract/protocol.js";
-import { StartingFEN } from "../../game/board.js";
+import { StartingFen } from "../../game/board.js";
 import { readWords } from "./utils.js";
 import type { BotProcess } from "../abstract/bot-process.js";
 import { GameTime, Score } from "../utils.js";
 import { LAN } from "../../game/coords.js";
 
 export class UCIBotProtocol extends BotProtocol {
-    private startFEN: string = "";
+    private startFen: string = "";
     private moves: string[] = [];
 
     constructor(botProcess: BotProcess){
         super(botProcess);
-        this.setFEN(StartingFEN);
+        this.setFen(StartingFen);
         botProcess.addReadLineListener(line => this.#readThinkStats(line));
     }
 
@@ -38,9 +38,9 @@ export class UCIBotProtocol extends BotProtocol {
         }
     }
 
-    public setFEN(fen: string, moves: LAN[] = []): void {
+    public setFen(fen: string, moves: LAN[] = []): void {
         this.moves = moves;
-        this.startFEN = fen;
+        this.startFen = fen;
         if (this.moves.length == 0)
             this.bot.write(`position fen ${fen}`);
         else
@@ -49,7 +49,7 @@ export class UCIBotProtocol extends BotProtocol {
 
     public playMove(lan: LAN): void {
         this.moves.push(lan);
-        this.bot.write(`position fen ${this.startFEN} moves ${this.moves.join(" ")}`);
+        this.bot.write(`position fen ${this.startFen} moves ${this.moves.join(" ")}`);
     }
 
     public override async thinkForMoveTime(ms: number , allowTimeout = false, timeoutPaddingMs = 500): Promise<string | undefined> {

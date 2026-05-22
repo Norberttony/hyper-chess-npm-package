@@ -52,7 +52,7 @@ export function arePiecesSameType(p1: Piece, p2: Piece): boolean {
     return getPieceType(p1) == getPieceType(p2);
 }
 
-const FENCharToPiece: { [fen: string]: Piece } = {
+const FenCharToPiece: { [fen: string]: Piece } = {
     k: Side.Black | PieceType.King,
     q: Side.Black | PieceType.Retractor,
     b: Side.Black | PieceType.Chameleon,
@@ -70,7 +70,7 @@ const FENCharToPiece: { [fen: string]: Piece } = {
     U: Side.White | PieceType.Immobilizer
 };
 
-const PieceTypeToFENChar: { [t: number]: string } = {
+const PieceTypeToFenChar: { [t: number]: string } = {
     [PieceType.King]: "k",
     [PieceType.Retractor]: "q",
     [PieceType.Chameleon]: "b",
@@ -80,10 +80,10 @@ const PieceTypeToFENChar: { [t: number]: string } = {
     [PieceType.Immobilizer]: "u"
 };
 
-export function getFENCharFromPieceType(p: PieceType): string {
-    return PieceTypeToFENChar[p]!;
+export function getFenCharFromPieceType(p: PieceType): string {
+    return PieceTypeToFenChar[p]!;
 }
 
-export function getPieceFromFENChar(char: string): Piece {
-    return FENCharToPiece[char]!;
+export function getPieceFromFenChar(char: string): Piece {
+    return FenCharToPiece[char]!;
 }

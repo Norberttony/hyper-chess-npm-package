@@ -1,7 +1,7 @@
 import { PgnSplitter } from "./pgn-splitter.js";
 import { Reader } from "../read/reader.js";
 import { Pgn, PgnHeaders } from "./types.js";
-import { Board, StartingFEN } from "../../game/board.js";
+import { Board, StartingFen } from "../../game/board.js";
 import { Side } from "../../game/piece.js";
 import { SAN } from "../../game/san.js";
 import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
@@ -13,7 +13,7 @@ export function parsePgn(pgn: string): Pgn | undefined {
 
 // splits the given string into each individual game.
 // returns an array of the individual games.
-export function splitPGNs(pgns: string): Pgn[] {
+export function splitPgns(pgns: string): Pgn[] {
     const pgnObjs: Pgn[] = [];
     const splitter = new PgnSplitter(new Reader(pgns));
 
@@ -53,8 +53,8 @@ export function PgnHeadersToString(headers: PgnHeaders): string {
 export function pgnToString(pgnObj: Pgn, board: Board = new Board()): string {
     let pgn = `${PgnHeadersToString(pgnObj.headers)}\n`;
 
-    const fen: string = pgnObj.headers["From Position"] || StartingFEN;
-    board.loadFEN(fen);
+    const fen: string = pgnObj.headers["From Position"] || StartingFen;
+    board.loadFen(fen);
 
     // play out each move
     let counter = board.getFullMove();
@@ -88,7 +88,7 @@ export function extractHeaders(pgn: string): PgnHeaders {
 }
 
 // returns the current date in the form YYYY.MM.DD
-export function getPGNDateNow(): string {
+export function getPgnDateNow(): string {
     const date = new Date();
     const y = date.getFullYear().toString().padStart(4, "0");
     const m = (date.getMonth() + 1).toString().padStart(2, "0");

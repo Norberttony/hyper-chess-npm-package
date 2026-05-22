@@ -1,5 +1,5 @@
 import { squareToAlgebraic } from "./coords.js";
-import { PieceType, Side, isPieceOfSide, getPieceType, isPieceOfType, getPieceSide, Piece, getFENCharFromPieceType, getPieceFromFENChar, arePiecesSameSide } from "./piece.js";
+import { PieceType, Side, isPieceOfSide, getPieceType, isPieceOfType, getPieceSide, Piece, getFenCharFromPieceType, getPieceFromFenChar, arePiecesSameSide } from "./piece.js";
 import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
 
 // the base board with no move-gen functionality. The only reason this class
@@ -99,7 +99,7 @@ export class RawBoard {
                 }else if (this.chameleons[1] == sq)
                     this.chameleons[1] = 255;
                 else{
-                    console.log("white", this.getFEN(), this.chameleons);
+                    console.log("white", this.getFen(), this.chameleons);
                     throw new Error(`Tried to pick up a chameleon on ${squareToAlgebraic(sq)} but it was never stored in the lookup`);
                 }
             }else{
@@ -109,7 +109,7 @@ export class RawBoard {
                 }else if (this.chameleons[3] == sq)
                     this.chameleons[3] = 255;
                 else{
-                    console.log("black", this.getFEN(), this.chameleons);
+                    console.log("black", this.getFen(), this.chameleons);
                     throw new Error(`Tried to pick up a chameleon on ${squareToAlgebraic(sq)} but it was never stored in the lookup`);
                 }
             }
@@ -149,7 +149,7 @@ export class RawBoard {
                 else if (this.chameleons[1] == 255)
                     this.chameleons[1] = sq;
                 else{
-                    console.log("white", this.getFEN(), this.chameleons, sq);
+                    console.log("white", this.getFen(), this.chameleons, sq);
                     throw new Error("Cannot have more than 2 chameleons on one side in a position");
                 }
             }else{
@@ -158,7 +158,7 @@ export class RawBoard {
                 else if (this.chameleons[3] == 255)
                     this.chameleons[3] = sq;
                 else{
-                    console.log("black", this.getFEN(), this.chameleons, sq);
+                    console.log("black", this.getFen(), this.chameleons, sq);
                     throw new Error("Cannot have more than 2 chameleons on one side in a position");
                 }
             }
@@ -220,7 +220,7 @@ export class RawBoard {
     }
     
     // loads a FEN into this board state
-    public loadFEN(fen: string): void {
+    public loadFen(fen: string): void {
         // clear board first
         this.squares = new Uint8Array(64);
         this.coordinators[0] = 255;
@@ -248,8 +248,8 @@ export class RawBoard {
             if (c == "/"){
                 r--;
                 f = 0;
-            }else if (getPieceFromFENChar(c)){
-                const piece = getPieceFromFENChar(c);
+            }else if (getPieceFromFenChar(c)){
+                const piece = getPieceFromFenChar(c);
                 const sq = f + r * 8;
                 this.placedown(sq, piece);
                 f++;
@@ -278,8 +278,8 @@ export class RawBoard {
             this.fullmove = 1;
     }
 
-    public getFEN(): string {
-        let FEN = "";
+    public getFen(): string {
+        let fen = "";
 
         // write board state into FEN
         for (let r = 7; r >= 0; r--){
@@ -288,25 +288,25 @@ export class RawBoard {
                 let v = this.squares[f + r * 8];
                 if (v){
                     if (empty)
-                        FEN += empty;
+                        fen += empty;
                     empty = 0;
 
-                    const pieceFEN = getFENCharFromPieceType(getPieceType(v));
-                    FEN += isPieceOfSide(v, Side.White) ? pieceFEN.toUpperCase() : pieceFEN.toLowerCase();
+                    const pieceFen = getFenCharFromPieceType(getPieceType(v));
+                    fen += isPieceOfSide(v, Side.White) ? pieceFen.toUpperCase() : pieceFen.toLowerCase();
                 }else{
                     empty++;
                 }
             }
             if (empty)
-                FEN += empty;
-            FEN += "/";
+                fen += empty;
+            fen += "/";
         }
-        FEN = FEN.substring(0, FEN.length - 1);
+        fen = fen.substring(0, fen.length - 1);
 
         // set proper turn
         const turn = this.turn == Side.White ? "w" : "b";
-        FEN += ` ${turn} ${this.history[0]?.halfmove} ${this.fullmove}`;
+        fen += ` ${turn} ${this.history[0]?.halfmove} ${this.fullmove}`;
 
-        return FEN;
+        return fen;
     }
 }

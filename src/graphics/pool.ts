@@ -1,4 +1,4 @@
-import { getFENCharFromPieceType, Side, PieceType } from "../index.js";
+import { getFenCharFromPieceType, Side, PieceType } from "../index.js";
 
 // handles generating elements to represent the pieces. Whenever a piece is taken, its element
 // is put into a pool for later use.
@@ -37,7 +37,7 @@ export function getPieceFromPool(f: number, r: number, boardFlipped: boolean, pi
     let piece = fetchElem("board-graphics__piece", f, r, boardFlipped);
 
     const coords = `${f}_${r}`;
-    const fen = getFENCharFromPieceType(pieceType);
+    const fen = getFenCharFromPieceType(pieceType);
 
     piece.dataset["coords"] = coords;
     piece.dataset["pieceType"] = fen;
