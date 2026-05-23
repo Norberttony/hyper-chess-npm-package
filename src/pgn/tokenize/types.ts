@@ -19,6 +19,7 @@ export const PLUS = '+'.charCodeAt(0);
 export const QUESTION_MARK = '?'.charCodeAt(0);
 export const EXCLAMATION_MARK = '!'.charCodeAt(0);
 export const DOLLAR_SIGN = '$'.charCodeAt(0);
+export const PERCENT = '%'.charCodeAt(0);
 
 export const San_GLYPHS = new Set<number>([
     HASHTAG, PLUS, QUESTION_MARK, EXCLAMATION_MARK,
@@ -37,6 +38,12 @@ export const NON_MOVE_CHARACTERS = new Set<number>([
     ...[ ...San_GLYPHS ],
     DOLLAR_SIGN,
 ]);
+
+// of the form [%name value] and found in comments.
+export interface CommentTag {
+    name: string;
+    value: string;
+}
 
 export interface PgnTagToken {
     type: "tag";
@@ -74,6 +81,7 @@ export interface PgnResultToken {
 export interface PgnCommentToken {
     type: "comment";
     content: string;
+    tags: CommentTag[];
 }
 
 export interface PgnVariationToken {

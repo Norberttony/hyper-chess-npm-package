@@ -1,20 +1,21 @@
 import { AbstractReader } from "../read/abstract-reader.js";
-import { PgnCommentToken, LEFT_BRACE, RIGHT_BRACE, LEFT_SQ_BRACKET, RIGHT_SQ_BRACKET } from "./types.js";
+import { handleCommentTag } from "./comment-tag.js";
+import { PgnCommentToken, LEFT_BRACE, RIGHT_BRACE, LEFT_SQ_BRACKET, CommentTag } from "./types.js";
 
 export function handleComment(reader: AbstractReader): PgnCommentToken {
     if (!reader.match(LEFT_BRACE))
         throw new Error(
             `handleComment got ${reader.get()} but expected ${LEFT_BRACE}`);
 
+    const tags: CommentTag[] = [];
     reader.copyStart();
-
     while (!reader.isAtEnd() && reader.get() != RIGHT_BRACE){
         switch (reader.get()){
-            // ignore anything surrounded by square brackets in comments
+            // extract comment tags
             case LEFT_SQ_BRACKET:
-                while (!reader.isAtEnd() && reader.get() != RIGHT_SQ_BRACKET)
-                    reader.advance();
-                reader.advance();
+                const tag: CommentTag | undefined = handleCommentTag(reader);
+                if (tag)
+                    tags.push(tag);
                 break;
             default:
                 reader.advance();
@@ -28,6 +29,7 @@ export function handleComment(reader: AbstractReader): PgnCommentToken {
 
     return {
         type: "comment",
-        content
+        content,
+        tags,
     };
 }
