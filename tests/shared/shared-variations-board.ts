@@ -114,6 +114,7 @@ export function move(san: string, variations: PgnMove[][] = []): PgnMove {
     return {
         san: removeGlyphs(san as San),
         comments: [],
+        commentTags: [],
         nags: [],
         glyphs: glyph != "" ? [ glyph ] : [],
         variations,

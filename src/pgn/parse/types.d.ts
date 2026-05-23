@@ -1,3 +1,5 @@
+import type { CommentTag } from "../tokenize/types.ts";
+
 export interface PgnHeaders {
     [k: string]: string;
 }
@@ -7,6 +9,7 @@ export interface PgnMove {
     glyphs: string[];
     nags: number[];
     comments: string[];
+    commentTags: CommentTag[];
     result?: string | undefined;
     variations: PgnMove[][];
 }

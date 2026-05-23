@@ -1,6 +1,6 @@
 import { AbstractReader } from "../read/abstract-reader.js";
 import { handleCommentTag } from "./comment-tag.js";
-import { PgnCommentToken, LEFT_BRACE, RIGHT_BRACE, LEFT_SQ_BRACKET, CommentTag } from "./types.js";
+import { PgnCommentToken, LEFT_BRACE, RIGHT_BRACE, LEFT_SQ_BRACKET, CommentTag, PERCENT } from "./types.js";
 
 export function handleComment(reader: AbstractReader): PgnCommentToken {
     if (!reader.match(LEFT_BRACE))
@@ -13,9 +13,15 @@ export function handleComment(reader: AbstractReader): PgnCommentToken {
         switch (reader.get()){
             // extract comment tags
             case LEFT_SQ_BRACKET:
-                const tag: CommentTag | undefined = handleCommentTag(reader);
-                if (tag)
-                    tags.push(tag);
+                if (reader.peek() == PERCENT){
+                    reader.copyPause();
+                    const tag: CommentTag | undefined = handleCommentTag(reader);
+                    if (tag)
+                        tags.push(tag);
+                    reader.copyContinue();
+                }else{
+                    reader.advance();
+                }
                 break;
             default:
                 reader.advance();
