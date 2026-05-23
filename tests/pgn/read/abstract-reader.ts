@@ -51,7 +51,7 @@ export function testReader(name: string, factory: AbstractReaderFactory){
 
             reader.copyStart();
             const i = "i".charCodeAt(0);
-            const q = "q".charCodeAt(0);
+            const q = "p".charCodeAt(0);
             let iToQ: string | undefined;
             const z = "z".charCodeAt(0);
             while (reader.get() != z){
@@ -63,7 +63,9 @@ export function testReader(name: string, factory: AbstractReaderFactory){
             }
 
             const bToZ: string = reader.copyEnd();
-            expect(iToQ).toBe("ijklmnop");
+            // this must be an odd number of characters to properly test
+            // BufferedReader's implementation.
+            expect(iToQ).toBe("ijklmno");
             expect(bToZ).toBe("bcdefghijklmnopqrstuvwxy");
         });
     });
