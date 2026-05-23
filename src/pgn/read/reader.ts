@@ -3,21 +3,26 @@ import { isWhitespace } from "./utils.js";
 
 export class Reader extends AbstractReader {
     private position: number = 0;
-    private copyStartPos: number = 0;
+    private copyStartPos: number[] = [];
 
     constructor(private content: string){
         super();
     }
 
     public copyStart(): void {
-        this.copyStartPos = this.position;
+        this.copyStartPos.unshift(this.position);
     }
 
     public copyEnd(): string {
-        return this.content.substring(this.copyStartPos, this.position);
+        return this.content.substring(
+            this.copyStartPos.shift()!,
+            this.position
+        );
     }
 
-    public copyReject(): void {}
+    public copyReject(): void {
+        this.copyStartPos.shift();
+    }
 
     public isAtEnd(): boolean {
         return this.position >= this.content.length;

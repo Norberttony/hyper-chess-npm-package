@@ -16,8 +16,8 @@ export class BufferedReader extends AbstractReader {
     private position: number = 0;
     private bufferPosition: number = 0;
 
-    private copyBufferPosStart: number = 0;
-    private parts: Buffer[] | undefined = undefined;
+    private copyBufferPosStart: number[] = [];
+    private parts: Buffer[][] = [];
 
     constructor(private pathToFile: string, private chunkSizeBytes: number){
         super();
@@ -38,28 +38,29 @@ export class BufferedReader extends AbstractReader {
     }
 
     public copyStart(): void {
-        this.parts = [];
-        this.copyBufferPosStart = this.bufferPosition;
+        this.parts.unshift([]);
+        this.copyBufferPosStart.unshift(this.bufferPosition);
     }
 
     private addPart(): void {
-        if (this.parts){
+        for (let p = 0; p < this.parts.length; p++){
             const slice: Buffer = this.buffer.data.subarray(
-                this.copyBufferPosStart, this.bufferPosition
+                this.copyBufferPosStart[p]!, this.bufferPosition
             );
-            this.parts.push(Buffer.from(slice));
+            this.parts[p]!.push(Buffer.from(slice));
         }
     }
 
     public copyEnd(): string {
         this.addPart();
-        const parts: Buffer[] = this.parts!;
-        this.parts = undefined;
+        const parts: Buffer[] = this.parts.shift()!;
+        this.copyBufferPosStart.shift();
         return parts.join("");
     }
 
     public copyReject(): void {
-        this.parts = undefined;
+        this.parts.shift();
+        this.copyBufferPosStart.shift();
     }
 
     public isAtEnd(): boolean {
@@ -72,7 +73,8 @@ export class BufferedReader extends AbstractReader {
 
         if (this.isAtEnd()){
             this.addPart();
-            this.copyBufferPosStart = 0;
+            for (let i = 0; i < this.copyBufferPosStart.length; i++)
+                this.copyBufferPosStart[i] = 0;
             this.readNextBuffer();
             if (this.isAtEnd())
                 this.close();
