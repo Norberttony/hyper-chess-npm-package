@@ -9,7 +9,7 @@ export interface PgnMove {
     glyphs: string[];
     nags: number[];
     comments: string[];
-    commentTags: CommentTag[];
+    commentTags: { [k: string]: string[] };
     result?: string | undefined;
     variations: PgnMove[][];
 }

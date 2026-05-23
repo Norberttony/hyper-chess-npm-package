@@ -91,7 +91,7 @@ export class PgnSplitter {
             const move: PgnMove = {
                 san: t.content,
                 comments: [],
-                commentTags: [],
+                commentTags: {},
                 nags: [],
                 glyphs: [],
                 variations: [],
@@ -105,7 +105,13 @@ export class PgnSplitter {
 
         if (t.type == "comment"){
             prev.comments.push(t.content);
-            prev.commentTags = prev.commentTags.concat(t.tags);
+            for (const { name, value } of t.tags){
+                const arr: string[] | undefined = prev.commentTags[name];
+                if (arr)
+                    arr.push(value)
+                else
+                    prev.commentTags[name] = [ value ];
+            }
         }else if (t.type == "nag")
             prev.nags.push(t.id);
         else if (t.type == "result")

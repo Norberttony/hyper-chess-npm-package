@@ -246,7 +246,7 @@ export class VariationsBoard extends Board {
         const pgnMove: PgnMove = {
             san: San,
             comments: [],
-            commentTags: [],
+            commentTags: {},
             glyphs: [],
             nags: [],
             variations: [],
