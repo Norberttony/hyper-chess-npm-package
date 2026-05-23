@@ -42,14 +42,26 @@ export class BufferedReader extends AbstractReader {
         this.copyBufferPosStart.unshift(this.bufferPosition);
     }
 
+    public copyPause(): void {
+        this.addPart(0);
+        this.copyBufferPosStart[0] = -1;
+    }
+
+    public copyContinue(): void {
+        this.copyBufferPosStart[0] = this.bufferPosition;
+    }
+
     private addPartToAll(): void {
         for (let p = 0; p < this.parts.length; p++)
             this.addPart(p);
     }
 
     private addPart(idx: number): void {
+        const start: number = this.copyBufferPosStart[idx]!;
+        if (start == -1)
+            return;
         const slice: Buffer = this.buffer.data.subarray(
-            this.copyBufferPosStart[idx]!, this.bufferPosition
+            start, this.bufferPosition
         );
         this.parts[idx]!.push(Buffer.from(slice));
     }
@@ -76,8 +88,10 @@ export class BufferedReader extends AbstractReader {
 
         if (this.isAtEnd()){
             this.addPartToAll();
-            for (let i = 0; i < this.copyBufferPosStart.length; i++)
-                this.copyBufferPosStart[i] = 0;
+            for (let i = 0; i < this.copyBufferPosStart.length; i++){
+                if (this.copyBufferPosStart[i] != -1)
+                    this.copyBufferPosStart[i] = 0;
+            }
             this.readNextBuffer();
             if (this.isAtEnd())
                 this.close();

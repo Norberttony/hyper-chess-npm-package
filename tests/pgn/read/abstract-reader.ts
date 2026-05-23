@@ -46,18 +46,41 @@ export function testReader(name: string, factory: AbstractReaderFactory){
             expect(content).toBe("cdefghijklmnopqrstuvwx");
         });
 
+        test("can pause and continue", () => {
+            reader.advance();
+
+            reader.copyStart();
+            const e = "e".charCodeAt(0);
+            const g = "g".charCodeAt(0);
+            const j = "j".charCodeAt(0);
+            const t = "t".charCodeAt(0);
+            while (!reader.isAtEnd()){
+                if (reader.get() == e)
+                    reader.copyPause();
+                else if (reader.get() == g)
+                    reader.copyContinue();
+                else if (reader.get() == j)
+                    reader.copyPause();
+                else if (reader.get() == t)
+                    reader.copyContinue();
+                reader.advance();
+            }
+
+            expect(reader.copyEnd()).toBe("bcdghituvwxyz");
+        });
+
         test("can copy multiple things at once", () => {
             reader.advance();
 
             reader.copyStart();
             const i = "i".charCodeAt(0);
-            const q = "p".charCodeAt(0);
+            const p = "p".charCodeAt(0);
             let iToQ: string | undefined;
             const z = "z".charCodeAt(0);
             while (reader.get() != z){
                 if (reader.get() == i)
                     reader.copyStart();
-                else if (reader.get() == q)
+                else if (reader.get() == p)
                     iToQ = reader.copyEnd();
                 reader.advance();
             }

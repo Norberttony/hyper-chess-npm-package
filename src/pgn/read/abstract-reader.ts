@@ -4,6 +4,12 @@ export abstract class AbstractReader {
     // begins copying any characters the reader passes
     public abstract copyStart(): void;
 
+    // pauses the current copy operation
+    public abstract copyPause(): void;
+
+    // continues the previously paused copy operation
+    public abstract copyContinue(): void;
+
     // stops copying and returns the resulting string
     public abstract copyEnd(): string;
 

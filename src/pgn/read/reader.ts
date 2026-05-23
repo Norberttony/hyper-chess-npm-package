@@ -3,21 +3,38 @@ import { isWhitespace } from "./utils.js";
 
 export class Reader extends AbstractReader {
     private position: number = 0;
-    private copyStartPos: number[] = [];
+    private copyStartPos: number[][] = [];
 
     constructor(private content: string){
         super();
     }
 
     public copyStart(): void {
-        this.copyStartPos.unshift(this.position);
+        this.copyStartPos.unshift([ this.position ]);
+    }
+
+    public copyPause(): void {
+        this.copyStartPos[0]?.push(this.position);
+    }
+
+    public copyContinue(): void {
+        this.copyStartPos[0]?.push(this.position);
     }
 
     public copyEnd(): string {
-        return this.content.substring(
-            this.copyStartPos.shift()!,
+        const positions: number[] = this.copyStartPos.shift()!;
+        let copied = "";
+        for (let i = 0; i < positions.length - 1; i += 2){
+            copied += this.content.substring(
+                positions[i]!,
+                positions[i + 1]!
+            );
+        }
+        copied += this.content.substring(
+            positions[positions.length - 1]!,
             this.position
         );
+        return copied;
     }
 
     public copyReject(): void {
