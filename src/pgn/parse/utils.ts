@@ -5,7 +5,7 @@ import { Board, StartingFen } from "../../game/board.js";
 import { Side } from "../../game/piece.js";
 import { San } from "../../game/san.js";
 import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
-import { PgnToken } from "../tokenize/types.js";
+import { CommentTag, PgnToken } from "../tokenize/types.js";
 import { Move } from "../../game/move.js";
 
 export function parsePgn(pgn: string): Pgn | undefined {
@@ -93,8 +93,11 @@ function variationToString(moveList: PgnMove[], board: Board): string {
         if (pgnMove.nags.length > 0)
             pgn += `${pgnMove.nags.join(" ")} `;
 
-        for (const c of pgnMove.comments)
-            pgn += `{ ${c.trim()} } `;
+        // add back comments and comment tags
+        for (const { content, tags } of pgnMove.comments){
+            const tagsStr = tags.map(commentTagToString).join(" ");
+            pgn += `{ ${content.trim()} ${tagsStr} } `;
+        }
 
         for (const v of pgnMove.variations)
             pgn += `(${variationToString(v, new Board(prevFen)).trim()}) `;
@@ -104,6 +107,10 @@ function variationToString(moveList: PgnMove[], board: Board): string {
     }
 
     return pgn;
+}
+
+export function commentTagToString(tag: CommentTag): string {
+    return `[%${tag.name} ${tag.value}]`;
 }
 
 // returns a dictionary where keys are header names and values are header values.

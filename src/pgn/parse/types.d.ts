@@ -4,11 +4,16 @@ export interface PgnHeaders {
     [k: string]: string;
 }
 
+export interface PgnComment {
+    content: string;
+    tags: CommentTag[];
+}
+
 export interface PgnMove {
     san: string;
     glyphs: string[];
     nags: number[];
-    comments: string[];
+    comments: PgnComment[];
     commentTags: { [k: string]: string[] };
     result?: string | undefined;
     variations: PgnMove[][];

@@ -104,7 +104,10 @@ export class PgnSplitter {
             return;
 
         if (t.type == "comment"){
-            prev.comments.push(t.content);
+            prev.comments.push({
+                content: t.content,
+                tags: t.tags,
+            });
             for (const { name, value } of t.tags){
                 const arr: string[] | undefined = prev.commentTags[name];
                 if (arr)
