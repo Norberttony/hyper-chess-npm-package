@@ -5,7 +5,7 @@ import {
 } from "./coords.js";
 import { arePiecesSameType, getPieceSide, getPieceType, getPieceFromFenChar, isPieceOfType, PieceType, Side } from "./piece.js";
 import { numSquaresToEdge, dirOffsets } from "./pre-game.js";
-import { attachGlyph, removeGlyphs, San, getSanCharFromPieceType } from "./san.js";
+import { attachGlyphToSan, removeGlyphs, San, getSanCharFromPieceType } from "./san.js";
 import { MoveGenerator } from "./move-gen.js";
 import { Move } from "./move.js";
 
@@ -233,7 +233,7 @@ export class Board extends MoveGenerator {
             // is game over?
             let result = this.isGameOver();
             if (result && result.termination == "checkmate"){
-                San = attachGlyph(San, "#");
+                San = attachGlyphToSan(San, "#");
             }else{
                 // does this move threaten to take the king on the next turn?
                 this.nextTurn();
@@ -252,7 +252,7 @@ export class Board extends MoveGenerator {
                         break;
                 }
                 if (isCheck)
-                    attachGlyph(San, "+");
+                    attachGlyphToSan(San, "+");
             }
             this._boardUnmakeMove(move);
         }

@@ -5,7 +5,8 @@ import {
     setAllPiecesToPool, setAllMoveHighlightsToPool, setAllLastMoveHighlightsToPool,
     getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph
 } from "./pool.js";
-import { getPieceSide, getPieceType, Move, Side } from "../index.js";
+import { getPieceSide, getPieceType, Side } from "../game/piece.js";
+import { Move } from "../game/move.js";
 import { VariationMove, VariationNode } from "../game/variation.js";
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum

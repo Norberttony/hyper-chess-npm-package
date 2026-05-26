@@ -1,5 +1,5 @@
 import { BoardGraphics } from "../board-graphics.js";
-import { pgnToString } from "../../pgn/index.js";
+import { pgnToString } from "../../pgn/parse/utils.js";
 import { BoardWidget, getFirstElemOfClass, WidgetLocation } from "./board-widget.js";
 
 // Allows user to copy or set the FEN or PGN

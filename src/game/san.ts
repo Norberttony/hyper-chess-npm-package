@@ -11,7 +11,7 @@ export function removeGlyphs(san: San): San {
     return san;
 }
 
-export function attachGlyph(san: San, glyph: string): San {
+export function attachGlyphToSan(san: San, glyph: string): San {
     return `${san}${glyph}` as San;
 }
 

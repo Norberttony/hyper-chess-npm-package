@@ -1,5 +1,6 @@
 import { BoardWidget, WidgetLocation } from "./board-widget.js";
-import { Board, Side } from "../../index.js";
+import { Side } from "../../game/piece.js";
+import { Board } from "../../game/board.js";
 import { WebBotProcess } from "../../engine/web/web-bot-process.js";
 import type { BoardGraphics } from "../board-graphics.js";
 import { UCIBotProtocol } from "../../engine/protocols/uci-protocol.js";

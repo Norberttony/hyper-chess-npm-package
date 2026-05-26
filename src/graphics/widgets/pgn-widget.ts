@@ -1,9 +1,9 @@
-import { Side } from "../../index.js";
+import { Side } from "../../game/piece.js";
 import { BoardWidget, getFirstElemOfClass, WidgetLocation } from "./board-widget.js";
 import { addPointerHoldListener } from "../pgn-control.js";
 import type { BoardGraphics } from "../board-graphics.js";
 import { VariationMove } from "../../game/variation.js";
-import { getResultTag } from "../../pgn/index.js";
+import { getResultTag } from "../../pgn/parse/utils.js";
 import { DeleteVariationEvent, NewVariationEvent, ResultEvent, VariationChangeEvent } from "../board-events.js";
 
 // handles displaying any of the moves in a separate panel, splitting the PGN into variations as

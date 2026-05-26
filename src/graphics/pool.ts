@@ -1,4 +1,4 @@
-import { getFenCharFromPieceType, Side, PieceType } from "../index.js";
+import { getFenCharFromPieceType, Side, PieceType } from "../game/piece.js";
 
 // handles generating elements to represent the pieces. Whenever a piece is taken, its element
 // is put into a pool for later use.

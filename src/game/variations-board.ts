@@ -1,12 +1,14 @@
 import { Board, StartingFen } from "./board.js";
-import { getResultTag, PgnSplitter, Reader } from "../pgn/index.js";
+import { Reader } from "../pgn/read/reader.js";
+import { getResultTag } from "../pgn/parse/utils.js";
+import { PgnSplitter } from "../pgn/parse/pgn-splitter.js";
+import { Pgn, PgnMove } from "../pgn/parse/types.js";
 import { VariationMove, VariationNode, VariationRoot } from "./variation.js";
 import { Move } from "./move.js";
 import { San } from "./san.js";
 import { Lan } from "./coords.js";
 import { Side } from "./piece.js";
 import { GameResult } from "./board.js";
-import { Pgn, PgnMove } from "../pgn/parse/types.js";
 import { createVariationTree } from "./pgn-utils.js";
 
 export class VariationsBoard extends Board {
