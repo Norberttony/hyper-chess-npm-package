@@ -1,11 +1,10 @@
-import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
 import { PgnTokenizer } from "../../../src/pgn/tokenize/pgn-tokenizer";
 import { BufferedReader } from "../../../src/pgn/read/buffered-reader";
 import { Reader } from "../../../src/pgn/read/reader";
 import { CommentTag, PgnCommentToken, PgnMoveNumToken, PgnMovetextToken, PgnMoveToken, PgnNagToken, PgnResultToken, PgnSanGlyphToken, PgnTagToken, PgnToken, PgnVariationToken } from "../../../src/pgn/tokenize/types";
-import { fixturesPath } from "../../shared/utils";
+import { fixturesPath, readJSONFile } from "../../shared/utils";
 import { gameFixturesAmt } from "../../shared/utils";
 
 describe("PgnTokenizer", () => {
@@ -192,19 +191,18 @@ describe("PgnTokenizer", () => {
             );
             await reader.open();
             const tokenizer = new PgnTokenizer(reader);
-    
-            const actualTokens: PgnToken[] = JSON.parse(fs.readFileSync(
+            
+            const actualTokens: PgnToken[] = readJSONFile(
                 path.join(fixturesPath, `game-${i}-tokens.json`)
-            ).toString());
-            let actualIdx: number = 0;
+            );
 
             const tokens: PgnToken[] = [];
     
             let token: PgnToken | undefined;
-            while (token = tokenizer.nextToken()){
+            while (token = tokenizer.nextToken())
                 tokens.push(token);
-                expect(token).toEqual(actualTokens[actualIdx++]);
-            }
+
+            expect(tokens).toEqual(actualTokens);
         });
     }
 });
