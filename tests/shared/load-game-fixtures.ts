@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import { readJSONFile, gameFixturesAmt, fixturesPath } from "./utils";
-import { PgnToken } from "../../src/pgn";
+import { PgnToken } from "../../src/pgn/tokenize/types";
 import { Pgn } from "../../src/pgn/parse/types";
 
 export interface TestCase {
