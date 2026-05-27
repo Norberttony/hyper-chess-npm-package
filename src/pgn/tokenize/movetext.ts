@@ -1,14 +1,15 @@
 import { AbstractReader } from "../read/abstract-reader.js";
-import { PgnMovetextToken, DOT, DASH, ASTERISK, ONE, TWO, FORWARD_SLASH, LEFT_PARENTHESIS, RIGHT_PARENTHESIS, LEFT_BRACE, NON_MOVE_CHARACTERS, San_GLYPHS, DOLLAR_SIGN } from "./types.js";
+import type { PgnMovetextToken } from "./types.js";
 import { isNumber, isWhitespace } from "../read/utils.js";
 import { handleNumber } from "./number.js";
 import { handleComment } from "./comment.js";
 import { handleSanGlyph } from "./san-glyph.js";
 import { handleNag } from "./nag.js";
+import * as T from "./tokens.js";
 
 export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
     // asterisk indicates ongoing or incomplete game
-    if (reader.match(ASTERISK)){
+    if (reader.match(T.ASTERISK)){
         return {
             type: "result",
             value: "*"
@@ -16,17 +17,17 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
     }
 
     // handle variations
-    if (reader.match(LEFT_PARENTHESIS)){
+    if (reader.match(T.LEFT_PARENTHESIS)){
         const movetextTokens: PgnMovetextToken[] = [];
-        while (!reader.isAtEnd() && reader.get() != RIGHT_PARENTHESIS){
+        while (!reader.isAtEnd() && reader.get() != T.RIGHT_PARENTHESIS){
             const v: number = reader.get();
             if (isWhitespace(v)){
                 reader.advance();
-            }else if (v == LEFT_BRACE){
+            }else if (v == T.LEFT_BRACE){
                 movetextTokens.push(handleComment(reader));
-            }else if (San_GLYPHS.has(v)){
+            }else if (T.SAN_GLYPHS.has(v)){
                 movetextTokens.push(handleSanGlyph(reader));
-            }else if (v == DOLLAR_SIGN){
+            }else if (v == T.DOLLAR_SIGN){
                 movetextTokens.push(handleNag(reader));
             }else{
                 movetextTokens.push(handleMovetext(reader));
@@ -44,20 +45,21 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
     if (isNumber(reader.get())){
         const firstNum = handleNumber(reader);
         reader.skipWhitespace();
-        if (reader.match(DOT)){
+        if (reader.match(T.DOT)){
             reader.copyReject();
             // move number
             let dotsAmt = 1;
-            while (reader.match(DOT))
+            while (reader.match(T.DOT))
                 dotsAmt++;
             return {
                 type: "move num",
                 num: firstNum,
                 threeDots: dotsAmt >= 3
             };
-        }else if (reader.match(FORWARD_SLASH)){
-            // 1/2-1/2 result
-            for (const symbol of [ TWO, DASH, ONE, FORWARD_SLASH, TWO ]){
+        }else if (reader.match(T.FORWARD_SLASH)){
+            // 1/2-1/2 result, match the remaining symbols
+            const rest = [ T.TWO, T.DASH, T.ONE, T.FORWARD_SLASH, T.TWO ];
+            for (const symbol of rest){
                 reader.skipWhitespace();
                 if (!reader.match(symbol)){
                     const res: string = reader.copyEnd();
@@ -68,7 +70,7 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
                 type: "result",
                 value: "1/2-1/2"
             };
-        }else if (reader.match(DASH)){
+        }else if (reader.match(T.DASH)){
             reader.copyReject();
             const secondNum = handleNumber(reader);
             return {
@@ -87,7 +89,7 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
     // else...
 
     // scan until whitespace
-    while (!reader.isAtEnd() && !NON_MOVE_CHARACTERS.has(reader.get()))
+    while (!reader.isAtEnd() && !T.NON_MOVE_CHARACTERS.has(reader.get()))
         reader.advance();
 
     const move: string = reader.copyEnd();

@@ -1,19 +1,20 @@
 import { AbstractReader } from "../read/abstract-reader.js";
 import { handleCommentTag } from "./comment-tag.js";
-import { PgnCommentToken, LEFT_BRACE, RIGHT_BRACE, LEFT_SQ_BRACKET, CommentTag, PERCENT } from "./types.js";
+import type { PgnCommentToken, CommentTag } from "./types.js";
+import * as T from "./tokens.js";
 
 export function handleComment(reader: AbstractReader): PgnCommentToken {
-    if (!reader.match(LEFT_BRACE))
+    if (!reader.match(T.LEFT_BRACE))
         throw new Error(
-            `handleComment got ${reader.get()} but expected ${LEFT_BRACE}`);
+            `handleComment got ${reader.get()} but expected ${T.LEFT_BRACE}`);
 
     const tags: CommentTag[] = [];
     reader.copyStart();
-    while (!reader.isAtEnd() && reader.get() != RIGHT_BRACE){
+    while (!reader.isAtEnd() && reader.get() != T.RIGHT_BRACE){
         switch (reader.get()){
             // extract comment tags
-            case LEFT_SQ_BRACKET:
-                if (reader.peek() == PERCENT){
+            case T.LEFT_SQ_BRACKET:
+                if (reader.peek() == T.PERCENT){
                     reader.copyPause();
                     const tag: CommentTag | undefined = handleCommentTag(reader);
                     if (tag)

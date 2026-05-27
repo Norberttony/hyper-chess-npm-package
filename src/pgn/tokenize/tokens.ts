@@ -21,7 +21,7 @@ export const EXCLAMATION_MARK = '!'.charCodeAt(0);
 export const DOLLAR_SIGN = '$'.charCodeAt(0);
 export const PERCENT = '%'.charCodeAt(0);
 
-export const San_GLYPHS = new Set<number>([
+export const SAN_GLYPHS = new Set<number>([
     HASHTAG, PLUS, QUESTION_MARK, EXCLAMATION_MARK,
 ]);
 
@@ -35,69 +35,6 @@ export const NON_MOVE_CHARACTERS = new Set<number>([
     32, 9, 10, 13, 12, 11,
 
     // glyphs
-    ...[ ...San_GLYPHS ],
+    ...[ ...SAN_GLYPHS ],
     DOLLAR_SIGN,
 ]);
-
-// of the form [%name value] and found in comments.
-export interface CommentTag {
-    name: string;
-    value: string;
-}
-
-export interface PgnTagToken {
-    type: "tag";
-    header: string;
-    value: string;
-}
-
-export interface PgnMoveNumToken {
-    type: "move num";
-    num: number;
-    threeDots: boolean;
-}
-
-export interface PgnMoveToken {
-    type: "move";
-    content: string;
-}
-
-export interface PgnSanGlyphToken {
-    type: "san glyph";
-    content: string;
-}
-
-// Represents a Numeric Annotation Glyph (NAG) in the PGN
-export interface PgnNagToken {
-    type: "nag";
-    id: number;
-}
-
-export interface PgnResultToken {
-    type: "result";
-    value: string;
-}
-
-export interface PgnCommentToken {
-    type: "comment";
-    content: string;
-    tags: CommentTag[];
-}
-
-export interface PgnVariationToken {
-    type: "variation";
-    movetext: PgnMovetextToken[];
-}
-
-export type PgnMovetextToken =
-    | PgnMoveNumToken
-    | PgnMoveToken
-    | PgnSanGlyphToken
-    | PgnNagToken
-    | PgnResultToken
-    | PgnCommentToken
-    | PgnVariationToken;
-
-export type PgnToken =
-    | PgnTagToken
-    | PgnMovetextToken;
