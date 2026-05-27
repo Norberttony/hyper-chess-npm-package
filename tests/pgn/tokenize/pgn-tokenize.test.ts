@@ -43,6 +43,13 @@ describe("PgnTokenizer", () => {
             expectNextToken(tokenizer, moveNum(2, true));
             expectNextToken(tokenizer, moveToken("Bf4"));
         });
+
+        test("ignores whitespace between move numbers and moves", () => {
+            const tokenizer = createTokenizer("1.d4 d5");
+            expectNextToken(tokenizer, moveNum(1));
+            expectNextToken(tokenizer, moveToken("d4"));
+            expectNextToken(tokenizer, moveToken("d5"));
+        });
     });
 
     describe("Result Tags", () => {
@@ -124,6 +131,55 @@ describe("PgnTokenizer", () => {
                 variation([ moveNum(1, true), moveToken("e4") ])
             );
             expectNextToken(tokenizer, moveToken("d5"));
+        });
+    });
+
+    // tests to see if having tokens follow each other consecutively (with extra
+    // whitespace OR with no whitespace) causes any problems.
+    describe("Boundary Conditions", () => {
+        test("moves and variations", () => {
+            const tokenizer = createTokenizer("e4(d4)");
+            expectNextToken(tokenizer, moveToken("e4"));
+            expectNextToken(tokenizer, variation([ moveToken("d4") ]));
+        });
+
+        test("moves and comments", () => {
+            const tokenizer = createTokenizer("e4{Comment}");
+            expectNextToken(tokenizer, moveToken("e4"));
+            expectNextToken(tokenizer, comment("Comment"));
+        });
+
+        test("moves and nags", () => {
+            const tokenizer = createTokenizer("e4$99");
+            expectNextToken(tokenizer, moveToken("e4"));
+            expectNextToken(tokenizer, nag(99));
+        });
+
+        test("moves and san glyphs", () => {
+            const tokenizer = createTokenizer("e4 !! d5?!");
+            expectNextToken(tokenizer, moveToken("e4"));
+            expectNextToken(tokenizer, sanGlyph("!!"));
+            expectNextToken(tokenizer, moveToken("d5"));
+            expectNextToken(tokenizer, sanGlyph("?!"));
+        });
+
+        test("comments and variations", () => {
+            const tokenizer = createTokenizer("{Comment}( 3... Nd6 )");
+            expectNextToken(tokenizer, comment("Comment"));
+            expectNextToken(tokenizer,
+                variation([ moveNum(3, true), moveToken("Nd6") ])
+            );
+        });
+
+        test("comments in variations", () => {
+            const tokenizer = createTokenizer("({Comment})");
+            expectNextToken(tokenizer, variation([ comment("Comment") ]));
+        });
+        
+        test("variations and variations", () => {
+            const tokenizer = createTokenizer("(e4)(d4)");
+            expectNextToken(tokenizer, variation([ moveToken("e4") ]));
+            expectNextToken(tokenizer, variation([ moveToken("d4") ]));
         });
     });
 
