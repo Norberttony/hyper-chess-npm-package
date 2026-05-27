@@ -3,11 +3,130 @@ import path from "node:path";
 import { describe, expect, test } from "vitest";
 import { PgnTokenizer } from "../../../src/pgn/tokenize/pgn-tokenizer";
 import { BufferedReader } from "../../../src/pgn/read/buffered-reader";
-import { PgnToken } from "../../../src/pgn/tokenize/types";
+import { Reader } from "../../../src/pgn/read/reader";
+import { CommentTag, PgnCommentToken, PgnMoveNumToken, PgnMovetextToken, PgnMoveToken, PgnNagToken, PgnResultToken, PgnSanGlyphToken, PgnTagToken, PgnToken, PgnVariationToken } from "../../../src/pgn/tokenize/types";
 import { fixturesPath } from "../../shared/utils";
 import { gameFixturesAmt } from "../../shared/utils";
 
 describe("PgnTokenizer", () => {
+    describe("Tags", () => {
+        test("tokenizes tags", () => {
+            const tokenizer = createTokenizer(
+                `[Event "Some Event"][Round "1.1"]\n[Date "2025.12.03"]`
+            );
+            expectNextToken(tokenizer, tagToken("Event", "Some Event"));
+            expectNextToken(tokenizer, tagToken("Round", "1.1"));
+            expectNextToken(tokenizer, tagToken("Date", "2025.12.03"));
+        });
+
+        test("escapes strings in tags", () => {
+            const tokenizer = createTokenizer(`[Event "\\"Tournament\\""]`);
+            expectNextToken(tokenizer, tagToken("Event", "\"Tournament\""));
+        });
+    });
+
+    describe("Moves and Move Numbers", () => {
+        test("tokenizes moves", () => {
+            const tokenizer = createTokenizer(`d4 d5 c4`);
+            expectNextToken(tokenizer, moveToken("d4"));
+            expectNextToken(tokenizer, moveToken("d5"));
+            expectNextToken(tokenizer, moveToken("c4"));
+        });
+
+        test("tokenizes move numbers", () => {
+            const tokenizer = createTokenizer("1. d4 d5 2. c4 2... Bf4");
+            expectNextToken(tokenizer, moveNum(1));
+            expectNextToken(tokenizer, moveToken("d4"));
+            expectNextToken(tokenizer, moveToken("d5"));
+            expectNextToken(tokenizer, moveNum(2));
+            expectNextToken(tokenizer, moveToken("c4"));
+            expectNextToken(tokenizer, moveNum(2, true));
+            expectNextToken(tokenizer, moveToken("Bf4"));
+        });
+    });
+
+    describe("Result Tags", () => {
+        test("tokenizes result tags", () => {
+            const tokenizer = createTokenizer("1-0 0-1 1/2-1/2 *");
+            expectNextToken(tokenizer, resultToken("1-0"));
+            expectNextToken(tokenizer, resultToken("0-1"));
+            expectNextToken(tokenizer, resultToken("1/2-1/2"));
+            expectNextToken(tokenizer, resultToken("*"));
+        });
+
+        test("ignores whitespace in result tags", () => {
+            const tokenizer = createTokenizer("1 - 0 0 - 1 1 / 2 - 1 / 2");
+            expectNextToken(tokenizer, resultToken("1-0"));
+            expectNextToken(tokenizer, resultToken("0-1"));
+            expectNextToken(tokenizer, resultToken("1/2-1/2"));
+        });
+    });
+
+    describe("Glyphs", () => {
+        test("tokenizes san glyphs", () => {
+            const tokenizer = createTokenizer("! !! ? ?? !? ?!");
+            expectNextToken(tokenizer, sanGlyph("!"));
+            expectNextToken(tokenizer, sanGlyph("!!"));
+            expectNextToken(tokenizer, sanGlyph("?"));
+            expectNextToken(tokenizer, sanGlyph("??"));
+            expectNextToken(tokenizer, sanGlyph("!?"));
+            expectNextToken(tokenizer, sanGlyph("?!"));
+        });
+
+        test("tokenizes nags", () => {
+            const tokenizer = createTokenizer("$1 $10 $255 $9132984");
+            expectNextToken(tokenizer, nag(1));
+            expectNextToken(tokenizer, nag(10));
+            expectNextToken(tokenizer, nag(255));
+            expectNextToken(tokenizer, nag(9132984));
+        });
+    });
+
+    describe("Comments", () => {
+        test("tokenizes comments", () => {
+            const tokenizer = createTokenizer("{ Comment }{ Next }");
+            expectNextToken(tokenizer, comment(" Comment "));
+            expectNextToken(tokenizer, comment(" Next "));
+        });
+
+        test("tokenizes comment tags at start or end or middle", () => {
+            const tokenizer = createTokenizer(
+                "{[%tag val] Comment }{ Comment [%tag val]}{ Comm[%tag val]ent }"
+            );
+            // it's the same token every time
+            const token = comment(" Comment ", [ commentTag("tag", "val") ]);
+            expectNextToken(tokenizer, token);
+            expectNextToken(tokenizer, token);
+            expectNextToken(tokenizer, token);
+        });
+
+        test("tokenizes multiple comment tags", () => {
+            const tokenizer = createTokenizer("{[%tag val][%tag2 val2] Comment }");
+            expectNextToken(
+                tokenizer,
+                comment(" Comment ", [
+                    commentTag("tag", "val"),
+                    commentTag("tag2", "val2")
+                ])
+            );
+        });
+    });
+
+    describe("Variations", () => {
+        test("tokenizes variations", () => {
+            const tokenizer = createTokenizer(
+                "1. d4 (1... e4) d5"
+            );
+            expectNextToken(tokenizer, moveNum(1));
+            expectNextToken(tokenizer, moveToken("d4"));
+            expectNextToken(
+                tokenizer,
+                variation([ moveNum(1, true), moveToken("e4") ])
+            );
+            expectNextToken(tokenizer, moveToken("d5"));
+        });
+    });
+
     for (let i = 1; i <= gameFixturesAmt; i++){
         const fileName = `game-${i}.pgn`;
         test(`fetches all tokens in ${fileName}`, async () => {
@@ -33,3 +152,51 @@ describe("PgnTokenizer", () => {
         });
     }
 });
+
+function createTokenizer(pgnStr: string): PgnTokenizer {
+    const reader = new Reader(pgnStr);
+    return new PgnTokenizer(reader);
+}
+
+function expectNextToken(tokenizer: PgnTokenizer, token: PgnToken): void {
+    expect(tokenizer.nextToken()).toEqual(token);
+}
+
+function tagToken(header: string, value: string): PgnTagToken {
+    return { type: "tag", header, value };
+}
+
+function moveToken(content: string): PgnMoveToken {
+    return { type: "move", content }
+}
+
+function moveNum(
+    num: number,
+    threeDots: boolean = false
+): PgnMoveNumToken {
+    return { type: "move num", num, threeDots };
+}
+
+function resultToken(res: string): PgnResultToken {
+    return { type: "result", value: res };
+}
+
+function sanGlyph(glyph: string): PgnSanGlyphToken {
+    return { type: "san glyph", content: glyph };
+}
+
+function nag(id: number): PgnNagToken {
+    return { type: "nag", id };
+}
+
+function comment(content: string, tags: CommentTag[] = []): PgnCommentToken {
+    return { type: "comment", content, tags };
+}
+
+function commentTag(name: string, value: string): CommentTag {
+    return { name, value };
+}
+
+function variation(tokens: PgnMovetextToken[]): PgnVariationToken {
+    return { type: "variation", movetext: tokens };
+}

@@ -72,6 +72,7 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
             };
         }else if (reader.match(T.DASH)){
             reader.copyReject();
+            reader.skipWhitespace();
             const secondNum = handleNumber(reader);
             return {
                 type: "result",
