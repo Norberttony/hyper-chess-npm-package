@@ -89,6 +89,6 @@ function pgnMove(san: string): PgnMove {
     };
 }
 
-function pgnComment(content: string): PgnComment {
+export function pgnComment(content: string): PgnComment {
     return { content, tags: [] };
 }

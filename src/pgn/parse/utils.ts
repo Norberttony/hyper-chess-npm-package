@@ -1,6 +1,6 @@
 import { PgnSplitter } from "./pgn-splitter.js";
 import { Reader } from "../read/reader.js";
-import { Pgn, PgnHeaders, PgnMove } from "./types.js";
+import { Pgn, PgnComment, PgnHeaders, PgnMove } from "./types.js";
 import { Board, StartingFen } from "../../game/board.js";
 import { Side } from "../../game/piece.js";
 import { San } from "../../game/san.js";
@@ -58,6 +58,12 @@ export function PgnHeadersToString(headers: PgnHeaders): string {
 export function pgnToString(pgnObj: Pgn): string {
     let pgn = `${PgnHeadersToString(pgnObj.headers)}\n`;
 
+    for (const comment of pgnObj.leadingComments)
+        pgn += `${pgnCommentToString(comment)}\n`;
+
+    if (pgnObj.leadingComments.length > 0)
+        pgn += "\n";
+
     const fen: string = pgnObj.headers["FEN"] || StartingFen;
 
     const board = new Board(fen);
@@ -68,6 +74,10 @@ export function pgnToString(pgnObj: Pgn): string {
     const lastMove = pgnObj.moveList[pgnObj.moveList.length - 1];
     if (lastMove && lastMove.result == undefined)
         pgn += pgnObj.result;
+
+    if (pgnObj.trailingComments.length > 0)
+        pgn += ` ${pgnObj.trailingComments.map(pgnCommentToString).join(" ")}`;
+
     return pgn.trim();
 }
 
@@ -94,10 +104,8 @@ function variationToString(moveList: PgnMove[], board: Board): string {
             pgn += `${pgnMove.nags.join(" ")} `;
 
         // add back comments and comment tags
-        for (const { content, tags } of pgnMove.comments){
-            const tagsStr = tags.map(commentTagToString).join(" ");
-            pgn += `{ ${content.trim()} ${tagsStr} } `;
-        }
+        for (const comment of pgnMove.comments)
+            pgn += pgnCommentToString(comment);
 
         for (const v of pgnMove.variations)
             pgn += `(${variationToString(v, new Board(prevFen)).trim()}) `;
@@ -107,6 +115,13 @@ function variationToString(moveList: PgnMove[], board: Board): string {
     }
 
     return pgn;
+}
+
+export function pgnCommentToString(comment: PgnComment): string {
+    if (comment.tags.length == 0)
+        return `{ ${comment.content.trim()} }`;
+    const tagsStr = comment.tags.map(commentTagToString).join(" ");
+    return `{ ${comment.content.trim()} ${tagsStr} } `;
 }
 
 export function commentTagToString(tag: CommentTag): string {
