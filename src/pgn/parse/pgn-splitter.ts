@@ -1,7 +1,7 @@
 import { AbstractReader } from "../read/abstract-reader.js";
 import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
 import { PgnToken, PgnVariationToken } from "../tokenize/types.js";
-import { Pgn, PgnHeaders, PgnMove } from "./types.js";
+import { Pgn, PgnComment, PgnHeaders, PgnMove } from "./types.js";
 
 export class PgnSplitter {
     private tokenizer: PgnTokenizer;
@@ -22,13 +22,23 @@ export class PgnSplitter {
         let prev: PgnMove | undefined = undefined;
         let result: string = "*";
 
+        const leadingComments: PgnComment[] = [];
+        const trailingComments: PgnComment[] = [];
+
+        let isAfterResult: boolean = false;
+
         for (const token of tokens){
             if (token.type == "tag")
                 headers[token.header] = token.value;
             else if (token.type == "move")
                 moves.push(token.content);
-            else if (token.type == "result")
+            else if (token.type == "result"){
                 result = token.value;
+                isAfterResult = true;
+            }else if (token.type == "comment" && !prev)
+                leadingComments.push({ content: token.content, tags: token.tags });
+            else if (token.type == "comment" && isAfterResult)
+                trailingComments.push({ content: token.content, tags: token.tags });
             prev = this.handleToken(moveList, prev, token);
         }
 
@@ -36,7 +46,9 @@ export class PgnSplitter {
             headers,
             moves,
             result,
-            moveList
+            moveList,
+            leadingComments,
+            trailingComments,
         };
     }
 
@@ -49,14 +61,17 @@ export class PgnSplitter {
 
         let token: PgnToken | undefined;
         let isInMoveText: boolean = false;
+        let isAfterResult: boolean = false;
         while (token = this.tokenizer.nextToken()){
             if (token.type != "tag")
                 isInMoveText = true;
             else if (token.type == "tag" && isInMoveText)
                 break;
+            if (token.type != "comment" && isAfterResult)
+                break;
             pgnTokens.push(token);
             if (token.type == "result")
-                break;
+                isAfterResult = true;
         }
 
         // given that a new tag marks the start of a new game, we store it for
@@ -85,7 +100,6 @@ export class PgnSplitter {
         prev: PgnMove | undefined,
         t: PgnToken
     ): PgnMove | undefined {
-
         if (t.type == "move"){
             // create new pgn move and add it to children
             const move: PgnMove = {

@@ -24,4 +24,8 @@ export interface Pgn {
     moves: string[];
     result: string;
     moveList: PgnMove[];
+    // comments that occur before the movetext but after tags
+    leadingComments: PgnComment[];
+    // comments that occur after result markers
+    trailingComments: PgnComment[];
 }
