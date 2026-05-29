@@ -3,7 +3,7 @@ import { BoardWidget, getFirstElemOfClass, WidgetLocation } from "./board-widget
 import { addPointerHoldListener } from "../pgn-control.js";
 import type { BoardGraphics } from "../board-graphics.js";
 import { VariationMove } from "../../game/variation.js";
-import { getResultTag } from "../../pgn/parse/utils.js";
+import { getResultMarker } from "../../pgn/parse/utils.js";
 import { DeleteVariationEvent, NewVariationEvent, ResultEvent, VariationChangeEvent } from "../board-events.js";
 
 // handles displaying any of the moves in a separate panel, splitting the PGN into variations as
@@ -285,7 +285,7 @@ export class PgnWidget extends BoardWidget {
         const { winner, termination } = event.detail;
 
         // based on the result number, add some result text and flavor text
-        const result = getResultTag(winner);
+        const result = getResultMarker(winner);
         const resultText = result.split("-").join(" - ");
         let flavorText;
         if (result == "1/2-1/2"){

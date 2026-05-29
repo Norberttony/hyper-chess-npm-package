@@ -25,7 +25,7 @@ export function splitPgns(pgns: string): Pgn[] {
     return pgnObjs;
 }
 
-export function getResultTag(winner: Side): string {
+export function getResultMarker(winner: Side): string {
     if (winner == Side.None)
         return "1/2-1/2";
     else if (winner == Side.White)
@@ -35,10 +35,10 @@ export function getResultTag(winner: Side): string {
     return "*";
 }
 
-export function getWinner(resultTag: string): Side {
-    if (resultTag == "1-0")
+export function getWinner(resultMarker: string): Side {
+    if (resultMarker == "1-0")
         return Side.White;
-    else if (resultTag == "0-1")
+    else if (resultMarker == "0-1")
         return Side.Black;
     else
         return Side.None;

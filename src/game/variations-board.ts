@@ -1,6 +1,6 @@
 import { Board, StartingFen } from "./board.js";
 import { Reader } from "../pgn/read/reader.js";
-import { getResultTag } from "../pgn/parse/utils.js";
+import { getResultMarker } from "../pgn/parse/utils.js";
 import { PgnSplitter } from "../pgn/parse/pgn-splitter.js";
 import { Pgn, PgnMove } from "../pgn/parse/types.js";
 import { VariationMove, VariationNode, VariationRoot } from "./variation.js";
@@ -61,7 +61,7 @@ export class VariationsBoard extends Board {
         const res: GameResult = super.setResult(termination, winner);
         this.currentVariation.result = res;
         if (this.currentVariation.type == "move")
-            this.currentVariation.pgnMove.result = getResultTag(winner);
+            this.currentVariation.pgnMove.result = getResultMarker(winner);
         return res;
     }
 
@@ -271,12 +271,12 @@ export class VariationsBoard extends Board {
 
         const res: GameResult | undefined = super.isGameOver();
         if (res){
-            const resultTag: string = getResultTag(res.winner);
+            const resultMarker: string = getResultMarker(res.winner);
             this.currentVariation.result = res;
-            this.currentVariation.pgnMove!.result = resultTag;
+            this.currentVariation.pgnMove!.result = resultMarker;
 
             if (this.currentVariation.isMain())
-                this.pgn.result = resultTag;
+                this.pgn.result = resultMarker;
         }
 
         return variation;
