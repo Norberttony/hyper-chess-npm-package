@@ -44,7 +44,7 @@ export function getWinner(resultMarker: string): Side {
         return Side.None;
 }
 
-export function PgnHeadersToString(headers: PgnHeaders): string {
+export function pgnHeadersToString(headers: PgnHeaders): string {
     let pgn = "";
     for (const [ name, value ] of Object.entries(headers)){
         const s = value
@@ -56,7 +56,7 @@ export function PgnHeadersToString(headers: PgnHeaders): string {
 }
 
 export function pgnToString(pgnObj: Pgn): string {
-    let pgn = `${PgnHeadersToString(pgnObj.headers)}\n`;
+    let pgn = `${pgnHeadersToString(pgnObj.headers)}\n`;
 
     for (const comment of pgnObj.leadingComments)
         pgn += `${pgnCommentToString(comment)}\n`;

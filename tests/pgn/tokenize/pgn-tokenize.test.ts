@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import { PgnTokenizer } from "../../../src/pgn/tokenize/pgn-tokenizer";
 import { BufferedReader } from "../../../src/pgn/read/buffered-reader";
 import { Reader } from "../../../src/pgn/read/reader";
-import { CommentTag, PgnCommentToken, PgnMoveNumToken, PgnMovetextToken, PgnMoveToken, PgnNagToken, PgnResultToken, PgnSanGlyphToken, PgnTagToken, PgnToken, PgnVariationToken } from "../../../src/pgn/tokenize/types";
+import { CommentTag, PartialToken, PgnCommentToken, PgnErrorToken, PgnMoveNumToken, PgnMovetextToken, PgnMoveToken, PgnNagToken, PgnResultToken, PgnSanGlyphToken, PgnTagToken, PgnToken, PgnVariationToken } from "../../../src/pgn/tokenize/types";
 import { fixturesPath, readJSONFile } from "../../shared/utils";
 import { gameFixturesAmt } from "../../shared/utils";
 
@@ -21,6 +21,22 @@ describe("PgnTokenizer", () => {
         test("escapes strings in tags", () => {
             const tokenizer = createTokenizer(`[Event "\\"Tournament\\""]`);
             expectNextToken(tokenizer, tagToken("Event", "\"Tournament\""));
+        });
+
+        test("catches unclosed tag", () => {
+            const tokenizer = createTokenizer(
+                `[Event "Some Event"\n[Round "1.1"]`
+            );
+            expect(tokenizer.nextToken()!.type).toBe("error");
+            expectNextToken(tokenizer, tagToken("Round", "1.1"));
+        });
+
+        test("catches headers with spaces", () => {
+            const tokenizer = createTokenizer(
+                `[Event Header "Some Event"]\n[Round "1.1"]`
+            );
+            expect(tokenizer.nextToken()!.type).toBe("error");
+            expectNextToken(tokenizer, tagToken("Round", "1.1"));
         });
     });
 
@@ -51,8 +67,8 @@ describe("PgnTokenizer", () => {
         });
     });
 
-    describe("Result Tags", () => {
-        test("tokenizes result tags", () => {
+    describe("Result Markers", () => {
+        test("tokenizes result markers", () => {
             const tokenizer = createTokenizer("1-0 0-1 1/2-1/2 *");
             expectNextToken(tokenizer, resultToken("1-0"));
             expectNextToken(tokenizer, resultToken("0-1"));
@@ -60,7 +76,7 @@ describe("PgnTokenizer", () => {
             expectNextToken(tokenizer, resultToken("*"));
         });
 
-        test("ignores whitespace in result tags", () => {
+        test("ignores whitespace in result markers", () => {
             const tokenizer = createTokenizer("1 - 0 0 - 1 1 / 2 - 1 / 2");
             expectNextToken(tokenizer, resultToken("1-0"));
             expectNextToken(tokenizer, resultToken("0-1"));
@@ -214,6 +230,12 @@ function createTokenizer(pgnStr: string): PgnTokenizer {
 
 function expectNextToken(tokenizer: PgnTokenizer, token: PgnToken): void {
     expect(tokenizer.nextToken()).toEqual(token);
+}
+
+function expectNextError(tokenizer: PgnTokenizer, partial: PartialToken): void {
+    const token: PgnToken = tokenizer.nextToken()!;
+    expect(token.type).toBe("error");
+    expect((token as PgnErrorToken).partial).toBe(partial);
 }
 
 function tagToken(header: string, value: string): PgnTagToken {

@@ -48,6 +48,12 @@ export interface PgnVariationToken {
     movetext: PgnMovetextToken[];
 }
 
+export interface PgnErrorToken {
+    type: "error";
+    partial: PartialToken;
+    errors: string[];
+}
+
 export type PgnMovetextToken =
     | PgnMoveNumToken
     | PgnMoveToken
@@ -55,8 +61,17 @@ export type PgnMovetextToken =
     | PgnNagToken
     | PgnResultToken
     | PgnCommentToken
-    | PgnVariationToken;
+    | PgnVariationToken
 
 export type PgnToken =
     | PgnTagToken
-    | PgnMovetextToken;
+    | PgnMovetextToken
+    | PgnErrorToken
+
+// must apply optional fields to all parts of the discriminated union
+type PartialToken =
+    PgnToken extends infer T
+        ? T extends { type: any }
+            ? Pick<T, "type"> & Partial<Omit<T, "type">>
+            : never
+        : never;
