@@ -35,8 +35,27 @@ describe("PgnTokenizer", () => {
             const tokenizer = createTokenizer(
                 `[Event Header "Some Event"]\n[Round "1.1"]`
             );
-            expect(tokenizer.nextToken()!.type).toBe("error");
+            const token = tokenizer.nextToken()! as PgnErrorToken;
+            expect(token.type).toBe("error");
+            expect(token.partial).toEqual({
+                type: "tag",
+                header: "Event Header",
+                value: "Some Event",
+            });
             expectNextToken(tokenizer, tagToken("Round", "1.1"));
+        });
+
+        test("does not consume movetext as tag after newline", () => {
+            const tokenizer = createTokenizer(
+                `[Event "Some Event\n1. d4`
+            );
+            const errorToken = tokenizer.nextToken()! as PgnErrorToken;
+            expect(errorToken.type).toBe("error");
+            expect(errorToken.partial).toEqual({
+                type: "tag",
+                header: "Event",
+                value: "Some Event"
+            });
         });
     });
 

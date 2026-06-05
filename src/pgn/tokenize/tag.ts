@@ -15,11 +15,7 @@ export function handleTag(reader: AbstractReader): PgnTagToken | PgnErrorToken {
     // extract header
     reader.skipWhitespace();
     reader.copyStart();
-    while (!reader.isAtEnd() &&
-        reader.get() != T.DOUBLE_QUOTES &&
-        reader.get() != T.RIGHT_SQ_BRACKET &&
-        !isWhitespace(reader.get())
-    ){
+    while (!reader.isAtEnd()){
         const byte: number = reader.get();
 
         if (byte === T.DOUBLE_QUOTES ||
@@ -31,12 +27,17 @@ export function handleTag(reader: AbstractReader): PgnTagToken | PgnErrorToken {
         reader.advance();
     }
 
-    const header: string = reader.copyEnd();
+    // this MIGHT be the header, but it's possible that the user accidentally
+    // added spaces to it. So, put this on pause and start copying the whitespace
+    // to preserve it in the header.
+    reader.copyPause();
+    reader.copyStart();
     reader.skipWhitespace();
+
+    let header: string;
 
     // perform error handling based on the expected next character
     // since we just scanned in the header, we expect to see a value
-
     if (reader.get() != T.RIGHT_SQ_BRACKET &&
         reader.get() != T.DOUBLE_QUOTES &&
         !reader.isAtEnd()
@@ -49,33 +50,69 @@ export function handleTag(reader: AbstractReader): PgnTagToken | PgnErrorToken {
     if (reader.get() == T.RIGHT_SQ_BRACKET || reader.isAtEnd()){
         // incomplete tag! missing value!
         (errors ??= []).push("Incomplete tag: missing value");
+        reader.copyReject();
+        header = reader.copyEnd();
     }else if (reader.get() != T.DOUBLE_QUOTES){
         // badly formatted header!
         (errors ??= []).push("Incomplete tag: spaces are not allowed in the header");
+
+        // keep going until line break or start value or end tag
+        while (!reader.isAtEnd()){
+            const byte: number = reader.get();
+
+            if (byte === T.DOUBLE_QUOTES ||
+                byte === T.RIGHT_SQ_BRACKET ||
+                byte === T.NEWLINE ||
+                byte === T.LEFT_SQ_BRACKET
+            )
+                break;
+
+            reader.advance();
+        }
+        header = reader.copyEnd();
+        header = reader.copyEnd() + header;
+        header = header.trim();
+    }else{
+        reader.copyReject();
+        header = reader.copyEnd();
     }
 
     // extract value
     reader.match(T.DOUBLE_QUOTES);
     reader.copyStart();
-    while (!reader.isAtEnd() && reader.get() != T.DOUBLE_QUOTES){
-        if (reader.get() == T.BACK_SLASH && reader.peek() == T.DOUBLE_QUOTES)
+    while (!reader.isAtEnd()){
+        const byte = reader.get();
+
+        if (byte === T.DOUBLE_QUOTES || byte === T.NEWLINE)
+            break;
+
+        if (byte === T.BACK_SLASH && reader.peek() === T.DOUBLE_QUOTES)
             reader.advance();
         reader.advance();
     }
 
     const value: string = reader.copyEnd().replaceAll("\\\"", "\"");
 
+    if (reader.get() != T.DOUBLE_QUOTES){
+        (errors ??= []).push("Unclosed value in tag: missing end double quote");
+    }
+
     reader.advance();
     // skip next right bracket or the end of the line
-    while (
-        !reader.isAtEnd() &&
-        reader.get() != T.LEFT_SQ_BRACKET &&
-        reader.get() != T.RIGHT_SQ_BRACKET
-    )
+    while (!reader.isAtEnd()){
+        const byte = reader.get();
+
+        if (byte === T.LEFT_SQ_BRACKET ||
+            byte == T.RIGHT_SQ_BRACKET ||
+            byte === T.NEWLINE
+        )
+            break;
+
         reader.advance();
+    }
 
     // the start of a new tag when this one hasn't finished
-    if (reader.get() == T.LEFT_SQ_BRACKET){
+    if (reader.get() != T.RIGHT_SQ_BRACKET){
         (errors ??= []).push("Unclosed tag: missing a closing right square bracket");
     }else{
         reader.advance();
