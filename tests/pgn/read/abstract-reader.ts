@@ -91,5 +91,48 @@ export function testReader(name: string, factory: AbstractReaderFactory){
             expect(iToQ).toBe("ijklmno");
             expect(bToZ).toBe("bcdefghijklmnopqrstuvwxy");
         });
+
+        test("can pause one and copyStart another", () => {
+            reader.advance();
+
+            reader.copyStart();
+            const i = "i".charCodeAt(0);
+            const p = "p".charCodeAt(0);
+            const z = "z".charCodeAt(0);
+            let iToQ: string | undefined;
+            while (reader.get() != z){
+                if (reader.get() == i){
+                    reader.copyPause();
+                    reader.copyStart();
+                }else if (reader.get() == p){
+                    iToQ = reader.copyEnd();
+                    reader.copyContinue();
+                }
+                reader.advance();
+            }
+            const bToHAndPToY = reader.copyEnd();
+
+            expect(iToQ).toBe("ijklmno");
+            expect(bToHAndPToY).toBe("bcdefghpqrstuvwxy");
+        });
+
+        test("can reject one and copyStart another", () => {
+            reader.advance();
+
+            reader.copyStart();
+            const i = "i".charCodeAt(0);
+            const z = "z".charCodeAt(0);
+            while (reader.get() != z){
+                if (reader.get() == i){
+                    reader.copyPause();
+                    reader.copyStart();
+                }
+                reader.advance();
+            }
+            reader.copyReject();
+            const bToH = reader.copyEnd();
+
+            expect(bToH).toBe("bcdefgh");
+        });
     });
 }

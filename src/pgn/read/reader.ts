@@ -4,6 +4,7 @@ import { isWhitespace } from "./utils.js";
 export class Reader extends AbstractReader {
     private position: number = 0;
     private copyStartPos: number[][] = [];
+    private isPaused: boolean[] = [];
 
     constructor(private content: string){
         super();
@@ -11,16 +12,20 @@ export class Reader extends AbstractReader {
 
     public copyStart(): void {
         this.copyStartPos.unshift([ this.position ]);
+        this.isPaused.unshift(false);
     }
 
     public copyPause(): void {
         this.copyStartPos[0]?.push(this.position);
+        this.isPaused[0] = true;
     }
 
     public copyContinue(): void {
         this.copyStartPos[0]?.push(this.position);
+        this.isPaused[0] = false;
     }
 
+    // something is wrong here.
     public copyEnd(): string {
         const positions: number[] = this.copyStartPos.shift()!;
         let copied = "";
@@ -30,15 +35,18 @@ export class Reader extends AbstractReader {
                 positions[i + 1]!
             );
         }
-        copied += this.content.substring(
-            positions[positions.length - 1]!,
-            this.position
-        );
+        if (this.isPaused.shift()! == false){
+            copied += this.content.substring(
+                positions[positions.length - 1]!,
+                this.position
+            );
+        }
         return copied;
     }
 
     public copyReject(): void {
         this.copyStartPos.shift();
+        this.isPaused.shift();
     }
 
     public isAtEnd(): boolean {
