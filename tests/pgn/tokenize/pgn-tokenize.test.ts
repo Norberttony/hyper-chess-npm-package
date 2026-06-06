@@ -158,6 +158,13 @@ describe("PgnTokenizer", () => {
                 ])
             );
         });
+
+        test("tokenizes one-line comments", () => {
+            const tokenizer = createTokenizer("; This is a comment\n; Another\nd4");
+            expectNextToken(tokenizer, comment(" This is a comment"));
+            expectNextToken(tokenizer, comment(" Another"));
+            expectNextToken(tokenizer, moveToken("d4"));
+        });
     });
 
     describe("Variations", () => {

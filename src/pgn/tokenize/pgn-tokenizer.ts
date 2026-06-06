@@ -16,13 +16,13 @@ export class PgnTokenizer {
             const v: number = this.reader.get();
             if (isWhitespace(v)){
                 this.reader.advance();
-            }else if (v == T.LEFT_BRACE){
+            }else if (v === T.LEFT_BRACE || v === T.SEMICOLON){
                 return handleComment(this.reader);
-            }else if (v == T.LEFT_SQ_BRACKET){
+            }else if (v === T.LEFT_SQ_BRACKET){
                 return handleTag(this.reader);
             }else if (T.SAN_GLYPHS.has(v)){
                 return handleSanGlyph(this.reader);
-            }else if (v == T.DOLLAR_SIGN){
+            }else if (v === T.DOLLAR_SIGN){
                 return handleNag(this.reader);
             }else{
                 return handleMovetext(this.reader);

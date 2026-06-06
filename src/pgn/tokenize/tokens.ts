@@ -20,6 +20,7 @@ export const QUESTION_MARK = '?'.charCodeAt(0);
 export const EXCLAMATION_MARK = '!'.charCodeAt(0);
 export const DOLLAR_SIGN = '$'.charCodeAt(0);
 export const PERCENT = '%'.charCodeAt(0);
+export const SEMICOLON = ';'.charCodeAt(0);
 
 export const SAN_GLYPHS = new Set<number>([
     HASHTAG, PLUS, QUESTION_MARK, EXCLAMATION_MARK,

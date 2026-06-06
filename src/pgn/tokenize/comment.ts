@@ -4,14 +4,25 @@ import type { PgnCommentToken, CommentTag } from "./types.js";
 import * as T from "./tokens.js";
 
 export function handleComment(reader: AbstractReader): PgnCommentToken {
-    if (!reader.match(T.LEFT_BRACE))
+    const isLeftBrace = reader.match(T.LEFT_BRACE);
+    const isLeftBraceOrSemicolon = isLeftBrace || reader.match(T.SEMICOLON);
+
+    if (!isLeftBraceOrSemicolon)
         throw new Error(
-            `handleComment got ${reader.get()} but expected ${T.LEFT_BRACE}`);
+            `handleComment got ${reader.get()} but expected ${T.LEFT_BRACE} or ${T.SEMICOLON}`);
 
     const tags: CommentTag[] = [];
     reader.copyStart();
-    while (!reader.isAtEnd() && reader.get() != T.RIGHT_BRACE){
-        switch (reader.get()){
+    while (!reader.isAtEnd()){
+        const byte = reader.get();
+
+        if (
+            isLeftBrace && byte === T.RIGHT_BRACE ||
+            !isLeftBrace && byte === T.NEWLINE
+        )
+            break;
+
+        switch (byte){
             // extract comment tags
             case T.LEFT_SQ_BRACKET:
                 if (reader.peek() == T.PERCENT){
@@ -31,7 +42,7 @@ export function handleComment(reader: AbstractReader): PgnCommentToken {
 
     const content: string = reader.copyEnd();
 
-    // skip right brace
+    // skip right brace OR the newline
     reader.advance();
 
     return {
