@@ -27,7 +27,11 @@ describe("PgnTokenizer", () => {
             const tokenizer = createTokenizer(
                 `[Event "Some Event"\n[Round "1.1"]`
             );
-            expect(tokenizer.nextToken()!.type).toBe("error");
+            expectNextError(tokenizer, {
+                type: "tag",
+                header: "Event",
+                value: "Some Event"
+            });
             expectNextToken(tokenizer, tagToken("Round", "1.1"));
         });
 
@@ -35,9 +39,7 @@ describe("PgnTokenizer", () => {
             const tokenizer = createTokenizer(
                 `[Event Header "Some Event"]\n[Round "1.1"]`
             );
-            const token = tokenizer.nextToken()! as PgnErrorToken;
-            expect(token.type).toBe("error");
-            expect(token.partial).toEqual({
+            expectNextError(tokenizer, {
                 type: "tag",
                 header: "Event Header",
                 value: "Some Event",
@@ -49,9 +51,7 @@ describe("PgnTokenizer", () => {
             const tokenizer = createTokenizer(
                 `[Event "Some Event\n1. d4`
             );
-            const errorToken = tokenizer.nextToken()! as PgnErrorToken;
-            expect(errorToken.type).toBe("error");
-            expect(errorToken.partial).toEqual({
+            expectNextError(tokenizer, {
                 type: "tag",
                 header: "Event",
                 value: "Some Event"
@@ -81,6 +81,13 @@ describe("PgnTokenizer", () => {
         test("ignores whitespace between move numbers and moves", () => {
             const tokenizer = createTokenizer("1.d4 d5");
             expectNextToken(tokenizer, moveNum(1));
+            expectNextToken(tokenizer, moveToken("d4"));
+            expectNextToken(tokenizer, moveToken("d5"));
+        });
+
+        test("catches move numbers with no dots", () => {
+            const tokenizer = createTokenizer("1 d4 d5");
+            expectNextError(tokenizer, { type: "move num", num: 1 });
             expectNextToken(tokenizer, moveToken("d4"));
             expectNextToken(tokenizer, moveToken("d5"));
         });
@@ -254,7 +261,7 @@ function expectNextToken(tokenizer: PgnTokenizer, token: PgnToken): void {
 function expectNextError(tokenizer: PgnTokenizer, partial: PartialToken): void {
     const token: PgnToken = tokenizer.nextToken()!;
     expect(token.type).toBe("error");
-    expect((token as PgnErrorToken).partial).toBe(partial);
+    expect((token as PgnErrorToken).partial).toEqual(partial);
 }
 
 function tagToken(header: string, value: string): PgnTagToken {

@@ -44,6 +44,7 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
     reader.copyStart();
     if (isNumber(reader.get())){
         const firstNum = handleNumber(reader);
+        const hasWhitespace = isWhitespace(reader.get());
         reader.skipWhitespace();
         if (reader.match(T.DOT)){
             reader.copyReject();
@@ -63,7 +64,17 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
                 reader.skipWhitespace();
                 if (!reader.match(symbol)){
                     const res: string = reader.copyEnd();
-                    throw new Error(`expected 1/2-1/2 but got ${res}`);
+                    return {
+                        type: "error",
+                        partial: {
+                            type: "result",
+                            value: res,
+                        },
+                        errors: [{
+                            msg: `Expected 1/2-1/2 but got ${res}`,
+                            context: reader.getContext(),
+                        }],
+                    };
                 }
             }
             return {
@@ -79,11 +90,23 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
                 value: `${firstNum}-${secondNum}`
             };
         }else{
-            reader.advance();
-            const res: string = reader.copyEnd();
-            throw new Error(
-                `handleMovetext: last symbol unrecognized in "${res}"`
-            );
+            if (hasWhitespace){
+                // indicates that this is likely a move number
+                reader.copyReject();
+                return {
+                    type: "error",
+                    partial: {
+                        type: "move num",
+                        num: firstNum,
+                    },
+                    errors: [{
+                        msg: `Move number with no dot`,
+                        context: reader.getContext(),
+                    }],
+                };
+            }else{
+                // interpret as a move, handle at the end of the function.
+            }
         }
     }
 

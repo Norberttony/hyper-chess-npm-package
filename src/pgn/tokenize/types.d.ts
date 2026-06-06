@@ -69,11 +69,11 @@ export type PgnMovetextToken =
     | PgnResultToken
     | PgnCommentToken
     | PgnVariationToken
+    | PgnErrorToken
 
 export type PgnToken =
     | PgnTagToken
     | PgnMovetextToken
-    | PgnErrorToken
 
 // must apply optional fields to all parts of the discriminated union
 type PartialToken =
