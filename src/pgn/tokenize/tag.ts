@@ -1,6 +1,6 @@
 import { AbstractReader } from "../read/abstract-reader.js";
 import { isWhitespace } from "../read/utils.js";
-import type { PgnErrorToken, PgnTagToken } from "./types.js";
+import type { PgnError, PgnErrorToken, PgnTagToken } from "./types.js";
 import * as T from "./tokens.js";
 
 // assumes that the first character is left square bracket '['
@@ -10,7 +10,7 @@ export function handleTag(reader: AbstractReader): PgnTagToken | PgnErrorToken {
             `handleTag: expected first character to be ${T.LEFT_SQ_BRACKET} but got ${reader.get()} instead`
         );
 
-    let errors: string[] | undefined;
+    let errors: PgnError[] | undefined;
 
     // extract header
     reader.skipWhitespace();
@@ -44,17 +44,26 @@ export function handleTag(reader: AbstractReader): PgnTagToken | PgnErrorToken {
     ){
         // this indicates that the header never ended. That means there's a
         // space in the middle of it.
-        (errors ??= []).push("Incomplete tag: expected '\"'");
+        (errors ??= []).push({
+            msg: "Incomplete tag: expected '\"'",
+            context: reader.getContext(),
+        });
     }
 
     if (reader.get() == T.RIGHT_SQ_BRACKET || reader.isAtEnd()){
         // incomplete tag! missing value!
-        (errors ??= []).push("Incomplete tag: missing value");
+        (errors ??= []).push({
+            msg: "Incomplete tag: missing value",
+            context: reader.getContext(),
+        });
         reader.copyReject();
         header = reader.copyEnd();
     }else if (reader.get() != T.DOUBLE_QUOTES){
         // badly formatted header!
-        (errors ??= []).push("Incomplete tag: spaces are not allowed in the header");
+        (errors ??= []).push({
+            msg: "Incomplete tag: spaces are not allowed in the header",
+            context: reader.getContext(),
+        });
 
         // keep going until line break or start value or end tag
         while (!reader.isAtEnd()){
@@ -94,7 +103,10 @@ export function handleTag(reader: AbstractReader): PgnTagToken | PgnErrorToken {
     const value: string = reader.copyEnd().replaceAll("\\\"", "\"");
 
     if (reader.get() != T.DOUBLE_QUOTES){
-        (errors ??= []).push("Unclosed value in tag: missing end double quote");
+        (errors ??= []).push({
+            msg: "Unclosed value in tag: missing end double quote",
+            context: reader.getContext(),
+        });
     }
 
     reader.advance();
@@ -113,7 +125,10 @@ export function handleTag(reader: AbstractReader): PgnTagToken | PgnErrorToken {
 
     // the start of a new tag when this one hasn't finished
     if (reader.get() != T.RIGHT_SQ_BRACKET){
-        (errors ??= []).push("Unclosed tag: missing a closing right square bracket");
+        (errors ??= []).push({
+            msg: "Unclosed tag: missing a closing right square bracket",
+            context: reader.getContext(),
+        });
     }else{
         reader.advance();
     }

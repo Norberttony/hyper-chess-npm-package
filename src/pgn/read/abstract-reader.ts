@@ -1,5 +1,13 @@
+export interface ReaderContext {
+    line: number;
+    offset: number;
+}
+
 export abstract class AbstractReader {
     constructor(){}
+
+    // returns where the reader currently is
+    public abstract getContext(): ReaderContext;
 
     // begins copying any characters the reader passes
     public abstract copyStart(): void;

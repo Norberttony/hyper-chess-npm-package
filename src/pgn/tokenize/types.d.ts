@@ -1,3 +1,10 @@
+import { ReaderContext } from "../read/abstract-reader.ts";
+
+export interface PgnError {
+    msg: string;
+    context: ReaderContext;
+}
+
 // of the form [%name value] and found in comments.
 export interface CommentTag {
     name: string;
@@ -51,7 +58,7 @@ export interface PgnVariationToken {
 export interface PgnErrorToken {
     type: "error";
     partial: PartialToken;
-    errors: string[];
+    errors: PgnError[];
 }
 
 export type PgnMovetextToken =

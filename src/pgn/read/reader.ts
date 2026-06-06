@@ -1,4 +1,5 @@
-import { AbstractReader } from "./abstract-reader.js";
+import { NEWLINE } from "../tokenize/tokens.js";
+import { AbstractReader, ReaderContext } from "./abstract-reader.js";
 import { isWhitespace } from "./utils.js";
 
 export class Reader extends AbstractReader {
@@ -6,8 +7,17 @@ export class Reader extends AbstractReader {
     private copyStartPos: number[][] = [];
     private isPaused: boolean[] = [];
 
+    private context: ReaderContext = {
+        line: 1,
+        offset: 0,
+    };
+
     constructor(private content: string){
         super();
+    }
+
+    public getContext(): ReaderContext {
+        return { ...this.context };
     }
 
     public copyStart(): void {
@@ -54,6 +64,11 @@ export class Reader extends AbstractReader {
     }
 
     public advance(): void {
+        this.context.offset++;
+        if (this.get() === NEWLINE){
+            this.context.offset = 0;
+            this.context.line++;
+        }
         this.position++;
     }
 

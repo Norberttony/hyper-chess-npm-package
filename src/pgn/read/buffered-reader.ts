@@ -1,6 +1,7 @@
 import fs from "node:fs";
-import { AbstractReader } from "./abstract-reader.js";
+import { AbstractReader, ReaderContext } from "./abstract-reader.js";
 import { isWhitespace } from "./utils.js";
+import { NEWLINE } from "../tokenize/tokens.js";
 
 export interface BufferWrapper {
     data: Buffer;
@@ -19,6 +20,11 @@ export class BufferedReader extends AbstractReader {
     private copyBufferPosStart: number[] = [];
     private parts: Buffer[][] = [];
 
+    private context: ReaderContext = {
+        line: 1,
+        offset: 0,
+    };
+
     constructor(private pathToFile: string, private chunkSizeBytes: number){
         super();
         // at least size of 2 to allow for peek and peekNext to work
@@ -35,6 +41,10 @@ export class BufferedReader extends AbstractReader {
             data: Buffer.alloc(this.chunkSizeBytes),
             validBytes: 0
         };
+    }
+
+    public getContext(): ReaderContext {
+        return { ...this.context };
     }
 
     public copyStart(): void {
@@ -83,6 +93,11 @@ export class BufferedReader extends AbstractReader {
     }
 
     public advance(): void {
+        this.context.offset++;
+        if (this.get() === NEWLINE){
+            this.context.line++;
+            this.context.offset = 0;
+        }
         this.position++;
         this.bufferPosition++;
 

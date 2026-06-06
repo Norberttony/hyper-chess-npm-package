@@ -8,6 +8,7 @@ export type AbstractReaderFactory = (filePath: string) => Promise<AbstractReader
 export function testReader(name: string, factory: AbstractReaderFactory){
     describe(name, () => {
         const pathToFile = path.join(fixturesPath, "test.txt");
+        const pathToMultilineFile = path.join(fixturesPath, "multiline-reader-test.txt");
         let reader: AbstractReader;
 
         beforeEach(async () => {
@@ -133,6 +134,25 @@ export function testReader(name: string, factory: AbstractReaderFactory){
             const bToH = reader.copyEnd();
 
             expect(bToH).toBe("bcdefgh");
+        });
+
+        describe("Fetching Reader Context", () => {
+            beforeEach(async () => {
+                reader = await factory(pathToMultilineFile);
+            });
+
+            test("offset is updated", async () => {
+                reader.advance();
+                reader.advance();
+                expect(reader.getContext()).toEqual({ line: 1, offset: 2 });
+            });
+            
+            test("line is updated", async () => {
+                reader.advance();
+                reader.advance();
+                reader.advance();
+                expect(reader.getContext()).toEqual({ line: 2, offset: 0 });
+            });
         });
     });
 }
