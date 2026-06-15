@@ -26,5 +26,5 @@ export function getFirstElemOfClass(container: Element, className: string): Elem
 }
 
 export function getWidgetLocName(loc: WidgetLocation): string {
-    return loc.toString().replaceAll("_", "-").toLowerCase();
+    return WidgetLocation[loc].replaceAll("_", "-").toLowerCase();
 }
