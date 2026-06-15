@@ -24,14 +24,7 @@ export class VariationsBoard extends Board {
     private currentVariation: VariationNode;
 
     // any meta information about the board that represents this game.
-    private pgn: Pgn = {
-        headers: {},
-        moves: [],
-        moveList: [],
-        result: "*",
-        leadingComments: [],
-        trailingComments: [],
-    };
+    private pgn: Pgn = emptyPgnObject();
 
     private startingFen: string = StartingFen;
 
@@ -88,10 +81,23 @@ export class VariationsBoard extends Board {
 
         this.startingFen = fen;
 
+        // clear pgn
+        this.pgn = emptyPgnObject();
+
         // just get rid of everything after variation root and have gc handle it
         this.currentVariation = this.variationRoot;
         this.mainVariation = this.currentVariation;
         this.variationRoot.next = [];
+        this.variationRoot.moveList = this.pgn.moveList;
+
+        // update headers if this is not the default starting position
+        if (this.getFen() === StartingFen){
+            delete this.pgn.headers["Variant"];
+            delete this.pgn.headers["FEN"];
+        }else{
+            this.pgn.headers["Variant"] = "From Position";
+            this.pgn.headers["FEN"] = this.startingFen;
+        }
     }
 
     public loadPgn(pgnStr: string): void {
@@ -249,7 +255,7 @@ export class VariationsBoard extends Board {
             san: removeGlyphs(san),
             comments: [],
             commentTags: {},
-            glyphs: [ sanGlyphs ],
+            glyphs: sanGlyphs === "" ? [] : [ sanGlyphs ],
             nags: [],
             variations: [],
         };
@@ -281,4 +287,15 @@ export class VariationsBoard extends Board {
 
         return variation;
     }
+}
+
+function emptyPgnObject(): Pgn {
+    return {
+        headers: {},
+        moves: [],
+        moveList: [],
+        result: "*",
+        leadingComments: [],
+        trailingComments: [],
+    };
 }

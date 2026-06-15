@@ -195,7 +195,7 @@ export class BoardGraphics extends VariationsBoard {
     // === HANDLING MAKE MOVE === //
     // ========================== //
 
-    public override playMove(move: Move): VariationMove | undefined {
+    public override playMove(move: Move): VariationMove {
         const variation = super.playMove(move);
         if (variation)
             this.dispatchEvent("new-variation", { variation });
