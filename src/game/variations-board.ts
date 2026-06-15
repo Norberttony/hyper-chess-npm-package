@@ -5,9 +5,8 @@ import { PgnSplitter } from "../pgn/parse/pgn-splitter.js";
 import { Pgn, PgnMove } from "../pgn/parse/types.js";
 import { VariationMove, VariationNode, VariationRoot } from "./variation.js";
 import { Move } from "./move.js";
-import { San } from "./san.js";
+import { removeGlyphs, San } from "./san.js";
 import { Lan } from "./coords.js";
-import { Side } from "./piece.js";
 import { GameResult } from "./board.js";
 import { createVariationTree } from "./pgn-utils.js";
 
@@ -25,7 +24,14 @@ export class VariationsBoard extends Board {
     private currentVariation: VariationNode;
 
     // any meta information about the board that represents this game.
-    private pgn: Pgn = { headers: {}, moves: [], moveList: [], result: "*" };
+    private pgn: Pgn = {
+        headers: {},
+        moves: [],
+        moveList: [],
+        result: "*",
+        leadingComments: [],
+        trailingComments: [],
+    };
 
     private startingFen: string = StartingFen;
 
@@ -55,14 +61,6 @@ export class VariationsBoard extends Board {
             return;
         const res: GameResult | undefined = this.currentVariation.result;
         return res || super.getResult();
-    }
-
-    public override setResult(termination: string, winner: Side): GameResult {
-        const res: GameResult = super.setResult(termination, winner);
-        this.currentVariation.result = res;
-        if (this.currentVariation.type == "move")
-            this.currentVariation.pgnMove.result = getResultMarker(winner);
-        return res;
     }
 
     public getVariationRoot(): VariationRoot {
@@ -236,20 +234,22 @@ export class VariationsBoard extends Board {
     }
 
     // assumes move is legal
-    public playMove(move: Move, San = super.getMoveSan(move)): VariationMove | undefined {
+    public playMove(move: Move, san = super.getMoveSan(move)): VariationMove {
         // search for an existing variation with this move
         for (const v of this.currentVariation.next){
-            if (v.pgnMove!.san == San){
+            if (v.pgnMove!.san == removeGlyphs(san)){
                 this.nextVariation(v.location);
-                return;
+                return v;
             }
         }
 
+        const sanGlyphs: string = san.replace(removeGlyphs(san), "");
+
         const pgnMove: PgnMove = {
-            san: San,
+            san: removeGlyphs(san),
             comments: [],
             commentTags: {},
-            glyphs: [],
+            glyphs: [ sanGlyphs ],
             nags: [],
             variations: [],
         };

@@ -167,6 +167,7 @@ export class PgnWidget extends BoardWidget {
 
     private onNewVariation(event: NewVariationEvent): void {
         const { variation } = event.detail;
+        console.log(variation);
 
         // determine move number
         const moveNum = variation.fullMoveNum;

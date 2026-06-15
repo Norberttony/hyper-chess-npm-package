@@ -172,11 +172,11 @@ export class Board extends MoveGenerator {
         return undefined;
     }
 
-    public getMoveOfLan(Lan: Lan): Move | undefined {
+    public getMoveOfLan(lan: Lan): Move | undefined {
         const moves = this.generateMoves(true);
 
         for (const m of moves){
-            if (m.lan == Lan){
+            if (m.lan == lan){
                 return m;
             }
         }

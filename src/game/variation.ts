@@ -67,6 +67,10 @@ export class VariationMove extends VariationBase<"move"> {
         this.move = move.clone();
     }
 
+    public get san(): string {
+        return this.pgnMove.san;
+    }
+
     public override get location(): number | undefined {
         if (this.prev)
             return this.prev.next.indexOf(this);
