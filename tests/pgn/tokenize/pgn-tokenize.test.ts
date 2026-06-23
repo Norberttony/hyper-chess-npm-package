@@ -165,6 +165,11 @@ describe("PgnTokenizer", () => {
             expectNextToken(tokenizer, comment(" Another"));
             expectNextToken(tokenizer, moveToken("d4"));
         });
+
+        test("handles non-ASCII characters in comments", () => {
+            const tokenizer = createTokenizer("{ é ñ Ω Ж 中 😀 ✓ }");
+            expectNextToken(tokenizer, comment(" é ñ Ω Ж 中 😀 ✓ "));
+        });
     });
 
     describe("Variations", () => {
