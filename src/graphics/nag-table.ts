@@ -13,16 +13,16 @@ export function createDefaultNagTable(assetBaseUrl: string): NagTable {
         // these are defaults defined by the PGN specification
         // some are excluded just for brevity.
         { id: 0, desc: "null annotation" },
-        { id: 1, desc: "good move",         icon: joinUrlPath(assetBaseUrl, "nags/good-move.svg") },
-        { id: 2, desc: "poor move",         icon: joinUrlPath(assetBaseUrl, "nags/poor-move.svg") },
-        { id: 3, desc: "very good move",    icon: joinUrlPath(assetBaseUrl, "nags/very-good-move.svg") },
-        { id: 4, desc: "very poor move",    icon: joinUrlPath(assetBaseUrl, "nags/very-poor-move.svg") },
+        { id: 1, desc: "good move",         icon: joinUrlPath(assetBaseUrl, "images/nags/good-move.svg") },
+        { id: 2, desc: "poor move",         icon: joinUrlPath(assetBaseUrl, "images/nags/poor-move.svg") },
+        { id: 3, desc: "very good move",    icon: joinUrlPath(assetBaseUrl, "images/nags/very-good-move.svg") },
+        { id: 4, desc: "very poor move",    icon: joinUrlPath(assetBaseUrl, "images/nags/very-poor-move.svg") },
         { id: 5, desc: "speculative move" },
         { id: 6, desc: "questionable move" },
 
         // package-specific glyphs
-        { id: 65536, desc: "puzzle correct",    icon: joinUrlPath(assetBaseUrl, "glyphs/correct.svg") },
-        { id: 65537, desc: "puzzle incorrect",  icon: joinUrlPath(assetBaseUrl, "glyphs/incorrect.svg") },
+        { id: 65536, desc: "puzzle correct",    icon: joinUrlPath(assetBaseUrl, "images/glyphs/correct.svg") },
+        { id: 65537, desc: "puzzle incorrect",  icon: joinUrlPath(assetBaseUrl, "images/glyphs/incorrect.svg") },
     );
 
     return t;
