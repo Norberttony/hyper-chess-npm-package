@@ -8,6 +8,7 @@ import {
 import { getPieceSide, getPieceType, Side } from "../game/piece.js";
 import { Move } from "../game/move.js";
 import { VariationMove, VariationNode } from "../game/variation.js";
+import { getNagEntryFromSanGlyph, NagTable } from "./nag-table.js";
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum
 // that it allows is a board element with pieces displayed on it, but it can support any combination
@@ -31,7 +32,8 @@ export class BoardGraphics extends VariationsBoard {
     constructor(
         public allowDragging = true,
         public displayRanksAndFiles = false,
-        skeleton: HTMLElement | null = null
+        skeleton: HTMLElement | null = null,
+        private nagTable: NagTable = {},
     ){
         super();
         this.skeleton = createSkeleton(skeleton);
@@ -166,11 +168,20 @@ export class BoardGraphics extends VariationsBoard {
             const toX = cv.move.to % 8;
             const toY = Math.floor(cv.move.to / 8);
             
-            // attach any relevant glyphs
+            // attach any relevant SAN glyphs
             for (const g of cv.pgnMove.glyphs){
                 const pieceElem = this.getPieceElem(toX, toY);
-                if (pieceElem)
-                    attachGlyph(pieceElem, g);
+                const nagEntry = getNagEntryFromSanGlyph(this.nagTable, g);
+                if (pieceElem && nagEntry && nagEntry.icon)
+                    attachGlyph(pieceElem, nagEntry.icon);
+            }
+
+            // attach any NAGs
+            for (const g of cv.pgnMove.nags){
+                const pieceElem = this.getPieceElem(toX, toY);
+                const nagEntry = this.nagTable[g];
+                if (pieceElem && nagEntry && nagEntry.icon)
+                    attachGlyph(pieceElem, nagEntry.icon);
             }
         }
 
