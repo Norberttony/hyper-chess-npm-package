@@ -101,7 +101,7 @@ function variationToString(moveList: PgnMove[], board: Board): string {
         }
 
         if (pgnMove.nags.length > 0)
-            pgn += `${pgnMove.nags.join(" ")} `;
+            pgn += `${pgnMove.nags.map(v => `$${v}`).join(" ")} `;
 
         // add back comments and comment tags
         for (const comment of pgnMove.comments)
