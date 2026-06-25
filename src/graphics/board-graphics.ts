@@ -9,6 +9,7 @@ import { getPieceSide, getPieceType, Side } from "../game/piece.js";
 import { Move } from "../game/move.js";
 import { VariationMove, VariationNode } from "../game/variation.js";
 import { getNagEntryFromSanGlyph, NagTable } from "./nag-table.js";
+import { EventDetail } from "./board-events.js";
 
 // BoardGraphics has been created to handle the instantiation of a graphical board. The bare minimum
 // that it allows is a board element with pieces displayed on it, but it can support any combination
@@ -119,7 +120,7 @@ export class BoardGraphics extends VariationsBoard {
         this.widgets[name] = widget;
     }
 
-    public setNames(whiteName?: string, blackName?: string): void {
+    public setNames(whiteName: string | undefined, blackName: string | undefined): void {
         this.dispatchEvent("player-names", { whiteName, blackName });
     }
 
@@ -225,7 +226,7 @@ export class BoardGraphics extends VariationsBoard {
     public flip(): void {
         this.skeleton.classList.toggle("board-graphics--flipped");
         this.display();
-        this.dispatchEvent("flip", {});
+        this.dispatchEvent("flip", undefined);
     }
 
     public display(): void {
@@ -288,7 +289,10 @@ export class BoardGraphics extends VariationsBoard {
         return this.piecesDiv.getElementsByClassName(`${f}_${r}`)[0] as (HTMLElement | undefined);
     }
 
-    private dispatchEvent(name: string, detail: any): void {
+    private dispatchEvent<K extends keyof GlobalEventHandlersEventMap>(
+        name: K,
+        detail: EventDetail<GlobalEventHandlersEventMap[K]>
+    ): void {
         this.skeleton.dispatchEvent(new CustomEvent(name, { detail }));
     }
 }

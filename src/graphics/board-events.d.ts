@@ -1,4 +1,4 @@
-export type PlayerNamesEvent        = CustomEvent<{ whiteName?: string, blackName?: string }>;
+export type PlayerNamesEvent        = CustomEvent<{ whiteName: string | undefined, blackName: string | undefined }>;
 export type LoadFenEvent            = CustomEvent<{ fen: string }>;
 export type SingleScrollEvent       = CustomEvent<{ prevVariation: VariationMove, variation: VariationMove, userInput: boolean }>;
 export type VariationChangeEvent    = CustomEvent<{ variation: VariationMove }>;
@@ -6,6 +6,9 @@ export type ResultEvent             = CustomEvent<{ turn: Side, termination: str
 export type DeleteVariationEvent    = CustomEvent<{ variation: VariationMove }>;
 export type NewVariationEvent       = CustomEvent<{ variation: VariationMove }>;
 export type FlipEvent               = CustomEvent<undefined>;
+export type AnnotationChangeEvent   = CustomEvent<{ variation: VariationMove }>;
+
+export type EventDetail<T> = T extends CustomEvent<infer D> ? D : never;
 
 declare global {
     interface GlobalEventHandlersEventMap {
@@ -16,7 +19,8 @@ declare global {
         "result":           ResultEvent,
         "delete-variation": DeleteVariationEvent,
         "new-variation":    NewVariationEvent,
-        "flip":             FlipEvent
+        "flip":             FlipEvent,
+        "annotation":       AnnotationChangeEvent,
     }
 };
 
