@@ -6,3 +6,4 @@ export * from "./engine-widget.js";
 export * from "./extras-widget.js";
 export * from "./pgn-widget.js";
 export * from "./players-widget.js";
+export * from "./glyph-widget.js";

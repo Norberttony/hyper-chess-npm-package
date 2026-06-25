@@ -36,6 +36,8 @@ export class AnimationWidget extends BoardWidget {
         if (dir == -1)
             lastMadeMove = prevVariation.move;
 
+        console.log("ANIMATION", lastMadeMove);
+
         if (!lastMadeMove)
             return;
 

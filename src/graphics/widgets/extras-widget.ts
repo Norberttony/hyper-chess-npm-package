@@ -46,7 +46,10 @@ export class ExtrasWidget extends BoardWidget {
         }
 
         // listening to game state events
-        boardgfx.skeleton.addEventListener("variation-change", () => this.updateFenText());
+        boardgfx.skeleton.addEventListener("variation-change", () => {
+            this.updateFenText();
+            this.updatePgnText();
+        });
         boardgfx.skeleton.addEventListener("new-variation", () => this.updatePgnText());
         boardgfx.skeleton.addEventListener("loadFen", () => {
             this.updateFenText();

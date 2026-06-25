@@ -79,6 +79,10 @@ export class BoardGraphics extends VariationsBoard {
         this.skeleton.classList.remove("board-graphics--loading");
     }
 
+    public getNagTable(): NagTable {
+        return this.nagTable;
+    }
+
     // retrieves the relevant widget container, creating one if necessary
     public getWidgetContainer(location: WidgetLocation): HTMLElement {
         const widgetLocName = getWidgetLocName(location);
@@ -151,39 +155,17 @@ export class BoardGraphics extends VariationsBoard {
         const cv = this.getCurrentVariation();
         const gv = this.graphicalVariation;
 
+        // check if one of the variations follows the other
+        if (cv.prev == gv || gv.prev == cv)
+            this.dispatchEvent("single-scroll", { prevVariation: gv, variation: cv, userInput });
+
+        this.dispatchEvent("variation-change", { variation: cv });
+
         // no variation changes!
         if (cv == gv)
             return;
         
-        // check if one of the variations follows the other
-        if (cv.prev == gv || gv.prev == cv)
-            this.dispatchEvent("single-scroll", { prevVariation: gv, variation: cv, userInput });
-        
         this.graphicalVariation = cv;
-
-        this.dispatchEvent("variation-change", { variation: cv });
-
-        // apply any relevant glyphs
-        if (cv.type == "move"){
-            const toX = cv.move.to % 8;
-            const toY = Math.floor(cv.move.to / 8);
-            
-            // attach any relevant SAN glyphs
-            for (const g of cv.pgnMove.glyphs){
-                const pieceElem = this.getPieceElem(toX, toY);
-                const nagEntry = getNagEntryFromSanGlyph(this.nagTable, g);
-                if (pieceElem && nagEntry && nagEntry.icon)
-                    attachGlyph(pieceElem, nagEntry.icon);
-            }
-
-            // attach any NAGs
-            for (const g of cv.pgnMove.nags){
-                const pieceElem = this.getPieceElem(toX, toY);
-                const nagEntry = this.nagTable[g];
-                if (pieceElem && nagEntry && nagEntry.icon)
-                    attachGlyph(pieceElem, nagEntry.icon);
-            }
-        }
 
         // check and dispatch event for any results
         const result = this.isGameOver();
@@ -277,6 +259,27 @@ export class BoardGraphics extends VariationsBoard {
                     const piece = getPieceFromPool(f, r, this.isFlipped, getPieceType(v), getPieceSide(v));
                     this.piecesDiv.appendChild(piece);
                 }
+            }
+        }
+
+        if (cv.type == "move"){
+            const toX = cv.move.to % 8;
+            const toY = Math.floor(cv.move.to / 8);
+            
+            // attach any relevant SAN glyphs
+            for (const g of cv.pgnMove.glyphs){
+                const pieceElem = this.getPieceElem(toX, toY);
+                const nagEntry = getNagEntryFromSanGlyph(this.nagTable, g);
+                if (pieceElem && nagEntry && nagEntry.icon)
+                    attachGlyph(pieceElem, nagEntry.icon);
+            }
+
+            // attach any NAGs
+            for (const g of cv.pgnMove.nags){
+                const pieceElem = this.getPieceElem(toX, toY);
+                const nagEntry = this.nagTable[g];
+                if (pieceElem && nagEntry && nagEntry.icon)
+                    attachGlyph(pieceElem, nagEntry.icon);
             }
         }
     }

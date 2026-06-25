@@ -229,3 +229,32 @@
     padding-top: 10px;
     padding-bottom: 10px;
 }
+
+/* GLYPH WIDGET */
+.board-graphics__glyph {
+    /* allows grid to be filled vertically */
+    column-count: 2;
+    column-gap: 0px;
+}
+
+.glyph__option {
+    display: grid;
+    grid-template-columns: 25px auto;
+    align-items: center;
+    gap: 10px;
+    background: black;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.glyph__option--selected {
+    background: darkgray;
+}
+
+.glyph__option:hover {
+    background: dimgray;
+}
+
+.glyph__option-icon {
+    height: 25px;
+}
