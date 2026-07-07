@@ -30,6 +30,7 @@
     "noPropertyAccessFromIndexSignature": true,
 
     "strict": true,
+    "strictNullChecks": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
