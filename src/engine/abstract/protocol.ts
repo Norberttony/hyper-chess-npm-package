@@ -1,13 +1,14 @@
 import { Lan } from "../../game/coords.js";
-import type { GameTime, ThinkStats } from "../utils.js";
+import type { EngineOption, GameTime, ThinkStats } from "../utils.js";
 import type { BotProcess } from "./bot-process.js";
 
-type ThinkStatsUpdateListener = (stats: ThinkStats) => any;
+export type ThinkStatsUpdateListener = (stats: ThinkStats) => any;
 
 export abstract class BotProtocol {
     protected bot: BotProcess;
     protected thinkStats: { [depth: number]: ThinkStats } = {};
     protected currDepth: number = -1;
+    protected options: { [name: string]: EngineOption } = {};
 
     private thinkStatsUpdateListeners: ThinkStatsUpdateListener[] = [];
 
@@ -56,8 +57,12 @@ export abstract class BotProtocol {
         return this.thinkStats[this.currDepth] || {};
     }
 
-    public resetThinkStats(){
+    public resetThinkStats(): void {
         this.thinkStats = {};
+    }
+
+    public hasOption(name: string): boolean {
+        return name in this.options;
     }
 
     public abstract setFen(fen: string, moves: Lan[]): void;
@@ -68,4 +73,53 @@ export abstract class BotProtocol {
     public abstract startThink(): void;
     public abstract stopThink(): void;
     public abstract isReady(timeoutMs: number): Promise<boolean>;
+    public abstract setOption(name: string, value: unknown): void;
+}
+
+export function trySetOptionValue(option: EngineOption, value: unknown): { status: "ok" } | { status: "error", msg: string } {
+    const type = option.type;
+    let msg: string | null = null;
+    switch (type){
+        case "action":
+            if (value)
+                msg = "value must not be set";
+            break;
+        case "boolean":
+            if (typeof value === "boolean")
+                option.value = value;
+            else
+                msg = "value must be boolean";
+            break;
+        case "choice":
+            if (typeof value === "string" && option.choices.includes(value))
+                option.value = value;
+            else
+                msg = `value must be a string and one of these choices: ${option.choices.join(", ")}`;
+            break;
+        case "number":
+            if (typeof value === "number" && isInRange(value, option.min, option.max))
+                option.value = value;
+            else
+                msg = `value must be a number and in between ${option.min} and ${option.max}`;
+            break;
+        case "text":
+            if (typeof value === "string")
+                option.value = value;
+            else
+                msg = "value must be a string";
+            break;
+    }
+
+    if (!msg)
+        return { status: "ok" };
+    else
+        return { status: "error", msg };
+}
+
+export function isInRange(n: number, min?: number, max?: number): boolean {
+    if (min && n < min)
+        return false;
+    if (max && n > max)
+        return false;
+    return true;
 }
