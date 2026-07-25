@@ -5,7 +5,7 @@ import type { BotProcess } from "../abstract/bot-process.js";
 import { EngineOption, GameTime, Score, SetOptionStatus } from "../utils.js";
 import { Lan } from "../../game/coords.js";
 
-const optionPropertyNames = new Set([ "name", "option", "default", "min", "max", "var" ]);
+const optionPropertyNames = new Set([ "name", "type", "default", "min", "max", "var" ]);
 
 export class UCIBotProtocol extends BotProtocol {
     private startFen: string = "";
@@ -153,7 +153,7 @@ function extractScore(line: string): Score | undefined {
         return undefined;
 }
 
-function buildEngineOption(line: string): { status: "ok", option: EngineOption } | { status: "error", msg: string } {
+export function buildEngineOption(line: string): { status: "ok", option: EngineOption } | { status: "error", msg: string } {
     const words = line.split(" ");
     const lastTypeIdx = words.lastIndexOf("type");
 
@@ -190,6 +190,9 @@ function buildEngineOption(line: string): { status: "ok", option: EngineOption }
             // unrecognized
         }
     }
+
+    if (varVal)
+        vars.push(varVal);
 
     const name = fields["name"];
     const type = fields["type"];
