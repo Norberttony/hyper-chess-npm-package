@@ -1,21 +1,13 @@
-import fs from "node:fs";
-import pathModule from "node:path";
 import { describe, expect, test } from "vitest";
-import { fixturesPath } from "../shared/utils.js";
 import { Board } from "../../src/game/board.js";
+import { perft } from "../../src/game/perft.js";
 import { Move } from "../../src/game/move.js";
 import { Lan } from "../../src/game/coords.js";
-
-const perftPath = pathModule.join(fixturesPath, "perft.json");
-
-interface TestSuiteCase {
-    fen: string,
-    nodes: Record<string, number>
-}
+import { fetchPerftTestCases } from "../shared/load-game-fixtures.js";
 
 describe("perft", () => {
-    const MAX_NODES = 1000;
-    const testSuite: TestSuiteCase[] = JSON.parse(fs.readFileSync(perftPath).toString());
+    const MAX_NODES = 20000;
+    const testSuite = fetchPerftTestCases();
 
     for (const { fen, nodes } of testSuite){
         for (const depthStr of Object.keys(nodes)){
@@ -36,7 +28,12 @@ describe("perft", () => {
                     // formatting changes like adding/removing extra spaces.
                     const startFen = b.getFen();
 
-                    const actual = countMoves(depth, b, pv)[0];
+                    const actual = perft(depth, b);
+
+                    // collect more debug info by using count moves
+                    if (actual != expected){
+                        countMoves(depth, b, pv);
+                    }
 
                     // ensure we're back where we started
                     expect(b.getFen()).toBe(startFen);

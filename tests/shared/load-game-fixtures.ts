@@ -38,3 +38,13 @@ export function fetchTestCases(): { cases: TestCase[], pgnDb: string } {
 
     return { cases, pgnDb };
 }
+
+export interface PerftTestCase {
+    fen: string;
+    nodes: Record<string, number>;
+}
+
+export function fetchPerftTestCases(): PerftTestCase[] {
+    const perftPath = path.join(fixturesPath, "perft.json");
+    return JSON.parse(fs.readFileSync(perftPath).toString());
+}
