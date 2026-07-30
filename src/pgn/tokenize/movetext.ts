@@ -77,6 +77,7 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
                     };
                 }
             }
+            reader.copyReject();
             return {
                 type: "result",
                 value: "1/2-1/2"
