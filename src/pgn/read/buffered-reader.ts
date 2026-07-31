@@ -43,6 +43,10 @@ export class BufferedReader extends AbstractReader {
         };
     }
 
+    public getPartCount(): number {
+        return this.parts.length;
+    }
+
     public getContext(): ReaderContext {
         return { ...this.context };
     }

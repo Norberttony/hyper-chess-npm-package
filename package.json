@@ -15,8 +15,10 @@
     "build": "npm run clean && tsc",
     "test": "vitest",
     "bench:build": "node scripts/clean-bench.js && npx tsc -p tsconfig.bench.json",
-    "bench": "npm run bench:build && node dist-bench/bench/perft.js",
-    "bench:profile": "npm run bench:build && node --cpu-prof dist-bench/bench/perft.js",
+    "bench:perft": "npm run bench:build && node dist-bench/bench/perft.js",
+    "bench:pgn-parse": "npm run bench:build && node dist-bench/bench/pgn-parse.js",
+    "bench:perft:profile": "npm run bench:build && node --cpu-prof dist-bench/bench/perft.js",
+    "bench:pgn-parse:profile": "npm run bench:build && node --cpu-prof dist-bench/bench/pgn-parse.js",
     "profile": "npx tsx --node-options=\"--prof\" bench/perft.ts"
   },
   "author": "Norbert Krajewski",
