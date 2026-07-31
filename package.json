@@ -18,8 +18,7 @@
     "bench:perft": "npm run bench:build && node dist-bench/bench/perft.js",
     "bench:pgn-parse": "npm run bench:build && node dist-bench/bench/pgn-parse.js",
     "bench:perft:profile": "npm run bench:build && node --cpu-prof dist-bench/bench/perft.js",
-    "bench:pgn-parse:profile": "npm run bench:build && node --cpu-prof dist-bench/bench/pgn-parse.js",
-    "profile": "npx tsx --node-options=\"--prof\" bench/perft.ts"
+    "bench:pgn-parse:profile": "npm run bench:build && node --cpu-prof dist-bench/bench/pgn-parse.js"
   },
   "author": "Norbert Krajewski",
   "license": "ISC",
