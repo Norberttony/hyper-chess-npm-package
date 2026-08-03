@@ -19,6 +19,10 @@ export class AnnotatorWidget extends BoardWidget {
 
     private start?: Coord;
 
+    // cache data for drawing in-progress annotations
+    private animFrameId: number | undefined;
+    private prevAnnot: Annotation | undefined;
+
     constructor(boardgfx: BoardGraphics){
         super(boardgfx);
 
@@ -38,25 +42,21 @@ export class AnnotatorWidget extends BoardWidget {
 
         // attach event listeners
         boardgfx.boardDiv.addEventListener("mousedown",        (event) => this.mousedown(event));
+        boardgfx.boardDiv.addEventListener("mousemove",        (event) => this.mousemove(event));
         boardgfx.boardDiv.addEventListener("mouseup",          (event) => this.mouseup(event));
         boardgfx.boardDiv.addEventListener("contextmenu",      (event) => event.preventDefault());
         boardgfx.skeleton.addEventListener("variation-change", ()      => this.clearAll());
     }
 
     private redrawAll(): void {
-        window.requestAnimationFrame(() => {
-            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-            for (const a of this.annotations){
-                this.drawAnnotation(a);
-            }
-        });
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        for (const a of this.annotations)
+            this.drawAnnotation(a);
     }
 
     private clearAll(): void {
         this.annotations = [];
-        window.requestAnimationFrame(() => {
-            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        });
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
     private drawAnnotation(annotation: Annotation): void {
@@ -134,9 +134,35 @@ export class AnnotatorWidget extends BoardWidget {
         this.start = this.getMouseTileCoords(event);
     }
 
+    private mousemove(event: MouseEvent): void {
+        if (!this.start)
+            return;
+
+        const end = this.getMouseTileCoords(event);
+        const inProgressAnnot = buildAnnot(this.start, end);
+        if (!this.prevAnnot || !areAnnotationsEqual(this.prevAnnot, inProgressAnnot)){
+            // cancel previous draw
+            if (this.animFrameId)
+                window.cancelAnimationFrame(this.animFrameId);
+
+            // start redraw with the in-progress annotation
+            this.animFrameId = window.requestAnimationFrame(() => {
+                if (!this.start)
+                    return;
+
+                this.prevAnnot = inProgressAnnot;
+                this.redrawAll();
+                this.drawAnnotation(inProgressAnnot);
+                this.animFrameId = undefined;
+            });
+        }
+    }
+
     private mouseup(event: MouseEvent): void {
-        if (event.button !== 2)
-            return this.clearAll();
+        if (event.button !== 2){
+            window.requestAnimationFrame(() => this.clearAll());
+            return;
+        }
         if (!this.start)
             return;
 
@@ -157,15 +183,32 @@ export class AnnotatorWidget extends BoardWidget {
         }
 
         window.requestAnimationFrame(() => this.redrawAll());
-
         event.preventDefault();
+        delete this.start;
     }
 
     private getAnnotation(startX: number, startY: number, endX: number, endY: number): Annotation | undefined {
+        const a2 = { startX, startY, endX, endY };
         for (const a of this.annotations){
-            if (a.startX == startX && a.startY == startY && a.endX == endX && a.endY == endY)
+            if (areAnnotationsEqual(a, a2))
                 return a;
         }
         return undefined;
     }
+}
+
+function areAnnotationsEqual(a1: Annotation, a2: Annotation): boolean {
+    return a1.startX == a2.startX
+        && a1.startY == a2.startY
+        && a1.endX == a2.endX
+        && a1.endY == a2.endY;
+}
+
+function buildAnnot(start: Coord, end: Coord): Annotation {
+    return {
+        startX: start.x,
+        startY: start.y,
+        endX: end.x,
+        endY: end.y,
+    };
 }
