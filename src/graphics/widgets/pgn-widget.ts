@@ -222,15 +222,17 @@ export class PgnWidget extends BoardWidget {
 
         // build variationsElem if exists
         if (turn !== Side.Black && variation.location === 0 && prev.next.length > 1){
-            const varElem = newVariationElem();
-            for (let i = 1; i < prev.next.length; i++)
+            for (let i = 1; i < prev.next.length; i++){
+                const varElem = newVariationElem();
                 this.buildPgnList(varElem, prev.next[i]!);
-            container.appendChild(varElem);
+                container.appendChild(varElem);
+            }
         }else if (variation.next.length > 1){
-            const varElem = newVariationElem();
-            for (let i = 1; i < variation.next.length; i++)
+            for (let i = 1; i < variation.next.length; i++){
+                const varElem = newVariationElem();
                 this.buildPgnList(varElem, variation.next[i]!);
-            container.appendChild(varElem);
+                container.appendChild(varElem);
+            }
         }
 
         // build next moveline if exists
@@ -269,7 +271,7 @@ export class PgnWidget extends BoardWidget {
         const { variation } = event.detail;
 
         if (variation.type !== "move")
-            return;
+            return selectPgnElem(this.pgnElem, undefined);
 
         const elem = this.elementMap.get(variation);
         if (elem)
@@ -288,7 +290,7 @@ export class PgnWidget extends BoardWidget {
     }
 }
 
-function selectPgnElem(pgnElem: HTMLElement, elem: HTMLElement): void {
+function selectPgnElem(pgnElem: HTMLElement, elem: HTMLElement | undefined): void {
     (document.getElementsByClassName("pgn-viewer__pgn-elem--selected")[0] || elem || document.body).classList.remove("pgn-viewer__pgn-elem--selected");
     if (elem){
         elem.classList.add("pgn-viewer__pgn-elem--selected");
