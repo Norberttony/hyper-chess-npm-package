@@ -186,6 +186,13 @@ export class BoardGraphics extends VariationsBoard {
         this.applyChanges(false);
     }
 
+    public override onVariationChange(vm: VariationMove): void {
+        super.onVariationChange(vm);
+        console.log("A variation has been deviously changed!", vm);
+        this.dispatchEvent("annotation", { variation: vm });
+        this.applyChanges(false);
+    }
+
     // ========================== //
     // === HANDLING MAKE MOVE === //
     // ========================== //

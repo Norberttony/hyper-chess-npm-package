@@ -48,12 +48,9 @@ export class GlyphWidget extends BoardWidget {
         boardgfx.getWidgetContainer(location).appendChild(container);
 
         // if boardgfx scrolls, the currently active NAGs might change
-        boardgfx.skeleton.addEventListener("single-scroll", () => {
-            this.updateSelectedGlyphs();
-        });
-        boardgfx.skeleton.addEventListener("variation-change", () => {
-            this.updateSelectedGlyphs();
-        });
+        const skel = boardgfx.skeleton;
+        skel.addEventListener("single-scroll",    () => this.updateSelectedGlyphs());
+        skel.addEventListener("variation-change", () => this.updateSelectedGlyphs());
     }
 
     private updateSelectedGlyphs(): void {
@@ -79,10 +76,8 @@ export class GlyphWidget extends BoardWidget {
         // toggle (add/remove) nag
         const idx = cv.pgnMove.nags.indexOf(id);
         if (idx == -1)
-            cv.pgnMove.nags.push(id);
+            cv.addNag(id);
         else
-            cv.pgnMove.nags.splice(idx, 1);
-
-        this.boardgfx.applyChanges(false);
+            cv.removeNag(id);
     }
 }

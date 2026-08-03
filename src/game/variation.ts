@@ -2,6 +2,7 @@ import { Side } from "./piece.js";
 import { Move } from "./move.js";
 import { PgnMove } from "../pgn/parse/types.js";
 import { GameResult } from "./board.js";
+import { VariationsBoard } from "./variations-board.js";
 
 // the variation object operates as a linked list with a single previous node and a list of next
 // nodes.
@@ -16,21 +17,18 @@ export class VariationBase<TType extends NodeType> {
     public level: number = 0;
     public result: GameResult | undefined;
 
+    public board: VariationsBoard | undefined;
+
     constructor(public readonly type: TType, public moveList: PgnMove[]){}
 
     public attach(pgnMove: PgnMove, move: Move): VariationMove {
-        const moveList = this.next.length == 0 ? this.moveList : [ ];
+        const moveList = this.next.length === 0 ? this.moveList : [ ];
         moveList.push(pgnMove);
         const vm: VariationMove = new VariationMove(pgnMove, moveList, move);
         vm.prev = this as VariationNode;
         vm.level = this.level + 1;
+        vm.board = this.board;
         this.next.push(vm);
-
-        if (vm.location == 0){
-            vm.moveList = this.moveList;
-        }else{
-            vm.moveList = moveList;
-        }
         
         return vm;
     }
@@ -135,5 +133,26 @@ export class VariationMove extends VariationBase<"move"> {
 
         // return the common ancestor
         return n1;
+    }
+
+    private onChanged(): void {
+        if (this.board)
+            this.board.onVariationChange(this);
+    }
+
+    // for editing pgn move and having cascading updates to the board
+    public addNag(id: number): void {
+        if (this.pgnMove.nags.includes(id))
+            return;
+        this.pgnMove.nags.push(id);
+        this.onChanged();
+    }
+
+    public removeNag(id: number): void {
+        const idx = this.pgnMove.nags.indexOf(id);
+        if (idx === -1)
+            return;
+        this.pgnMove.nags.splice(idx, 1);
+        this.onChanged();
     }
 }

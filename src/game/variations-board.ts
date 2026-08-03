@@ -33,7 +33,10 @@ export class VariationsBoard extends Board {
         this.variationRoot = new VariationRoot(this.pgn.moveList);
         this.mainVariation = this.variationRoot;
         this.currentVariation = this.variationRoot;
+        this.variationRoot.board = this;
     }
+
+    public onVariationChange(vm: VariationMove): void {}
 
     public override makeMove(move: Move): void {
         this.playMove(move);
@@ -117,7 +120,7 @@ export class VariationsBoard extends Board {
         this.loadFen(fen);
 
         // start reading san
-        const { root, newPgn } = createVariationTree(pgn);
+        const { root, newPgn } = createVariationTree(pgn, this);
         this.variationRoot = root;
         this.mainVariation = this.variationRoot;
         this.currentVariation = this.variationRoot;
