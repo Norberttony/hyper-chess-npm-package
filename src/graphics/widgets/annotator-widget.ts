@@ -2,18 +2,22 @@ import type { BoardGraphics } from "../board-graphics.js";
 import { BoardWidget } from "./board-widget.js";
 
 interface Annotation {
-    startX: number,
-    startY: number,
-    endX: number,
-    endY: number
-};
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+}
+
+interface Coord {
+    x: number;
+    y: number;
+}
 
 export class AnnotatorWidget extends BoardWidget {
     private annotations: Annotation[] = [];
     private ctx: CanvasRenderingContext2D;
 
-    private startX?: number;
-    private startY?: number;
+    private start?: Coord;
 
     constructor(boardgfx: BoardGraphics){
         super(boardgfx);
@@ -26,8 +30,6 @@ export class AnnotatorWidget extends BoardWidget {
         canvas.width = 1000;
         canvas.height = 1000;
 
-        // this currently creates a circular reference which could lead to memory leaks if boardgfx
-        // (instance of BoardGraphics) does not delete this .boardgfx reference.
         this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
         this.ctx.lineWidth = 12;
         this.ctx.strokeStyle = "rgba(0, 120, 0)";
@@ -35,30 +37,26 @@ export class AnnotatorWidget extends BoardWidget {
         this.ctx.lineCap = "round";
 
         // attach event listeners
-        boardgfx.boardDiv.addEventListener("mousedown", (event) => {
-            this.mousedown(event);
-        })
-        boardgfx.boardDiv.addEventListener("mouseup", (event) => {
-            this.mouseup(event);
-        });
-        boardgfx.boardDiv.addEventListener("contextmenu", (event) => {
-            event.preventDefault();
-        });
-        boardgfx.skeleton.addEventListener("variation-change", () => {
-            this.clearAll();
-        });
+        boardgfx.boardDiv.addEventListener("mousedown",        (event) => this.mousedown(event));
+        boardgfx.boardDiv.addEventListener("mouseup",          (event) => this.mouseup(event));
+        boardgfx.boardDiv.addEventListener("contextmenu",      (event) => event.preventDefault());
+        boardgfx.skeleton.addEventListener("variation-change", ()      => this.clearAll());
     }
 
     private redrawAll(): void {
-        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        for (const a of this.annotations){
-            this.drawAnnotation(a);
-        }
+        window.requestAnimationFrame(() => {
+            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+            for (const a of this.annotations){
+                this.drawAnnotation(a);
+            }
+        });
     }
 
     private clearAll(): void {
         this.annotations = [];
-        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        window.requestAnimationFrame(() => {
+            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        });
     }
 
     private drawAnnotation(annotation: Annotation): void {
@@ -85,7 +83,7 @@ export class AnnotatorWidget extends BoardWidget {
         const rx = -ny;
         const ry = nx;
 
-        if (sx == ex && sy == ey){
+        if (sx === ex && sy === ey){
             // draw just a highlight on the square
             this.ctx.lineWidth = 12;
             this.ctx.beginPath();
@@ -116,54 +114,49 @@ export class AnnotatorWidget extends BoardWidget {
         }
     }
 
+    private getMouseTileCoords(event: MouseEvent): Coord {
+        const rect = this.ctx.canvas.getBoundingClientRect();
+        let x = Math.floor((event.clientX - rect.x) / this.ctx.canvas.clientWidth * 8);
+        let y = Math.floor((event.clientY - rect.y) / this.ctx.canvas.clientHeight * 8);
+
+        if (this.boardgfx.isFlipped){
+            x = 7 - x;
+            y = 7 - y;
+        }
+
+        return { x, y };
+    }
+
     private mousedown(event: MouseEvent): void {
-        if (event.button != 2)
+        if (event.button !== 2)
             return;
 
-        const rect = this.ctx.canvas.getBoundingClientRect();
-
-        this.startX = Math.floor((event.clientX - rect.x) / this.ctx.canvas.clientWidth * 8);
-        this.startY = Math.floor((event.clientY - rect.y) / this.ctx.canvas.clientHeight * 8);
-
-        // if board is flipped, flip the coords too
-        if (this.boardgfx.isFlipped){
-            this.startX = 7 - this.startX;
-            this.startY = 7 - this.startY;
-        }
+        this.start = this.getMouseTileCoords(event);
     }
 
     private mouseup(event: MouseEvent): void {
-        if (event.button != 2)
+        if (event.button !== 2)
             return this.clearAll();
-        if (!this.startX || !this.startY)
+        if (!this.start)
             return;
+
+        const end = this.getMouseTileCoords(event);
     
-        const rect = this.ctx.canvas.getBoundingClientRect();
-    
-        let annotationEndX = Math.floor((event.clientX - rect.x) / this.ctx.canvas.clientWidth * 8);
-        let annotationEndY = Math.floor((event.clientY - rect.y) / this.ctx.canvas.clientHeight * 8);
-    
-        // flip coords if board flipped too
-        if (this.boardgfx.isFlipped){
-            annotationEndX = 7 - annotationEndX;
-            annotationEndY = 7 - annotationEndY;
-        }
-    
-        const annotation = this.getAnnotation(this.startX, this.startY, annotationEndX, annotationEndY);
+        const annotation = this.getAnnotation(this.start.x, this.start.y, end.x, end.y);
         if (annotation){
             const index = this.annotations.indexOf(annotation);
             this.annotations.splice(index, 1);
-            this.redrawAll();
         }else{
             const a = {
-                startX: this.startX,
-                startY: this.startY,
-                endX: annotationEndX,
-                endY: annotationEndY
+                startX: this.start.x,
+                startY: this.start.y,
+                endX: end.x,
+                endY: end.y,
             };
-            this.drawAnnotation(a);
             this.annotations.push(a);
         }
+
+        window.requestAnimationFrame(() => this.redrawAll());
 
         event.preventDefault();
     }
