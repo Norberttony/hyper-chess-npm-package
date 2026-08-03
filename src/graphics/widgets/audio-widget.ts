@@ -22,10 +22,12 @@ export class AudioWidget extends BoardWidget {
         super(boardgfx);
 
         boardgfx.skeleton.addEventListener("single-scroll", (event) => {
-            const { variation } = event.detail;
+            const { prevVariation, variation } = event.detail;
+
+            const isForward = variation.prev === prevVariation;
 
             // only play audio if move scrolling is going forward by exactly 1
-            if (variation.type === "move")
+            if (variation.type === "move" && isForward)
                 makeNoise(variation.move);
         });
     }
