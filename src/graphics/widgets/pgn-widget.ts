@@ -243,7 +243,11 @@ export class PgnWidget extends BoardWidget {
     }
 
     private onResult(event: ResultEvent): void {
-        const { winner, termination } = event.detail;
+        const { winner, termination, variation } = event.detail;
+
+        // do not alert on results occurring in pgn variations
+        if (!variation.isMain())
+            return;
 
         // based on the result number, add some result text and flavor text
         const result = getResultMarker(winner);

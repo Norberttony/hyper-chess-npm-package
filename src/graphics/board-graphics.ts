@@ -168,13 +168,14 @@ export class BoardGraphics extends VariationsBoard {
         
         this.graphicalVariation = cv;
 
-        // check and dispatch event for any results
+        // notify of a game result (potentially re-occurring)
         const result = this.isGameOver();
-        if (result){
+        if (result && cv.type === "move"){
             this.dispatchEvent("result", {
                 turn:           this.turn,
                 termination:    result.termination,
-                winner:         result.winner
+                winner:         result.winner,
+                variation:      cv,
             });
         }
     }
