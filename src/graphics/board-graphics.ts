@@ -186,6 +186,11 @@ export class BoardGraphics extends VariationsBoard {
         this.applyChanges(false);
     }
 
+    public onAnnotateVariation(vm: VariationMove): void {
+        this.dispatchEvent("annotation", { variation: vm });
+        this.applyChanges(false);
+    }
+
     // ========================== //
     // === HANDLING MAKE MOVE === //
     // ========================== //
