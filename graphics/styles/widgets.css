@@ -129,25 +129,28 @@
 
 /* PGN List Styles */
 
-/* moveline and its types contain moves (main has two, variation can have many) */
-.pgn-viewer__pgn-moveline {
+.pgn-viewer__pgn-elem {
+    padding: 2px 8px;
+    font-size: 20px;
+}
+
+.pgn-viewer__pgn-list > .pgn-viewer__pgn-elem--type-moveline {
     width: 100%;
     display: grid;
     grid-template-columns: 20% 40% 40%;
+    padding: 0px;
 }
 
-.pgn-viewer__pgn-moveline--type-main {
-    display: grid;
-    grid-template-columns: 20% 40% 40%;
+/* display all elements in a variation in a single line */
+.pgn-viewer__pgn-elem--type-variation .pgn-viewer__pgn-elem {
+    display: inline-flex;
+    flex-wrap: wrap;
 }
 
-.pgn-viewer__pgn-moveline--type-variation {
-    width: calc(100% - 28px);
-    box-sizing: border-box;
-    margin-left: 28px;
-    border: 1px solid white;
-
-    font-size: medium;
+/* hide numbers and blank SANs from variations */
+.pgn-viewer__pgn-elem--type-variation .pgn-viewer__pgn-elem--type-num,
+.pgn-viewer__pgn-elem--type-variation .pgn-viewer__pgn-elem--type-blank {
+    display: none;
 }
 
 .pgn-viewer__pgn-elem.pgn-viewer__pgn-elem--type-variation {
@@ -157,18 +160,6 @@
     border: 1px solid white;
     font-size: medium;
     padding: 0px;
-}
-
-.pgn-viewer__pgn-elem.pgn-viewer__pgn-elem--type-variation-line {
-    display: flex;
-    flex-wrap: wrap;
-    padding: 0px;
-}
-
-/* Types of elements that can be found in the PGN move lines */
-.pgn-viewer__pgn-elem {
-    padding: 2px 8px;
-    font-size: 20px;
 }
 
 .pgn-viewer__pgn-elem.pgn-viewer__pgn-elem--type-san {

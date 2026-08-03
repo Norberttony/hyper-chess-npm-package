@@ -1,10 +1,10 @@
 import { Side } from "../../game/piece.js";
-import { BoardWidget, getFirstElemOfClass, WidgetLocation } from "./board-widget.js";
+import { BoardWidget, WidgetLocation } from "./board-widget.js";
 import { addPointerHoldListener } from "../pgn-control.js";
 import type { BoardGraphics } from "../board-graphics.js";
-import { VariationMove } from "../../game/variation.js";
+import { VariationMove, VariationNode } from "../../game/variation.js";
 import { getResultMarker } from "../../pgn/parse/utils.js";
-import { DeleteVariationEvent, NewVariationEvent, ResultEvent, VariationChangeEvent } from "../board-events.js";
+import { DeleteVariationEvent, ResultEvent, VariationChangeEvent } from "../board-events.js";
 
 // handles displaying any of the moves in a separate panel, splitting the PGN into variations as
 // necessary.
@@ -13,13 +13,13 @@ import { DeleteVariationEvent, NewVariationEvent, ResultEvent, VariationChangeEv
 // of different variations, with a way to style main variation elements.
 
 //  <div class="pgn-viewer__pgn-list">
-//      <div class="pgn-viewer__pgn-moveline">
+//      <div class="pgn-viewer__pgn-elem pgn-viewer__pgn-elem--type-moveline">
 //          <div class="pgn-viewer__pgn-elem pgn-viewer__pgn-elem--type-num">1.</div>
 //          <div class="pgn-viewer__pgn-elem pgn-viewer__pgn-elem--type-san">Pd4</div>
 //          <div class="pgn-viewer__pgn-elem pgn-viewer__pgn-elem--type-san">Pf5</div>
 //      </div>
 //      <div class="pgn-viewer__pgn-moveline--type-variation">
-//          <div class="pgn-viewer__pgn-elem pgn-viewer__pgn-elem--type-variation-line">
+//          <div class="pgn-viewer__pgn-elem pgn-viewer__pgn-elem--type-moveline">
 //              <div class="pgn-viewer__pgn-elem pgn-viewer__pgn-elem--type-san">Pe3</div>
 //              <div class="pgn-viewer__pgn-elem pgn-viewer__pgn-elem--type-san">Ph3</div>
 //          </div>
@@ -31,6 +31,8 @@ export class PgnWidget extends BoardWidget {
     private selectedVariation: number = 0;
     private pgnElem: HTMLElement;
     private resultElem?: HTMLElement;
+    // maps each VarationMove to its corresponding HTML element.
+    private elementMap = new Map<VariationMove, HTMLElement>;
 
     constructor(boardgfx: BoardGraphics, location: WidgetLocation){
         super(boardgfx);
@@ -78,15 +80,11 @@ export class PgnWidget extends BoardWidget {
         this.pgnElem = pgnElem;
 
         // event listeners
-        boardgfx.skeleton.addEventListener("new-variation", (event) => {
-            this.onNewVariation(event);
-        });
+        boardgfx.skeleton.addEventListener("new-variation", () => this.updatePgnList());
         boardgfx.skeleton.addEventListener("result", (event) => {
             this.onResult(event);
         });
-        boardgfx.skeleton.addEventListener("loadFen", () => {
-            this.onLoadFen();
-        });
+        boardgfx.skeleton.addEventListener("loadFen", () => this.updatePgnList());
         boardgfx.skeleton.addEventListener("variation-change", (event) => {
             this.onVariationChange(event);
         });
@@ -165,121 +163,81 @@ export class PgnWidget extends BoardWidget {
         this.boardgfx.applyChanges();
     }
 
-    private onNewVariation(event: NewVariationEvent): void {
-        const { variation } = event.detail;
-        console.log(variation);
+    private clearPgnList(): void {
+        while (this.pgnElem.firstChild)
+            this.pgnElem.removeChild(this.pgnElem.firstChild);
+    }
 
-        // determine move number
+    // rebuilds whole list
+    private updatePgnList(): void {
+        this.elementMap = new Map();
+        const root = this.boardgfx.getVariationRoot();
+        const next = root.next[0];
+        this.clearPgnList();
+        if (next)
+            this.buildPgnList(this.pgnElem, next);
+    }
+
+    private buildPgnList(container: HTMLElement, variation: VariationMove): void {
+        console.log(variation.san);
+        if (!variation.prev)
+            return;
+
+        const { turn, san } = variation;
         const moveNum = variation.fullMoveNum;
+        const prev: VariationNode = variation.prev;
+        const nextMain = variation.next[0];
 
-        // determine the player who made this move
-        const turn = variation.turn;
+        let whiteSanElem: HTMLElement;
+        let blackSanElem: HTMLElement | undefined;
+        let split = false; // whether or not to split a moveline due to an intermediate variation
 
-        // create a new SAN elem for this variation
-        const sanElem = newSanElem(this.boardgfx, this.pgnElem, variation.san, variation);
-        variation.element = sanElem;
+        if (turn === Side.Black){
+            // only build half of the move
+            whiteSanElem = newBlankSanElem(this.boardgfx, this.pgnElem);
+            blackSanElem = newSanElem(this.boardgfx, this.pgnElem, san, variation);
 
-        if (variation.isMain()){
-            if (turn == Side.Black){
-                // add this move to the previous move line
-                const prevMoveline = variation.prev.element.parentNode;
-                prevMoveline.appendChild(sanElem);
-
-                // if the next element does not exist or is not a moveline, this must be the very end
-                // of the pgn and a skip is required.
-                const nextElem = prevMoveline.nextElementSibling;
-                if (prevMoveline.getElementsByClassName("pgn-viewer__pgn-elem--type-blank")[0]){
-                    // fetch next available moveline
-                    let nextMovelineElem = nextElem;
-                    while (!nextMovelineElem.classList.contains("pgn-viewer__pgn-moveline")){
-                        nextMovelineElem = nextMovelineElem.nextElementSibling;
-                    }
-
-                    if (nextMovelineElem){
-                        nextMovelineElem.appendChild(sanElem);
-                    }
-                }else if (nextElem && !isPgnSpecialBlock(nextElem)){
-                    const blankSanElem = newBlankSanElem(this.boardgfx, this.pgnElem);
-                    prevMoveline.appendChild(blankSanElem);
-
-                    const moveline = newMovelineElem(moveNum, newBlankSanElem(this.boardgfx, this.pgnElem));
-                    moveline.appendChild(sanElem);
-
-                    // insert either after the special elements or just at the end.
-                    if (!nextElem || !nextElem.nextElementSibling){
-                        this.pgnElem.appendChild(moveline);
-                    }else{
-                        // keep searching for the next moveline element
-                        let nextMoveline = nextElem;
-                        while (nextMoveline && !nextMoveline.classList.contains("pgn-viewer__pgn-moveline"))
-                            nextMoveline = nextMoveline.nextElementSibling;
-
-                        // either moveline exists or we've reached the end of the pgn
-                        if (nextMoveline)
-                            this.pgnElem.insertBefore(moveline, nextMoveline);
-                        else
-                            this.pgnElem.appendChild(moveline);
-                    }
-                }
-            }else{
-                // create a new move line for this variation
-                const moveline = newMovelineElem(moveNum, sanElem);
-                const resultElem = document.getElementsByClassName("pgn-viewer__pgn-elem--type-result")[0];
-                if (resultElem)
-                    this.pgnElem.insertBefore(moveline, resultElem);
-                else
-                    this.pgnElem.appendChild(moveline);
-            }
+            this.elementMap.set(variation, blackSanElem);
         }else{
+            // build full moveline if possible
+            whiteSanElem = newSanElem(this.boardgfx, this.pgnElem, san, variation);
+            this.elementMap.set(variation, whiteSanElem);
 
-            if (variation.location == 0){
-                // same variation line
-                const variationElem = variation.prev.element.parentNode;
-                variationElem.appendChild(sanElem);
-            }else{
-                // create a new variation object to contain all of the variations after the previous
-                // moveline
-                const variationLineElem = document.createElement("div");
-                variationLineElem.classList.add("pgn-viewer__pgn-elem", "pgn-viewer__pgn-elem--type-variation-line");
-
-                variationLineElem.appendChild(sanElem);
-                
-                let previousContainer = variation.prev.next[0].element.parentNode;
-
-                if (previousContainer.classList.contains("pgn-viewer__pgn-moveline")){
-                    const nextElem = previousContainer.nextElementSibling;
-                    // do we split the moveline or not?
-                    if (turn == Side.White){
-                        // split!!!
-                        if (nextElem && nextElem.classList.contains("pgn-viewer__pgn-elem--type-variation")){
-                            nextElem.appendChild(variationLineElem);
-                        }else{
-                            const variationElem = newVariationElem();
-                            variationElem.appendChild(variationLineElem);
-
-                            const [ m1, m2 ] = splitMovelineElem(this.boardgfx, this.pgnElem, previousContainer);
-                            if (m1 && m2 && m1.parentNode)
-                                m1.parentNode.insertBefore(variationElem, m2);
-                        }
-                    }else{
-                        const variationElem = newVariationElem();
-                        variationElem.appendChild(variationLineElem);
-
-                        // no split needed, just insert after moveline
-                        if (nextElem)
-                            this.pgnElem.insertBefore(variationElem, nextElem);
-                        else
-                            this.pgnElem.appendChild(variationElem);
-                    }
+            // check if black's move exists
+            if (nextMain){
+                // check if white's move has variations, which would force a split
+                if (variation.location !== 0 || prev.next.length === 1){
+                    blackSanElem = newSanElem(this.boardgfx, this.pgnElem, nextMain.san, nextMain);
+                    this.elementMap.set(nextMain, blackSanElem);
                 }else{
-                    // this must be another simple variation element, so let's just add a variation to the variation
-                    const variationElem = newVariationElem();
-                    variationElem.appendChild(variationLineElem);
-                    
-                    previousContainer.appendChild(variationElem);
+                    split = true;
+                    blackSanElem = newBlankSanElem(this.boardgfx, this.pgnElem);
                 }
             }
         }
+
+        // must build VariationsElem carefully, what if moveline should be split?
+        const moveline = newMovelineElem(moveNum, whiteSanElem, blackSanElem);
+        container.appendChild(moveline);
+
+        // build variationsElem if exists
+        if (turn !== Side.Black && variation.location === 0 && prev.next.length > 1){
+            const varElem = newVariationElem();
+            for (let i = 1; i < prev.next.length; i++)
+                this.buildPgnList(varElem, prev.next[i]!);
+            container.appendChild(varElem);
+        }else if (variation.next.length > 1){
+            const varElem = newVariationElem();
+            for (let i = 1; i < variation.next.length; i++)
+                this.buildPgnList(varElem, variation.next[i]!);
+            container.appendChild(varElem);
+        }
+
+        // build next moveline if exists
+        if ((turn === Side.Black || split) && nextMain)
+            this.buildPgnList(container, nextMain);
+        else if (!split && nextMain && nextMain.next[0])
+            this.buildPgnList(container, nextMain.next[0]);
     }
 
     private onResult(event: ResultEvent): void {
@@ -306,16 +264,16 @@ export class PgnWidget extends BoardWidget {
         }
         this.resultElem.innerHTML = `<span>${resultText}</span><br /><span style = "font-size: large;">${flavorText} ${termination}</span>`;
     }
-
-    private onLoadFen(): void {    
-        // none of the previous PGN is relevant to this new position, so...
-        this.pgnElem.innerHTML = "";
-    }
     
     private onVariationChange(event: VariationChangeEvent): void {
         const { variation } = event.detail;
-    
-        selectPgnElem(this.pgnElem, variation.element);
+
+        if (variation.type !== "move")
+            return;
+
+        const elem = this.elementMap.get(variation);
+        if (elem)
+            selectPgnElem(this.pgnElem, elem);
     }
 
     private onDeleteVariation(event: DeleteVariationEvent): void {
@@ -326,18 +284,7 @@ export class PgnWidget extends BoardWidget {
             delete this.resultElem;
         }
 
-        this.deletePgnElement(variation.element);
-    }
-
-    private deletePgnElement(elem: HTMLElement): void {
-        const parent = elem.parentNode as HTMLElement;
-        if (parent){
-            parent.removeChild(elem);
-
-            // if the moveline no longer contains any moves, it's useless and should be removed.
-            if (!getFirstElemOfClass(parent, "pgn-viewer__pgn-elem--type-san"))
-                parent.parentNode!.removeChild(parent);
-        }
+        this.updatePgnList();
     }
 }
 
@@ -368,10 +315,10 @@ function selectPgnElem(pgnElem: HTMLElement, elem: HTMLElement): void {
 }
 
 // creates and returns the new moveline with the given number and white elem.
-function newMovelineElem(num: number, whiteSanElem: HTMLElement): HTMLDivElement {
+function newMovelineElem(num: number, whiteSanElem: HTMLElement, blackSanElem?: HTMLElement): HTMLDivElement {
     const moveline = document.createElement("div");
 
-    moveline.classList.add("pgn-viewer__pgn-moveline");
+    moveline.classList.add("pgn-viewer__pgn-elem", "pgn-viewer__pgn-elem--type-moveline");
 
     const numElem = document.createElement("div");
     numElem.classList.add("pgn-viewer__pgn-elem", "pgn-viewer__pgn-elem--type-num");
@@ -379,38 +326,10 @@ function newMovelineElem(num: number, whiteSanElem: HTMLElement): HTMLDivElement
     
     moveline.appendChild(numElem);
     moveline.appendChild(whiteSanElem);
+    if (blackSanElem)
+        moveline.appendChild(blackSanElem);
 
     return moveline;
-}
-
-// returns a list of two elements, the first moveline element and the second moveline element
-// if the given moveline elem is already split, this returns an empty list.
-function splitMovelineElem(gameState: BoardGraphics, pgnElem: HTMLElement, movelineElem: HTMLElement): HTMLElement[] {
-    // cannot split a moveline that is already split.
-    if (movelineElem.classList.contains("pgn_split-moveline"))
-        return [];
-
-    movelineElem.classList.add("pgn_split-moveline");
-
-    const elem1 = movelineElem;
-
-    const numText = (elem1.getElementsByClassName("pgn-viewer__pgn-elem--type-num")[0] as HTMLElement).innerText;
-    const elem2 = newMovelineElem(parseInt(numText.substring(0, numText.length - 1)), newBlankSanElem(gameState, pgnElem));
-
-    const nextElem = elem1.nextElementSibling;
-    if (nextElem)
-        nextElem.parentNode!.insertBefore(elem2, nextElem);
-    else
-        elem1.parentNode!.appendChild(elem2);
-
-    // swap the second move elem in the first moveline with a blank elem
-    const blackMove = elem1.getElementsByClassName("pgn-viewer__pgn-elem--type-san")[1];
-    if (blackMove){
-        elem2.appendChild(blackMove);
-    }
-    elem1.appendChild(newBlankSanElem(gameState, pgnElem));
-
-    return [ elem1, elem2 ];
 }
 
 function newSanElem(gameState: BoardGraphics, pgnElem: HTMLElement, san: string, variation?: VariationMove): HTMLDivElement {
@@ -439,8 +358,4 @@ function newVariationElem(): HTMLDivElement {
     const div = document.createElement("div");
     div.classList.add("pgn-viewer__pgn-elem", "pgn-viewer__pgn-elem--type-variation");
     return div;
-}
-
-function isPgnSpecialBlock(elem: HTMLElement): boolean {
-    return elem.classList.contains("pgn-viewer__pgn-moveline") || elem.classList.contains("pgn-viewer__pgn-elem--type-result");
 }

@@ -25,7 +25,7 @@ export class AudioWidget extends BoardWidget {
             const { variation } = event.detail;
 
             // only play audio if move scrolling is going forward by exactly 1
-            if (variation.move)
+            if (variation.type === "move")
                 makeNoise(variation.move);
         });
     }

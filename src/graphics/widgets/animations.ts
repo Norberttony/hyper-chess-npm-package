@@ -4,6 +4,7 @@ import { getPieceFromPool, setElemLocation } from "../pool.js";
 import type { BoardGraphics } from "../board-graphics.js";
 import { getPieceSide, getPieceType } from "../../game/piece.js";
 import { SingleScrollEvent } from "../board-events.js";
+import { Move } from "../../game/move.js";
 
 // handles move animations
 
@@ -20,7 +21,7 @@ export class AnimationWidget extends BoardWidget {
     singleScroll(event: SingleScrollEvent){
         const { prevVariation, variation, userInput } = event.detail;
 
-        let isFlipped = this.boardgfx.isFlipped;
+        const isFlipped = this.boardgfx.isFlipped;
 
         // clear queued animations
         for (const a of this.queuedAnimations)
@@ -32,8 +33,10 @@ export class AnimationWidget extends BoardWidget {
 
         // display the board from just before the move was made.
         const dir = variation.prev == prevVariation ? 1 : -1;
-        let lastMadeMove = variation.move;
-        if (dir == -1)
+        let lastMadeMove: Move | undefined = undefined;
+        if (dir === 1 && variation.type === "move")
+            lastMadeMove = variation.move;
+        else if (dir === -1 && prevVariation.type === "move")
             lastMadeMove = prevVariation.move;
 
         console.log("ANIMATION", lastMadeMove);
