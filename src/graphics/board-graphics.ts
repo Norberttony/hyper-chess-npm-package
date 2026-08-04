@@ -139,6 +139,11 @@ export class BoardGraphics extends VariationsBoard {
     public override loadPgn(pgn: string): void {
         super.loadPgn(pgn);
 
+        // to-do: this should be temporary, but it's built to work with the PgnWidget
+        const vm: VariationMove | undefined = this.getVariationRoot().next[0];
+        if (vm)
+            this.dispatchEvent("new-variation", { variation: vm });
+
         const w = this.getPgn().headers["White"];
         const b = this.getPgn().headers["Black"];
         this.setNames(w, b);
