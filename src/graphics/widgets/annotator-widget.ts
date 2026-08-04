@@ -1,11 +1,14 @@
 import type { BoardGraphics } from "../board-graphics.js";
 import { BoardWidget } from "./board-widget.js";
 
+type AnnotationColor = "green" | "blue" | "yellow" | "red"
+
 interface Annotation {
     startX: number;
     startY: number;
     endX: number;
     endY: number;
+    color: AnnotationColor;
 }
 
 interface Coord {
@@ -60,7 +63,7 @@ export class AnnotatorWidget extends BoardWidget {
     }
 
     private drawAnnotation(annotation: Annotation): void {
-        const { startX, startY, endX, endY } = annotation;
+        const { startX, startY, endX, endY, color } = annotation;
 
         // general variables useful for drawing annotations
         const squareSize = this.ctx.canvas.width / 8;
@@ -83,6 +86,8 @@ export class AnnotatorWidget extends BoardWidget {
         const rx = -ny;
         const ry = nx;
 
+        this.ctx.fillStyle = color;
+        this.ctx.strokeStyle = color;
         if (sx === ex && sy === ey){
             // draw just a highlight on the square
             this.ctx.lineWidth = 12;
@@ -139,7 +144,8 @@ export class AnnotatorWidget extends BoardWidget {
             return;
 
         const end = this.getMouseTileCoords(event);
-        const inProgressAnnot = buildAnnot(this.start, end);
+        const color = this.getAnnotationColor(event);
+        const inProgressAnnot = buildAnnot(this.start, end, color);
         if (!this.prevAnnot || !areAnnotationsEqual(this.prevAnnot, inProgressAnnot)){
             // cancel previous draw
             if (this.animFrameId)
@@ -167,17 +173,20 @@ export class AnnotatorWidget extends BoardWidget {
             return;
 
         const end = this.getMouseTileCoords(event);
+        const color = this.getAnnotationColor(event);
     
         const annotation = this.getAnnotation(this.start.x, this.start.y, end.x, end.y);
         if (annotation){
             const index = this.annotations.indexOf(annotation);
             this.annotations.splice(index, 1);
-        }else{
+        }
+        if (!annotation || annotation.color != color){
             const a = {
                 startX: this.start.x,
                 startY: this.start.y,
                 endX: end.x,
                 endY: end.y,
+                color,
             };
             this.annotations.push(a);
         }
@@ -188,12 +197,23 @@ export class AnnotatorWidget extends BoardWidget {
     }
 
     private getAnnotation(startX: number, startY: number, endX: number, endY: number): Annotation | undefined {
-        const a2 = { startX, startY, endX, endY };
+        const a2 = { startX, startY, endX, endY, color: "green" as AnnotationColor };
         for (const a of this.annotations){
             if (areAnnotationsEqual(a, a2))
                 return a;
         }
         return undefined;
+    }
+
+    private getAnnotationColor(event: MouseEvent): AnnotationColor {
+        if (event.ctrlKey && event.altKey)
+            return "yellow";
+        else if (event.ctrlKey)
+            return "red";
+        else if (event.altKey)
+            return "blue";
+        else
+            return "green";
     }
 }
 
@@ -204,11 +224,12 @@ function areAnnotationsEqual(a1: Annotation, a2: Annotation): boolean {
         && a1.endY == a2.endY;
 }
 
-function buildAnnot(start: Coord, end: Coord): Annotation {
+function buildAnnot(start: Coord, end: Coord, color: AnnotationColor): Annotation {
     return {
         startX: start.x,
         startY: start.y,
         endX: end.x,
         endY: end.y,
+        color,
     };
 }
