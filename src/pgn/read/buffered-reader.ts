@@ -6,6 +6,7 @@ import { NEWLINE } from "../tokenize/tokens.js";
 export interface BufferWrapper {
     data: Buffer;
     validBytes: number;
+    maxSize: number;
 }
 
 // to-do: add a string decoder which will handle variable-length encodings and
@@ -27,19 +28,24 @@ export class BufferedReader extends AbstractReader {
 
     constructor(private pathToFile: string, private chunkSizeBytes: number){
         super();
-        // at least size of 2 to allow for peek and peekNext to work
-        if (chunkSizeBytes < 2){
+        // at least size of 4 to allow for peek and peekNext to work
+        if (chunkSizeBytes < 4){
             throw new Error(
-                `chunkSizeBytes must be set to greater than 2 (is ${chunkSizeBytes})`
+                `chunkSizeBytes must be set to greater than 4 (is ${chunkSizeBytes})`
             );
         }
+        const buf1Size = Math.ceil(chunkSizeBytes / 2);
+        const buf2Size = Math.floor(chunkSizeBytes / 2);
+
         this.buffer = {
-            data: Buffer.alloc(this.chunkSizeBytes),
-            validBytes: 0
+            data: Buffer.alloc(buf1Size),
+            validBytes: 0,
+            maxSize: buf1Size,
         };
         this.nextBuffer = {
-            data: Buffer.alloc(this.chunkSizeBytes),
-            validBytes: 0
+            data: Buffer.alloc(buf2Size),
+            validBytes: 0,
+            maxSize: buf2Size,
         };
     }
 
@@ -200,9 +206,9 @@ export class BufferedReader extends AbstractReader {
 
     private getNAway(n: number): number {
         let p = this.bufferPosition + n;
-        if (p >= this.chunkSizeBytes * 2){
+        if (p >= this.chunkSizeBytes){
             throw new Error(
-                `Tried peeking ${p} when cannot peek farther than 2 * chunkSizeBytes = ${2 * this.chunkSizeBytes}`
+                `Tried peeking ${p} when cannot peek farther than chunkSizeBytes = ${this.chunkSizeBytes}`
             );
         }
         if (p >= this.buffer.validBytes){
