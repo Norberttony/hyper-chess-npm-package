@@ -157,8 +157,8 @@ export class BufferedReader extends AbstractReader {
         return new Promise((res, rej) => {
             fs.open(this.pathToFile, "r", (err, fd: number) => {
                 if (err){
-                    rej(err.message);
-                    throw err;
+                    rej(err);
+                    return;
                 }
                 this.fd = fd;
                 this.read(this.buffer);
@@ -173,7 +173,7 @@ export class BufferedReader extends AbstractReader {
     }
 
     public close(): void {
-        if (this.fd){
+        if (this.fd !== undefined){
             fs.close(this.fd);
             this.fd = undefined;
         }
@@ -193,7 +193,7 @@ export class BufferedReader extends AbstractReader {
 
     // populates buffer with next bytes, starting from position
     private read(buffer: BufferWrapper): void {
-        if (!this.fd)
+        if (this.fd === undefined)
             throw new Error("File is closed");
         buffer.validBytes = fs.readSync(
             this.fd,
