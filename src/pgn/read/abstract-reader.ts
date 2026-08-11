@@ -24,6 +24,8 @@ export abstract class AbstractReader {
     // stops copying without returning anything
     public abstract copyReject(): void;
 
+    public abstract isChunkProcessed(): boolean;
+
     // returns true if there is no more content to parse, false otherwise
     public abstract isAtEnd(): boolean;
 

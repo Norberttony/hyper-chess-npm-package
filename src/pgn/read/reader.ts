@@ -59,6 +59,10 @@ export class Reader extends AbstractReader {
         this.isPaused.shift();
     }
 
+    public override isChunkProcessed(): boolean {
+        return false;
+    }
+
     public isAtEnd(): boolean {
         return this.position >= this.content.length;
     }

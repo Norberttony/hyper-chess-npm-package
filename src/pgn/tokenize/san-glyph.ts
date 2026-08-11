@@ -1,8 +1,8 @@
 import { AbstractReader } from "../read/abstract-reader.js";
-import type { PgnSanGlyphToken } from "./types.js";
+import type { PgnSanGlyphToken, TokenReturn } from "./types.js";
 import * as T from "./tokens.js";
 
-export function handleSanGlyph(reader: AbstractReader): PgnSanGlyphToken {
+export function* handleSanGlyph(reader: AbstractReader): TokenReturn<PgnSanGlyphToken> {
     reader.copyStart();
 
     if (reader.match(T.QUESTION_MARK) || reader.match(T.EXCLAMATION_MARK)){

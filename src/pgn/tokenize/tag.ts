@@ -1,10 +1,10 @@
 import { AbstractReader } from "../read/abstract-reader.js";
 import { isWhitespace } from "../read/utils.js";
-import type { PgnError, PgnErrorToken, PgnTagToken } from "./types.js";
+import type { PgnError, PgnErrorToken, PgnTagToken, TokenReturn } from "./types.js";
 import * as T from "./tokens.js";
 
 // assumes that the first character is left square bracket '['
-export function handleTag(reader: AbstractReader): PgnTagToken | PgnErrorToken {
+export function* handleTag(reader: AbstractReader): TokenReturn<PgnTagToken | PgnErrorToken> {
     if (!reader.match(T.LEFT_SQ_BRACKET))
         throw new Error(
             `handleTag: expected first character to be ${T.LEFT_SQ_BRACKET} but got ${reader.get()} instead`

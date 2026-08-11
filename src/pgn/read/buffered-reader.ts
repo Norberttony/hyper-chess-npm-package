@@ -26,6 +26,8 @@ export class BufferedReader extends AbstractReader {
         offset: 0,
     };
 
+    private nextBufferPromise: Promise<void> | undefined;
+
     constructor(private pathToFile: string, private chunkSizeBytes: number){
         super();
         // at least size of 4 to allow for peek and peekNext to work
@@ -47,6 +49,10 @@ export class BufferedReader extends AbstractReader {
             validBytes: 0,
             maxSize: buf2Size,
         };
+    }
+
+    public getNextBufferPromise(): Promise<void> | undefined {
+        return this.nextBufferPromise;
     }
 
     public getPartCount(): number {
@@ -96,6 +102,11 @@ export class BufferedReader extends AbstractReader {
     public copyReject(): void {
         this.parts.shift();
         this.copyBufferPosStart.shift();
+    }
+
+    public isChunkProcessed(): boolean {
+        // return this.bufferPosition >= this.buffer.validBytes;
+        return false;
     }
 
     public isAtEnd(): boolean {

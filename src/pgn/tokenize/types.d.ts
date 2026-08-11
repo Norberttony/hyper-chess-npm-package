@@ -82,3 +82,5 @@ type PartialToken =
             ? Pick<T, "type"> & Partial<Omit<T, "type">>
             : never
         : never;
+
+export type TokenReturn<TReturn> = Generator<void, TReturn, void>;

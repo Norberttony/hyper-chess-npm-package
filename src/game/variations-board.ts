@@ -100,10 +100,10 @@ export class VariationsBoard extends Board {
         }
     }
 
-    public loadPgn(pgnStr: string): void {
+    public async loadPgn(pgnStr: string): Promise<void> {
         let fen: string = StartingFen;
 
-        const pgn: Pgn | undefined = new PgnSplitter(
+        const pgn: Pgn | undefined = await new PgnSplitter(
             new Reader(pgnStr)
         ).nextPgn();
         if (!pgn)

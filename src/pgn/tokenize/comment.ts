@@ -1,9 +1,9 @@
 import { AbstractReader } from "../read/abstract-reader.js";
 import { handleCommentTag } from "./comment-tag.js";
-import type { PgnCommentToken, CommentTag } from "./types.js";
+import type { PgnCommentToken, CommentTag, TokenReturn } from "./types.js";
 import * as T from "./tokens.js";
 
-export function handleComment(reader: AbstractReader): PgnCommentToken {
+export function* handleComment(reader: AbstractReader): TokenReturn<PgnCommentToken> {
     const isLeftBrace = reader.match(T.LEFT_BRACE);
     const isLeftBraceOrSemicolon = isLeftBrace || reader.match(T.SEMICOLON);
 
@@ -27,7 +27,7 @@ export function handleComment(reader: AbstractReader): PgnCommentToken {
             case T.LEFT_SQ_BRACKET:
                 if (reader.peek() == T.PERCENT){
                     reader.copyPause();
-                    const tag: CommentTag | undefined = handleCommentTag(reader);
+                    const tag: CommentTag | undefined = yield* handleCommentTag(reader);
                     if (tag)
                         tags.push(tag);
                     reader.copyContinue();

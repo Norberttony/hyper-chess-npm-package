@@ -8,18 +8,18 @@ import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
 import { CommentTag, PgnToken } from "../tokenize/types.js";
 import { Move } from "../../game/move.js";
 
-export function parsePgn(pgn: string): Pgn | undefined {
-    return new PgnSplitter(new Reader(pgn)).nextPgn();
+export async function parsePgn(pgn: string): Promise<Pgn | undefined> {
+    return await new PgnSplitter(new Reader(pgn)).nextPgn();
 }
 
 // splits the given string into each individual game.
 // returns an array of the individual games.
-export function splitPgns(pgns: string): Pgn[] {
+export async function splitPgns(pgns: string): Promise<Pgn[]> {
     const pgnObjs: Pgn[] = [];
     const splitter = new PgnSplitter(new Reader(pgns));
 
     let pgn: Pgn | undefined;
-    while (pgn = splitter.nextPgn())
+    while (pgn = await splitter.nextPgn())
         pgnObjs.push(pgn);
 
     return pgnObjs;
@@ -129,12 +129,12 @@ export function commentTagToString(tag: CommentTag): string {
 }
 
 // returns a dictionary where keys are header names and values are header values.
-export function extractHeaders(pgn: string): PgnHeaders {
+export async function extractHeaders(pgn: string): Promise<PgnHeaders> {
     const headers: PgnHeaders = {};
 
     const tokenizer = new PgnTokenizer(new Reader(pgn));
     let t: PgnToken | undefined;
-    while ((t = tokenizer.nextToken()) && t.type == "tag")
+    while ((t = await tokenizer.nextToken()) && t.type == "tag")
         headers[t.header] = t.value;
 
     return headers;

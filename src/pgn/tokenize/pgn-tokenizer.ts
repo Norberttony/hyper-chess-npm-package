@@ -9,25 +9,38 @@ import { handleNag } from "./nag.js";
 import * as T from "./tokens.js";
 
 export class PgnTokenizer {
-    constructor(private reader: AbstractReader){}
+    private gen: Generator<PgnToken, undefined, void>;
 
-    public nextToken(): PgnToken | undefined {
-        while (!this.reader.isAtEnd()){
-            const v: number = this.reader.get();
-            if (isWhitespace(v)){
-                this.reader.advance();
-            }else if (v === T.LEFT_BRACE || v === T.SEMICOLON){
-                return handleComment(this.reader);
-            }else if (v === T.LEFT_SQ_BRACKET){
-                return handleTag(this.reader);
-            }else if (T.SAN_GLYPHS.has(v)){
-                return handleSanGlyph(this.reader);
-            }else if (v === T.DOLLAR_SIGN){
-                return handleNag(this.reader);
-            }else{
-                return handleMovetext(this.reader);
-            }
-        }
-        return undefined;
+    constructor(private reader: AbstractReader){
+        this.gen = tokenizerMainLoop(this.reader);
     }
+
+    public async nextToken(): Promise<PgnToken | undefined> {
+        let res: IteratorResult<PgnToken, undefined>;
+        do {
+            res = this.gen.next();
+        }
+        while (!res.value && !res.done);
+        return res.value;
+    }
+}
+
+function* tokenizerMainLoop(reader: AbstractReader): Generator<PgnToken, undefined, void> {
+    while (!reader.isAtEnd()){
+        const v: number = reader.get();
+        if (isWhitespace(v)){
+            reader.advance();
+        }else if (v === T.LEFT_BRACE || v === T.SEMICOLON){
+            yield handleComment(reader).next().value!;
+        }else if (v === T.LEFT_SQ_BRACKET){
+            yield handleTag(reader).next().value!;
+        }else if (T.SAN_GLYPHS.has(v)){
+            yield handleSanGlyph(reader).next().value!;
+        }else if (v === T.DOLLAR_SIGN){
+            yield handleNag(reader).next().value!;
+        }else{
+            yield handleMovetext(reader).next().value!;
+        }
+    }
+    return undefined;
 }
