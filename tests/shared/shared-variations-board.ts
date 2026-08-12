@@ -13,9 +13,9 @@ export function sharedVariationsBoardTests(
 ): void {
     let board: VariationsBoard;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         board = boardFactory();
-        board.loadPgn("1. Pe4");
+        await board.loadPgn("1. Pe4");
         board.nextVariation();
     });
 

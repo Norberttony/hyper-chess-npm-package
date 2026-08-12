@@ -7,7 +7,7 @@ import { handleSanGlyph } from "./san-glyph.js";
 import { handleNag } from "./nag.js";
 import * as T from "./tokens.js";
 
-export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
+export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetextToken> {
     // asterisk indicates ongoing or incomplete game
     if (reader.match(T.ASTERISK)){
         return {
@@ -24,13 +24,13 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
             if (isWhitespace(v)){
                 reader.advance();
             }else if (v == T.LEFT_BRACE){
-                movetextTokens.push(handleComment(reader));
+                movetextTokens.push(await handleComment(reader));
             }else if (T.SAN_GLYPHS.has(v)){
-                movetextTokens.push(handleSanGlyph(reader));
+                movetextTokens.push(await handleSanGlyph(reader));
             }else if (v == T.DOLLAR_SIGN){
-                movetextTokens.push(handleNag(reader));
+                movetextTokens.push(await handleNag(reader));
             }else{
-                movetextTokens.push(handleMovetext(reader));
+                movetextTokens.push(await handleMovetext(reader));
             }
         }
         // skip right parenthesis
@@ -43,7 +43,7 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
     
     reader.copyStart();
     if (isNumber(reader.get())){
-        const firstNum = handleNumber(reader);
+        const firstNum = await handleNumber(reader);
         const hasWhitespace = isWhitespace(reader.get());
         reader.skipWhitespace();
         if (reader.match(T.DOT)){
@@ -85,7 +85,7 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
         }else if (reader.match(T.DASH)){
             reader.copyReject();
             reader.skipWhitespace();
-            const secondNum = handleNumber(reader);
+            const secondNum = await handleNumber(reader);
             return {
                 type: "result",
                 value: `${firstNum}-${secondNum}`

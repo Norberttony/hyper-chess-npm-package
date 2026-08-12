@@ -4,7 +4,7 @@ import type { PgnError, PgnErrorToken, PgnTagToken } from "./types.js";
 import * as T from "./tokens.js";
 
 // assumes that the first character is left square bracket '['
-export function handleTag(reader: AbstractReader): PgnTagToken | PgnErrorToken {
+export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | PgnErrorToken> {
     if (!reader.match(T.LEFT_SQ_BRACKET))
         throw new Error(
             `handleTag: expected first character to be ${T.LEFT_SQ_BRACKET} but got ${reader.get()} instead`

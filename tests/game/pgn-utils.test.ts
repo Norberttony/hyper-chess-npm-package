@@ -3,8 +3,8 @@ import { parsePgn } from "../../src/pgn/parse/utils";
 import { Pgn } from "../../src/pgn/parse/types";
 import { createVariationTree } from "../../src/game/pgn-utils";
 
-it("attaches variations to the previous node", () => {
-    const pgn: Pgn = parsePgn("1. Pe4 (1. Pd4 Pd5) Pe5")!;
+it("attaches variations to the previous node", async () => {
+    const pgn: Pgn = (await parsePgn("1. Pe4 (1. Pd4 Pd5) Pe5"))!;
 
     const { root } = createVariationTree(pgn);
 

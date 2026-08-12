@@ -136,8 +136,8 @@ export class BoardGraphics extends VariationsBoard {
         this.dispatchEvent("loadFen", { fen });
     }
 
-    public override loadPgn(pgn: string): void {
-        super.loadPgn(pgn);
+    public override async loadPgn(pgn: string): Promise<void> {
+        await super.loadPgn(pgn);
 
         // to-do: this should be temporary, but it's built to work with the PgnWidget
         const vm: VariationMove | undefined = this.getVariationRoot().next[0];

@@ -11,21 +11,21 @@ import * as T from "./tokens.js";
 export class PgnTokenizer {
     constructor(private reader: AbstractReader){}
 
-    public nextToken(): PgnToken | undefined {
+    public async nextToken(): Promise<PgnToken | undefined> {
         while (!this.reader.isAtEnd()){
             const v: number = this.reader.get();
             if (isWhitespace(v)){
                 this.reader.advance();
             }else if (v === T.LEFT_BRACE || v === T.SEMICOLON){
-                return handleComment(this.reader);
+                return await handleComment(this.reader);
             }else if (v === T.LEFT_SQ_BRACKET){
-                return handleTag(this.reader);
+                return await handleTag(this.reader);
             }else if (T.SAN_GLYPHS.has(v)){
-                return handleSanGlyph(this.reader);
+                return await handleSanGlyph(this.reader);
             }else if (v === T.DOLLAR_SIGN){
-                return handleNag(this.reader);
+                return await handleNag(this.reader);
             }else{
-                return handleMovetext(this.reader);
+                return await handleMovetext(this.reader);
             }
         }
         return undefined;

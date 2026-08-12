@@ -11,8 +11,8 @@ export class PgnSplitter {
         this.tokenizer = new PgnTokenizer(reader);
     }
 
-    public nextPgn(): Pgn | undefined {
-        const tokens = this.nextPgnInTokens();
+    public async nextPgn(): Promise<Pgn | undefined> {
+        const tokens = await this.nextPgnInTokens();
         if (tokens.length == 0)
             return undefined;
 
@@ -59,7 +59,7 @@ export class PgnSplitter {
     }
 
     // returns the next PGN as a list of tokens.
-    public nextPgnInTokens(): PgnToken[] {
+    public async nextPgnInTokens(): Promise<PgnToken[]> {
         const pgnTokens: PgnToken[] = [];
 
         if (this.lastToken)
@@ -68,7 +68,7 @@ export class PgnSplitter {
         let token: PgnToken | undefined;
         let isInMoveText: boolean = false;
         let isAfterResult: boolean = false;
-        while (token = this.tokenizer.nextToken()){
+        while (token = await this.tokenizer.nextToken()){
             if (token.type != "tag")
                 isInMoveText = true;
             else if (token.type == "tag" && isInMoveText)

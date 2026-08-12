@@ -3,7 +3,7 @@ import { isWhitespace } from "../read/utils.js";
 import type { CommentTag } from "./types.js";
 import * as T from "./tokens.js";
 
-export function handleCommentTag(reader: AbstractReader): CommentTag | undefined {
+export async function handleCommentTag(reader: AbstractReader): Promise<CommentTag | undefined> {
     if (!reader.match(T.LEFT_SQ_BRACKET))
         throw new Error(
             `handleCommentTag got ${reader.get()} but expected ${T.LEFT_SQ_BRACKET}`);

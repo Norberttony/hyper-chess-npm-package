@@ -2,7 +2,7 @@ import { AbstractReader } from "../read/abstract-reader.js";
 import type { PgnSanGlyphToken } from "./types.js";
 import * as T from "./tokens.js";
 
-export function handleSanGlyph(reader: AbstractReader): PgnSanGlyphToken {
+export async function handleSanGlyph(reader: AbstractReader): Promise<PgnSanGlyphToken> {
     reader.copyStart();
 
     if (reader.match(T.QUESTION_MARK) || reader.match(T.EXCLAMATION_MARK)){

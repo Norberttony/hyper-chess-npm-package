@@ -9,7 +9,7 @@ const pathToPgn = path.join(fixturesPath, "large.pgn");
 
 const start = performance.now();
 
-const reader = new BufferedReader(pathToPgn, 1024 * 1024);
+const reader = new BufferedReader(pathToPgn, 2 * 1024 * 1024);
 await reader.open();
 const splitter = new PgnSplitter(
     reader,
@@ -17,7 +17,7 @@ const splitter = new PgnSplitter(
 
 const wins = { white: 0, draws: 0, black: 0 };
 let pgn: Pgn | undefined;
-while ((pgn = splitter.nextPgn())){
+while ((pgn = await splitter.nextPgn())){
     if (pgn.result === "1-0")
         wins.white++;
     else if (pgn.result === "1/2-1/2")
