@@ -6,6 +6,7 @@ import { handleComment } from "./comment.js";
 import { handleSanGlyph } from "./san-glyph.js";
 import { handleNag } from "./nag.js";
 import * as T from "./tokens.js";
+import { skipWhitespace } from "./utils.js";
 
 export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetextToken> {
     // asterisk indicates ongoing or incomplete game
@@ -23,6 +24,7 @@ export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetex
             const v: number = reader.get();
             if (isWhitespace(v)){
                 reader.advance();
+                if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             }else if (v == T.LEFT_BRACE){
                 movetextTokens.push(await handleComment(reader));
             }else if (T.SAN_GLYPHS.has(v)){
@@ -45,13 +47,22 @@ export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetex
     if (isNumber(reader.get())){
         const firstNum = await handleNumber(reader);
         const hasWhitespace = isWhitespace(reader.get());
-        reader.skipWhitespace();
+
+        // inlined skipWhitespace for speed
+        if (!reader.isDataAvailable(4)) await reader.getDataPromise();
+        while (isWhitespace(reader.get())){
+            reader.advance();
+            if (!reader.isDataAvailable(4)) await reader.getDataPromise();
+        }
+
         if (reader.match(T.DOT)){
             reader.copyReject();
             // move number
             let dotsAmt = 1;
-            while (reader.match(T.DOT))
+            while (reader.match(T.DOT)){
                 dotsAmt++;
+                if (!reader.isDataAvailable(4)) await reader.getDataPromise();
+            }
             return {
                 type: "move num",
                 num: firstNum,
@@ -61,7 +72,7 @@ export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetex
             // 1/2-1/2 result, match the remaining symbols
             const rest = [ T.TWO, T.DASH, T.ONE, T.FORWARD_SLASH, T.TWO ];
             for (const symbol of rest){
-                reader.skipWhitespace();
+                await skipWhitespace(reader);
                 if (!reader.match(symbol)){
                     const res: string = reader.copyEnd();
                     return {
@@ -84,7 +95,7 @@ export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetex
             };
         }else if (reader.match(T.DASH)){
             reader.copyReject();
-            reader.skipWhitespace();
+            await skipWhitespace(reader);
             const secondNum = await handleNumber(reader);
             return {
                 type: "result",
@@ -114,12 +125,13 @@ export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetex
     // else...
 
     // scan until whitespace
-    while (!reader.isAtEnd() && !T.NON_MOVE_CHARACTERS.has(reader.get()))
+    while (!reader.isAtEnd() && !T.NON_MOVE_CHARACTERS.has(reader.get())){
         reader.advance();
+        if (!reader.isDataAvailable(4)) await reader.getDataPromise();
+    }
 
-    const move: string = reader.copyEnd();
     return {
         type: "move",
-        content: move
+        content: reader.copyEnd(),
     };
 }

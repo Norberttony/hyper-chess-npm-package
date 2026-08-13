@@ -38,6 +38,7 @@ export async function handleComment(reader: AbstractReader): Promise<PgnCommentT
             default:
                 reader.advance();
         }
+        if (!reader.isDataAvailable(4)) await reader.getDataPromise();
     }
 
     const content: string = reader.copyEnd();

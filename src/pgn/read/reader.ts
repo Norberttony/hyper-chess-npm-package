@@ -20,6 +20,10 @@ export class Reader extends AbstractReader {
         return { ...this.context };
     }
 
+    public override getDataPromise(): Promise<void> | undefined {
+        return undefined;
+    }
+
     public copyStart(): void {
         this.copyStartPos.unshift([ this.position ]);
         this.isPaused.unshift(false);
@@ -57,6 +61,10 @@ export class Reader extends AbstractReader {
     public copyReject(): void {
         this.copyStartPos.shift();
         this.isPaused.shift();
+    }
+
+    public override isDataAvailable(): boolean {
+        return true;
     }
 
     public isAtEnd(): boolean {

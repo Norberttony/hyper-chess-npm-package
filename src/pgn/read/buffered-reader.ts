@@ -7,6 +7,7 @@ export interface BufferWrapper {
     data: Buffer;
     validBytes: number;
     maxSize: number;
+    promise: Promise<void> | undefined;
 }
 
 // to-do: add a string decoder which will handle variable-length encodings and
@@ -28,10 +29,11 @@ export class BufferedReader extends AbstractReader {
 
     constructor(private pathToFile: string, private chunkSizeBytes: number){
         super();
-        // at least size of 4 to allow for peek and peekNext to work
-        if (chunkSizeBytes < 4){
+        // minimum chunk size to allow for peek and peekNext to work as well as
+        // any extra space that the tokenizer ensures exists
+        if (chunkSizeBytes < 8){
             throw new Error(
-                `chunkSizeBytes must be set to greater than 4 (is ${chunkSizeBytes})`
+                `chunkSizeBytes must be set to greater than 8 (is ${chunkSizeBytes})`
             );
         }
         const buf1Size = Math.ceil(chunkSizeBytes / 2);
@@ -41,11 +43,13 @@ export class BufferedReader extends AbstractReader {
             data: Buffer.alloc(buf1Size),
             validBytes: 0,
             maxSize: buf1Size,
+            promise: undefined,
         };
         this.nextBuffer = {
             data: Buffer.alloc(buf2Size),
             validBytes: 0,
             maxSize: buf2Size,
+            promise: undefined,
         };
     }
 
@@ -55,6 +59,10 @@ export class BufferedReader extends AbstractReader {
 
     public getContext(): ReaderContext {
         return { ...this.context };
+    }
+
+    public override getDataPromise(): Promise<void> | undefined {
+        return this.buffer.promise || this.nextBuffer.promise;
     }
 
     public copyStart(): void {
@@ -101,8 +109,13 @@ export class BufferedReader extends AbstractReader {
         this.copyBufferPosStart.pop();
     }
 
+    public override isDataAvailable(range: number): boolean {
+        return this.buffer.validBytes - this.bufferPosition > range
+            && this.nextBuffer.promise !== undefined;
+    }
+
     public isAtEnd(): boolean {
-        return this.bufferPosition >= this.buffer.validBytes;
+        return this.bufferPosition >= this.buffer.validBytes && !this.nextBuffer.promise;
     }
 
     public advance(): void {
@@ -196,15 +209,19 @@ export class BufferedReader extends AbstractReader {
 
     // populates buffer with next bytes, starting from position
     private read(buffer: BufferWrapper): void {
-        if (this.fd === undefined)
-            throw new Error("File is closed");
-        buffer.validBytes = fs.readSync(
-            this.fd,
-            buffer.data,
-            0,
-            buffer.data.byteLength,
-            null
-        );
+        buffer.validBytes = 0;
+        buffer.promise = new Promise((res, rej) => {
+            if (this.fd === undefined)
+                throw new Error("File is closed");
+            fs.read(this.fd, buffer.data, 0, buffer.data.byteLength, null,
+                (err, bytesRead) => {
+                    if (err) rej(err);
+                    buffer.promise = undefined;
+                    buffer.validBytes = bytesRead;
+                    res();
+                }
+            );
+        });
     }
 
     private getNAway(n: number): number {

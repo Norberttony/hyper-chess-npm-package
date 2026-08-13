@@ -2,6 +2,7 @@ import { AbstractReader } from "../read/abstract-reader.js";
 import { isWhitespace } from "../read/utils.js";
 import type { PgnError, PgnErrorToken, PgnTagToken } from "./types.js";
 import * as T from "./tokens.js";
+import { skipWhitespace } from "./utils.js";
 
 // assumes that the first character is left square bracket '['
 export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | PgnErrorToken> {
@@ -13,7 +14,7 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
     let errors: PgnError[] | undefined;
 
     // extract header
-    reader.skipWhitespace();
+    await skipWhitespace(reader);
     reader.copyStart();
     while (!reader.isAtEnd()){
         const byte: number = reader.get();
@@ -25,6 +26,7 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
             break;
 
         reader.advance();
+        if (!reader.isDataAvailable(4)) await reader.getDataPromise();
     }
 
     // this MIGHT be the header, but it's possible that the user accidentally
@@ -32,7 +34,7 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
     // to preserve it in the header.
     reader.copyPause();
     reader.copyStart();
-    reader.skipWhitespace();
+    await skipWhitespace(reader);
 
     let header: string;
 
@@ -77,6 +79,7 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
                 break;
 
             reader.advance();
+            if (!reader.isDataAvailable(4)) await reader.getDataPromise();
         }
         header = reader.copyEnd();
         header = reader.copyEnd() + header;
@@ -87,6 +90,7 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
     }
 
     // extract value
+    let hadEscapedQuote: boolean = false;
     reader.match(T.DOUBLE_QUOTES);
     reader.copyStart();
     while (!reader.isAtEnd()){
@@ -95,12 +99,17 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
         if (byte === T.DOUBLE_QUOTES || byte === T.NEWLINE)
             break;
 
-        if (byte === T.BACK_SLASH && reader.peek() === T.DOUBLE_QUOTES)
+        if (byte === T.BACK_SLASH && reader.peek() === T.DOUBLE_QUOTES){
             reader.advance();
+            hadEscapedQuote = true;
+        }
         reader.advance();
+        if (!reader.isDataAvailable(4)) await reader.getDataPromise();
     }
 
-    const value: string = reader.copyEnd().replaceAll("\\\"", "\"");
+    let value: string = reader.copyEnd();
+    if (hadEscapedQuote)
+        value = value.replaceAll("\\\"", "\"");
 
     if (reader.get() != T.DOUBLE_QUOTES){
         (errors ??= []).push({
@@ -121,6 +130,7 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
             break;
 
         reader.advance();
+        if (!reader.isDataAvailable(4)) await reader.getDataPromise();
     }
 
     // the start of a new tag when this one hasn't finished

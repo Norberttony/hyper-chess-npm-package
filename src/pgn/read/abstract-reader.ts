@@ -9,6 +9,10 @@ export abstract class AbstractReader {
     // returns where the reader currently is
     public abstract getContext(): ReaderContext;
 
+    // returns a promise of the next piece of asynchronous data
+    // it is guaranteed to return a promise if isDataAvailable() is false
+    public abstract getDataPromise(): Promise<void> | undefined;
+
     // begins copying any characters the reader passes
     public abstract copyStart(): void;
 
@@ -23,6 +27,9 @@ export abstract class AbstractReader {
 
     // stops copying without returning anything
     public abstract copyReject(): void;
+
+    // returns true if at least n number of bytes are accessible
+    public abstract isDataAvailable(n: number): boolean;
 
     // returns true if there is no more content to parse, false otherwise
     public abstract isAtEnd(): boolean;
