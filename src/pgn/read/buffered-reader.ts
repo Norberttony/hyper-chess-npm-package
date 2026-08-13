@@ -90,7 +90,10 @@ export class BufferedReader extends AbstractReader {
         this.addPart(0);
         const parts: Buffer[] = this.parts.shift()!;
         this.copyBufferPosStart.shift();
-        return parts.join("");
+        if (parts.length === 1)
+            return parts[0]!.toString();
+        else
+            return parts.join("");
     }
 
     public copyReject(): void {
