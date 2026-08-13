@@ -16,6 +16,7 @@ describe("pgnToString", () => {
             result: "1-0",
             leadingComments: [],
             trailingComments: [],
+            tokenErrors: [],
         };
 
         expect(pgnToString(pgn)).toBe(`[Variant "From Position"]
@@ -41,6 +42,7 @@ describe("pgnToString", () => {
             result: "1-0",
             leadingComments: [],
             trailingComments: [],
+            tokenErrors: [],
         };
 
         expect(pgnToString(pgn)).toBe(`[Variant "From Position"]
@@ -57,6 +59,7 @@ describe("pgnToString", () => {
             result: "*",
             leadingComments: [ pgnComment("Comment") ],
             trailingComments: [],
+            tokenErrors: [],
         };
 
         expect(pgnToString(pgn)).toBe(`[Event "Example"]
@@ -74,6 +77,7 @@ describe("pgnToString", () => {
             result: "*",
             leadingComments: [],
             trailingComments: [ pgnComment("Comment") ],
+            tokenErrors: [],
         };
 
         expect(pgnToString(pgn)).toBe(`[Event "Example"]
