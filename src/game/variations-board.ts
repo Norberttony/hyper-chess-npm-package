@@ -297,5 +297,6 @@ function emptyPgnObject(): Pgn {
         result: "*",
         leadingComments: [],
         trailingComments: [],
+        tokenErrors: [],
     };
 }
