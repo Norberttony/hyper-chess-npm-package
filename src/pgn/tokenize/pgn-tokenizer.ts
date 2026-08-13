@@ -4,13 +4,14 @@ import { HandleTagState, defaultTagState, handleTag } from "./tag.js";
 import { handleMovetext } from "./movetext.js";
 import { handleComment } from "./comment.js";
 import { handleSanGlyph } from "./san-glyph.js";
-import { handleNag } from "./nag.js";
+import { handleNag, HandleNagState } from "./nag.js";
 import * as T from "./tokens.js";
 
 export class PgnTokenizer {
     private proc: number = 0;
 
     private tagState: HandleTagState = defaultTagState();
+    private nagState: HandleNagState = { numState: { num: 0 } };
 
     constructor(private reader: AbstractReader){}
 
@@ -32,14 +33,15 @@ export class PgnTokenizer {
             }else if (this.proc === 3){
                 t = handleSanGlyph(this.reader);
             }else if (this.proc === 4){
-                t = handleNag(this.reader);
+                t = handleNag(this.nagState, this.reader);
+                this.nagState.numState.num = 0;
             }else if (this.proc === 5){
                 t = handleMovetext(this.reader);
             }else{
                 // not processing any tokens
                 this.handleNoToken();
             }
-            if (t){
+            if (t !== undefined){
                 this.proc = 0;
                 return t;
             }
@@ -51,6 +53,9 @@ export class PgnTokenizer {
     private handleNoToken(): void {
         this.reader.skipWhitespace();
 
+        if (this.reader.isAtEnd())
+            return;
+
         // identify a new token to process
         const v: number = this.reader.get();
         if (this.reader.match(T.LEFT_SQ_BRACKET))
@@ -59,7 +64,7 @@ export class PgnTokenizer {
             this.proc = 2;
         else if (T.SAN_GLYPHS.has(v))
             this.proc = 3;
-        else if (v === T.DOLLAR_SIGN)
+        else if (this.reader.match(T.DOLLAR_SIGN))
             this.proc = 4;
         else
             this.proc = 5;

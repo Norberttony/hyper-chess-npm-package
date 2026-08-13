@@ -27,8 +27,8 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
                 movetextTokens.push(handleComment(reader));
             }else if (T.SAN_GLYPHS.has(v)){
                 movetextTokens.push(handleSanGlyph(reader));
-            }else if (v == T.DOLLAR_SIGN){
-                movetextTokens.push(handleNag(reader));
+            }else if (reader.match(T.DOLLAR_SIGN)){
+                movetextTokens.push(handleNag({ numState: { num: 0 } }, reader));
             }else{
                 movetextTokens.push(handleMovetext(reader));
             }
