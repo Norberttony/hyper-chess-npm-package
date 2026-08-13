@@ -11,6 +11,7 @@ interface PerftTestCase {
 const tests = rawTests as PerftTestCase[];
 const board = new Board();
 
+console.profile("perft");
 const start = performance.now();
 
 const MAX_NODES = 10000;
@@ -28,6 +29,7 @@ for (const { fen, nodes } of tests){
 }
 
 const end = performance.now();
+console.profileEnd("perft");
 const elapsed = end - start;
 
 console.log(`Time: ${elapsed.toFixed(2)}ms`);

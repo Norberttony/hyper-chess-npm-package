@@ -7,6 +7,7 @@ import { Pgn } from "../src/pgn/parse/types.js";
 
 const pathToPgn = path.join(fixturesPath, "large.pgn");
 
+console.profile("pgn-parse");
 const start = performance.now();
 
 const reader = new BufferedReader(pathToPgn, 2 * 1024 * 1024);
@@ -31,6 +32,7 @@ while ((pgn = await splitter.nextPgn())){
 }
 
 const end = performance.now();
+console.profileEnd("pgn-parse");
 const elapsed = end - start;
 
 const gameCount = wins.white + wins.draws + wins.black;
