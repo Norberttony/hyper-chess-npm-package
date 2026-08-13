@@ -1,6 +1,6 @@
 import { AbstractReader } from "../read/abstract-reader.js";
 import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
-import { PgnToken, PgnVariationToken } from "../tokenize/types.js";
+import { PgnErrorToken, PgnToken, PgnVariationToken } from "../tokenize/types.js";
 import { Pgn, PgnComment, PgnHeaders, PgnMove } from "./types.js";
 
 export class PgnSplitter {
@@ -24,6 +24,7 @@ export class PgnSplitter {
 
         const leadingComments: PgnComment[] = [];
         const trailingComments: PgnComment[] = [];
+        const errors: PgnErrorToken[] = [];
 
         let isAfterResult: boolean = false;
 
@@ -39,6 +40,8 @@ export class PgnSplitter {
                 leadingComments.push({ content: token.content, tags: token.tags });
             else if (token.type == "comment" && isAfterResult)
                 trailingComments.push({ content: token.content, tags: token.tags });
+            else if (token.type === "error")
+                errors.push(token);
             prev = this.handleToken(moveList, prev, token);
         }
 
@@ -49,6 +52,7 @@ export class PgnSplitter {
             moveList,
             leadingComments,
             trailingComments,
+            tokenErrors: errors,
         };
     }
 

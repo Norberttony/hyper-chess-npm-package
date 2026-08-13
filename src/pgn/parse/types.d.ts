@@ -1,4 +1,4 @@
-import type { CommentTag } from "../tokenize/types.ts";
+import type { CommentTag, PgnErrorToken } from "../tokenize/types.ts";
 
 export interface PgnHeaders {
     [k: string]: string;
@@ -28,4 +28,5 @@ export interface Pgn {
     leadingComments: PgnComment[];
     // comments that occur after result markers
     trailingComments: PgnComment[];
+    tokenErrors: PgnErrorToken[];
 }
