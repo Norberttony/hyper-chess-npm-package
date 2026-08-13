@@ -28,5 +28,5 @@ export interface Pgn {
     leadingComments: PgnComment[];
     // comments that occur after result markers
     trailingComments: PgnComment[];
-    tokenErrors?: PgnErrorToken[];
+    tokenErrors: PgnErrorToken[];
 }

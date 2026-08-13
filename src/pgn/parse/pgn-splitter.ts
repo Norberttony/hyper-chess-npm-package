@@ -52,6 +52,7 @@ export class PgnSplitter {
             moveList,
             leadingComments,
             trailingComments,
+            tokenErrors: errors,
         };
         if (errors.length)
             pgn.tokenErrors = errors;
