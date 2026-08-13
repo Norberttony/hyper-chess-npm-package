@@ -1,7 +1,6 @@
 import { AbstractReader } from "../read/abstract-reader.js";
 import type { PgnToken } from "./types.js";
-import { handleTag } from "./tag.js";
-import { isWhitespace } from "../read/utils.js";
+import { HandleTagState, defaultTagState, handleTag } from "./tag.js";
 import { handleMovetext } from "./movetext.js";
 import { handleComment } from "./comment.js";
 import { handleSanGlyph } from "./san-glyph.js";
@@ -9,25 +8,60 @@ import { handleNag } from "./nag.js";
 import * as T from "./tokens.js";
 
 export class PgnTokenizer {
+    private proc: number = 0;
+
+    private tagState: HandleTagState = defaultTagState();
+
     constructor(private reader: AbstractReader){}
 
     public nextToken(): PgnToken | undefined {
+        const tok = this.mainLoop();
+        if (tok)
+            return tok;
+        return undefined;
+    }
+
+    private mainLoop(): PgnToken | undefined {
         while (!this.reader.isAtEnd()){
-            const v: number = this.reader.get();
-            if (isWhitespace(v)){
-                this.reader.advance();
-            }else if (v === T.LEFT_BRACE || v === T.SEMICOLON){
-                return handleComment(this.reader);
-            }else if (v === T.LEFT_SQ_BRACKET){
-                return handleTag(this.reader);
-            }else if (T.SAN_GLYPHS.has(v)){
-                return handleSanGlyph(this.reader);
-            }else if (v === T.DOLLAR_SIGN){
-                return handleNag(this.reader);
+            let t: PgnToken | undefined = undefined;
+            if (this.proc === 1){
+                t = handleTag(this.tagState, this.reader);
+                this.tagState = defaultTagState();
+            }else if (this.proc === 2){
+                t = handleComment(this.reader);
+            }else if (this.proc === 3){
+                t = handleSanGlyph(this.reader);
+            }else if (this.proc === 4){
+                t = handleNag(this.reader);
+            }else if (this.proc === 5){
+                t = handleMovetext(this.reader);
             }else{
-                return handleMovetext(this.reader);
+                // not processing any tokens
+                this.handleNoToken();
+            }
+            if (t){
+                this.proc = 0;
+                return t;
             }
         }
         return undefined;
+    }
+
+    // not currently processing any tokens
+    private handleNoToken(): void {
+        this.reader.skipWhitespace();
+
+        // identify a new token to process
+        const v: number = this.reader.get();
+        if (this.reader.match(T.LEFT_SQ_BRACKET))
+            this.proc = 1;
+        else if (v === T.LEFT_BRACE || v === T.SEMICOLON)
+            this.proc = 2;
+        else if (T.SAN_GLYPHS.has(v))
+            this.proc = 3;
+        else if (v === T.DOLLAR_SIGN)
+            this.proc = 4;
+        else
+            this.proc = 5;
     }
 }
