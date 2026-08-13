@@ -2,7 +2,7 @@ import { AbstractReader } from "../read/abstract-reader.js";
 import type { PgnMovetextToken } from "./types.js";
 import { isNumber, isWhitespace } from "../read/utils.js";
 import { handleNumber } from "./number.js";
-import { handleComment } from "./comment.js";
+import { defaultCommentState, handleComment } from "./comment.js";
 import { handleSanGlyph } from "./san-glyph.js";
 import { handleNag } from "./nag.js";
 import * as T from "./tokens.js";
@@ -24,7 +24,7 @@ export function handleMovetext(reader: AbstractReader): PgnMovetextToken {
             if (isWhitespace(v)){
                 reader.advance();
             }else if (v == T.LEFT_BRACE){
-                movetextTokens.push(handleComment(reader));
+                movetextTokens.push(handleComment(defaultCommentState(), reader));
             }else if (T.SAN_GLYPHS.has(v)){
                 movetextTokens.push(handleSanGlyph({ state: 0, proc: 0 }, reader));
             }else if (reader.match(T.DOLLAR_SIGN)){
