@@ -112,13 +112,16 @@ describe("PgnTokenizer", () => {
 
     describe("Glyphs", () => {
         test("tokenizes san glyphs", async () => {
-            const tokenizer = createTokenizer("! !! ? ?? !? ?!");
+            const tokenizer = createTokenizer("! !! ? ?? !? ?! + ++ #");
             await expectNextToken(tokenizer, sanGlyph("!"));
             await expectNextToken(tokenizer, sanGlyph("!!"));
             await expectNextToken(tokenizer, sanGlyph("?"));
             await expectNextToken(tokenizer, sanGlyph("??"));
             await expectNextToken(tokenizer, sanGlyph("!?"));
             await expectNextToken(tokenizer, sanGlyph("?!"));
+            await expectNextToken(tokenizer, sanGlyph("+"));
+            await expectNextToken(tokenizer, sanGlyph("++"));
+            await expectNextToken(tokenizer, sanGlyph("#"));
         });
 
         test("tokenizes nags", async () => {
