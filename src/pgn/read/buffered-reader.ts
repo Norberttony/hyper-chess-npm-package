@@ -58,8 +58,8 @@ export class BufferedReader extends AbstractReader {
     }
 
     public copyStart(): void {
-        this.parts.unshift([]);
-        this.copyBufferPosStart.unshift(this.bufferPosition);
+        this.parts.push([]);
+        this.copyBufferPosStart.push(this.bufferPosition);
     }
 
     public copyPause(): void {
@@ -88,8 +88,8 @@ export class BufferedReader extends AbstractReader {
 
     public copyEnd(): string {
         this.addPart(0);
-        const parts: Buffer[] = this.parts.shift()!;
-        this.copyBufferPosStart.shift();
+        const parts: Buffer[] = this.parts.pop()!;
+        this.copyBufferPosStart.pop();
         if (parts.length === 1)
             return parts[0]!.toString();
         else
@@ -97,8 +97,8 @@ export class BufferedReader extends AbstractReader {
     }
 
     public copyReject(): void {
-        this.parts.shift();
-        this.copyBufferPosStart.shift();
+        this.parts.pop();
+        this.copyBufferPosStart.pop();
     }
 
     public isAtEnd(): boolean {
