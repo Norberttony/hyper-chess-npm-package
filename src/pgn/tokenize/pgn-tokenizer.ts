@@ -3,7 +3,7 @@ import type { PgnToken } from "./types.js";
 import { HandleTagState, defaultTagState, handleTag } from "./tag.js";
 import { handleMovetext } from "./movetext.js";
 import { handleComment } from "./comment.js";
-import { handleSanGlyph } from "./san-glyph.js";
+import { handleSanGlyph, HandleSanGlyphState } from "./san-glyph.js";
 import { handleNag, HandleNagState } from "./nag.js";
 import * as T from "./tokens.js";
 
@@ -12,6 +12,7 @@ export class PgnTokenizer {
 
     private tagState: HandleTagState = defaultTagState();
     private nagState: HandleNagState = { numState: { num: 0 } };
+    private sanGlyphState: HandleSanGlyphState = { state: 0, proc: 0 };
 
     constructor(private reader: AbstractReader){}
 
@@ -31,7 +32,9 @@ export class PgnTokenizer {
             }else if (this.proc === 2){
                 t = handleComment(this.reader);
             }else if (this.proc === 3){
-                t = handleSanGlyph(this.reader);
+                t = handleSanGlyph(this.sanGlyphState, this.reader);
+                this.sanGlyphState.state = 0;
+                this.sanGlyphState.proc = 0;
             }else if (this.proc === 4){
                 t = handleNag(this.nagState, this.reader);
                 this.nagState.numState.num = 0;
