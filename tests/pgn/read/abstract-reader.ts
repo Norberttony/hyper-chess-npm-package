@@ -15,9 +15,10 @@ export function testReader(name: string, factory: AbstractReaderFactory){
             reader = await factory(pathToFile);
         });
 
-        test("able to get, peek, and detect end", () => {
+        test("able to get, peek, and detect end", async () => {
             const a = "a".charCodeAt(0);
             for (let i = 0; i < 26; i++){
+                if (!reader.isDataAvailable(4)) await reader.getDataPromise();
                 expect(reader.get()).toBe(a + i);
                 expect(reader.peek()).toBe(i < 25 ? a + i + 1 : 0);
                 expect(reader.peekNext()).toBe(i < 24 ? a + i + 2: 0);
@@ -26,28 +27,33 @@ export function testReader(name: string, factory: AbstractReaderFactory){
             expect(reader.isAtEnd()).toBeTruthy();
         });
 
-        test("matches correctly", () => {
+        test("matches correctly", async () => {
             const a = "a".charCodeAt(0);
             const b = "b".charCodeAt(0);
+            if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             expect(reader.match(a)).toBeTruthy();
             expect(reader.match(a)).toBeFalsy();
             expect(reader.match(b)).toBeTruthy();
         });
 
-        test("copies correctly", () => {
+        test("copies correctly", async () => {
+            if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             reader.advance();
             reader.advance();
 
             reader.copyStart();
             const y = "y".charCodeAt(0);
-            while (reader.get() != y)
+            while (reader.get() != y){
                 reader.advance();
+                if (!reader.isDataAvailable(4)) await reader.getDataPromise();
+            }
 
             const content: string = reader.copyEnd();
             expect(content).toBe("cdefghijklmnopqrstuvwx");
         });
 
-        test("can pause and continue", () => {
+        test("can pause and continue", async () => {
+            if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             reader.advance();
 
             reader.copyStart();
@@ -65,12 +71,14 @@ export function testReader(name: string, factory: AbstractReaderFactory){
                 else if (reader.get() == t)
                     reader.copyContinue();
                 reader.advance();
+                if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             }
 
             expect(reader.copyEnd()).toBe("bcdghituvwxyz");
         });
 
-        test("can copy multiple things at once", () => {
+        test("can copy multiple things at once", async () => {
+            if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             reader.advance();
 
             reader.copyStart();
@@ -84,16 +92,16 @@ export function testReader(name: string, factory: AbstractReaderFactory){
                 else if (reader.get() == p)
                     iToQ = reader.copyEnd();
                 reader.advance();
+                if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             }
 
             const bToZ: string = reader.copyEnd();
-            // this must be an odd number of characters to properly test
-            // BufferedReader's implementation.
             expect(iToQ).toBe("ijklmno");
             expect(bToZ).toBe("bcdefghijklmnopqrstuvwxy");
         });
 
-        test("can pause one and copyStart another", () => {
+        test("can pause one and copyStart another", async () => {
+            if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             reader.advance();
 
             reader.copyStart();
@@ -110,6 +118,7 @@ export function testReader(name: string, factory: AbstractReaderFactory){
                     reader.copyContinue();
                 }
                 reader.advance();
+                if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             }
             const bToHAndPToY = reader.copyEnd();
 
@@ -117,7 +126,8 @@ export function testReader(name: string, factory: AbstractReaderFactory){
             expect(bToHAndPToY).toBe("bcdefghpqrstuvwxy");
         });
 
-        test("can reject one and copyStart another", () => {
+        test("can reject one and copyStart another", async () => {
+            if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             reader.advance();
 
             reader.copyStart();
@@ -129,6 +139,7 @@ export function testReader(name: string, factory: AbstractReaderFactory){
                     reader.copyStart();
                 }
                 reader.advance();
+                if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             }
             reader.copyReject();
             const bToH = reader.copyEnd();
@@ -142,12 +153,14 @@ export function testReader(name: string, factory: AbstractReaderFactory){
             });
 
             test("offset is updated", async () => {
+                if (!reader.isDataAvailable(4)) await reader.getDataPromise();
                 reader.advance();
                 reader.advance();
                 expect(reader.getContext()).toEqual({ line: 1, offset: 2 });
             });
             
             test("line is updated", async () => {
+                if (!reader.isDataAvailable(4)) await reader.getDataPromise();
                 reader.advance();
                 reader.advance();
                 reader.advance();

@@ -71,7 +71,7 @@ export class BufferedReader extends AbstractReader {
     }
 
     public copyPause(): void {
-        this.addPart(0);
+        this.addPart(this.parts.length - 1);
         this.copyBufferPosStart[0] = -1;
     }
 
@@ -95,7 +95,7 @@ export class BufferedReader extends AbstractReader {
     }
 
     public copyEnd(): string {
-        this.addPart(0);
+        this.addPart(this.parts.length - 1);
         const parts: Buffer[] = this.parts.pop()!;
         this.copyBufferPosStart.pop();
         if (parts.length === 1)
@@ -110,7 +110,7 @@ export class BufferedReader extends AbstractReader {
     }
 
     public override isDataAvailable(range: number): boolean {
-        return this.buffer.validBytes - this.bufferPosition > range
+        return this.buffer.validBytes - this.bufferPosition >= range
             && this.nextBuffer.promise !== undefined;
     }
 
@@ -203,8 +203,11 @@ export class BufferedReader extends AbstractReader {
         this.buffer = this.nextBuffer;
         this.nextBuffer = temp;
 
-        // read new content for nextBuffer to match
-        this.read(this.nextBuffer);
+        // read new content for nextBuffer to match only if we expect content
+        if (this.buffer.validBytes === this.buffer.data.byteLength)
+            this.read(this.nextBuffer);
+        else
+            this.nextBuffer.validBytes = 0;
     }
 
     // populates buffer with next bytes, starting from position

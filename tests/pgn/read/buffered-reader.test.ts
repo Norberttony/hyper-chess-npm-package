@@ -1,9 +1,9 @@
 import { testReader } from "./abstract-reader";
 import { BufferedReader } from "../../../src/pgn/read/buffered-reader";
 
-testBufferedReader(4);
-testBufferedReader(5);
-testBufferedReader(6);
+testBufferedReader(8);
+testBufferedReader(9);
+testBufferedReader(10);
 
 function testBufferedReader(chunkSize: number): void {
     testReader(
@@ -14,7 +14,7 @@ function testBufferedReader(chunkSize: number): void {
 
 async function createBufferedReader(
     pathToFile: string,
-    chunkSize: number
+    chunkSize: number,
 ): Promise<BufferedReader> {
     const reader = new BufferedReader(pathToFile, chunkSize);
     await reader.open();
