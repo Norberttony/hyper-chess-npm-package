@@ -9,6 +9,7 @@ import * as T from "./tokens.js";
 import { skipWhitespace } from "./utils.js";
 
 export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetextToken> {
+    if (!reader.isDataAvailable(4)) await reader.getDataPromise();
     // asterisk indicates ongoing or incomplete game
     if (reader.match(T.ASTERISK)){
         return {
@@ -21,10 +22,10 @@ export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetex
     if (reader.match(T.LEFT_PARENTHESIS)){
         const movetextTokens: PgnMovetextToken[] = [];
         while (!reader.isAtEnd() && reader.get() != T.RIGHT_PARENTHESIS){
+            if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             const v: number = reader.get();
             if (isWhitespace(v)){
                 reader.advance();
-                if (!reader.isDataAvailable(4)) await reader.getDataPromise();
             }else if (v == T.LEFT_BRACE){
                 movetextTokens.push(await handleComment(reader));
             }else if (T.SAN_GLYPHS.has(v)){
@@ -35,6 +36,7 @@ export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetex
                 movetextTokens.push(await handleMovetext(reader));
             }
         }
+        if (!reader.isDataAvailable(4)) await reader.getDataPromise();
         // skip right parenthesis
         reader.advance();
         return {
@@ -44,6 +46,7 @@ export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetex
     }
     
     reader.copyStart();
+    if (!reader.isDataAvailable(4)) await reader.getDataPromise();
     if (isNumber(reader.get())){
         const firstNum = await handleNumber(reader);
         const hasWhitespace = isWhitespace(reader.get());
@@ -55,6 +58,7 @@ export async function handleMovetext(reader: AbstractReader): Promise<PgnMovetex
             if (!reader.isDataAvailable(4)) await reader.getDataPromise();
         }
 
+        if (!reader.isDataAvailable(4)) await reader.getDataPromise();
         if (reader.match(T.DOT)){
             reader.copyReject();
             // move number

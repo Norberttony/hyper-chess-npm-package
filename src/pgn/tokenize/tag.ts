@@ -6,6 +6,7 @@ import { skipWhitespace } from "./utils.js";
 
 // assumes that the first character is left square bracket '['
 export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | PgnErrorToken> {
+    if (!reader.isDataAvailable(4)) await reader.getDataPromise();
     if (!reader.match(T.LEFT_SQ_BRACKET))
         throw new Error(
             `handleTag: expected first character to be ${T.LEFT_SQ_BRACKET} but got ${reader.get()} instead`
@@ -17,6 +18,7 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
     await skipWhitespace(reader);
     reader.copyStart();
     while (!reader.isAtEnd()){
+        if (!reader.isDataAvailable(4)) await reader.getDataPromise();
         const byte: number = reader.get();
 
         if (byte === T.DOUBLE_QUOTES ||
@@ -26,7 +28,6 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
             break;
 
         reader.advance();
-        if (!reader.isDataAvailable(4)) await reader.getDataPromise();
     }
 
     // this MIGHT be the header, but it's possible that the user accidentally
@@ -40,8 +41,9 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
 
     // perform error handling based on the expected next character
     // since we just scanned in the header, we expect to see a value
-    if (reader.get() != T.RIGHT_SQ_BRACKET &&
-        reader.get() != T.DOUBLE_QUOTES &&
+    if (!reader.isDataAvailable(4)) await reader.getDataPromise();
+    if (reader.get() !== T.RIGHT_SQ_BRACKET &&
+        reader.get() !== T.DOUBLE_QUOTES &&
         !reader.isAtEnd()
     ){
         // this indicates that the header never ended. That means there's a
@@ -52,7 +54,8 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
         });
     }
 
-    if (reader.get() == T.RIGHT_SQ_BRACKET || reader.isAtEnd()){
+    if (!reader.isDataAvailable(4)) await reader.getDataPromise();
+    if (reader.get() === T.RIGHT_SQ_BRACKET || reader.isAtEnd()){
         // incomplete tag! missing value!
         (errors ??= []).push({
             msg: "Incomplete tag: missing value",

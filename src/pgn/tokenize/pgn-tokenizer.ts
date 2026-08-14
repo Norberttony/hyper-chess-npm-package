@@ -12,6 +12,7 @@ export class PgnTokenizer {
     constructor(private reader: AbstractReader){}
 
     public async nextToken(): Promise<PgnToken | undefined> {
+        if (!this.reader.isDataAvailable(4)) await this.reader.getDataPromise();
         while (!this.reader.isAtEnd()){
             const v: number = this.reader.get();
             if (isWhitespace(v)){

@@ -6,7 +6,7 @@ export async function handleNumber(reader: AbstractReader): Promise<number> {
     while (!reader.isAtEnd() && isNumber(reader.get())){
         num = num * 10 + reader.get() - 48;
         reader.advance();
-        if (!reader.isDataAvailable(2)) await reader.getDataPromise();
+        if (!reader.isDataAvailable(4)) await reader.getDataPromise();
     }
     return num;
 }

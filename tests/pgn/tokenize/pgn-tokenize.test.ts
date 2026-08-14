@@ -244,7 +244,7 @@ describe("PgnTokenizer", () => {
         test(`fetches all tokens in ${fileName}`, async () => {
             const reader = new BufferedReader(
                 path.join(fixturesPath, fileName),
-                1024 * 1024
+                8,
             );
             await reader.open();
             const tokenizer = new PgnTokenizer(reader);
