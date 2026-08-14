@@ -25,23 +25,25 @@ export class Reader extends AbstractReader {
     }
 
     public copyStart(): void {
-        this.copyStartPos.unshift([ this.position ]);
-        this.isPaused.unshift(false);
+        this.copyStartPos.push([ this.position ]);
+        this.isPaused.push(false);
     }
 
     public copyPause(): void {
-        this.copyStartPos[0]?.push(this.position);
-        this.isPaused[0] = true;
+        const idx = this.copyStartPos.length - 1;
+        this.copyStartPos[idx]!.push(this.position);
+        this.isPaused[idx] = true;
     }
 
     public copyContinue(): void {
-        this.copyStartPos[0]?.push(this.position);
-        this.isPaused[0] = false;
+        const idx = this.copyStartPos.length - 1;
+        this.copyStartPos[idx]!.push(this.position);
+        this.isPaused[idx] = false;
     }
 
     // something is wrong here.
     public copyEnd(): string {
-        const positions: number[] = this.copyStartPos.shift()!;
+        const positions: number[] = this.copyStartPos.pop()!;
         let copied = "";
         for (let i = 0; i < positions.length - 1; i += 2){
             copied += this.content.substring(
@@ -49,18 +51,18 @@ export class Reader extends AbstractReader {
                 positions[i + 1]!
             );
         }
-        if (this.isPaused.shift()! == false){
+        if (this.isPaused.pop()! == false){
             copied += this.content.substring(
                 positions[positions.length - 1]!,
-                this.position
+                this.position,
             );
         }
         return copied;
     }
 
     public copyReject(): void {
-        this.copyStartPos.shift();
-        this.isPaused.shift();
+        this.copyStartPos.pop();
+        this.isPaused.pop();
     }
 
     public override isDataAvailable(): boolean {
