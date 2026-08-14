@@ -256,9 +256,12 @@ describe("PgnTokenizer", () => {
             const tokens: PgnToken[] = [];
     
             let token: PgnToken | undefined;
-            while (token = await tokenizer.nextToken())
+            while (token = await tokenizer.nextToken()){
+                expect(reader.getPartCount()).toBe(0);
                 tokens.push(token);
+            }
 
+            expect(reader.getPartCount()).toBe(0);
             expect(tokens).toEqual(actualTokens);
         });
     }
