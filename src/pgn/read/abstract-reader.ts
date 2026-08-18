@@ -49,7 +49,4 @@ export abstract class AbstractReader {
 
     // returns the next next byte (or if no such byte, 0)
     public abstract peekNext(): number;
-
-    // keeps reading whitespace characters until none are left
-    public abstract skipWhitespace(): void;
 }

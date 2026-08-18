@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import { AbstractReader, ReaderContext } from "./abstract-reader.js";
-import { isWhitespace } from "./utils.js";
 import { NEWLINE } from "../tokenize/tokens.js";
 
 export interface BufferWrapper {
@@ -162,11 +161,6 @@ export class BufferedReader extends AbstractReader {
 
     public peekNext(): number {
         return this.getNAway(2);
-    }
-
-    public skipWhitespace(): void {
-        while (isWhitespace(this.get()))
-            this.advance();
     }
 
     public async open(): Promise<void> {
