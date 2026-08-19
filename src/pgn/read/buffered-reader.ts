@@ -109,8 +109,8 @@ export class BufferedReader extends AbstractReader {
     }
 
     public override isDataAvailable(range: number): boolean {
-        return this.buffer.validBytes - this.bufferPosition >= range
-            && this.nextBuffer.promise !== undefined;
+        return this.buffer.validBytes - this.bufferPosition > range
+            || (this.nextBuffer.promise === undefined && this.buffer.promise === undefined);
     }
 
     public isAtEnd(): boolean {
@@ -165,13 +165,13 @@ export class BufferedReader extends AbstractReader {
 
     public async open(): Promise<void> {
         return new Promise((res, rej) => {
-            fs.open(this.pathToFile, "r", (err, fd: number) => {
+            fs.open(this.pathToFile, "r", async (err, fd: number) => {
                 if (err){
                     rej(err);
                     return;
                 }
                 this.fd = fd;
-                this.read(this.buffer);
+                await this.read(this.buffer);
                 this.read(this.nextBuffer);
                 res();
             });
@@ -205,7 +205,7 @@ export class BufferedReader extends AbstractReader {
     }
 
     // populates buffer with next bytes, starting from position
-    private read(buffer: BufferWrapper): void {
+    private read(buffer: BufferWrapper): Promise<void> {
         buffer.validBytes = 0;
         buffer.promise = new Promise((res, rej) => {
             if (this.fd === undefined)
@@ -219,6 +219,7 @@ export class BufferedReader extends AbstractReader {
                 }
             );
         });
+        return buffer.promise;
     }
 
     private getNAway(n: number): number {
