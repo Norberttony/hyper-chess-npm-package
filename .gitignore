@@ -10,3 +10,6 @@ dist-bench
 
 # editor file
 .vscode
+
+# folder containing temporary files for testing
+tests/_tmp
