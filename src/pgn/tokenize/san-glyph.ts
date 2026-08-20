@@ -5,8 +5,6 @@ import * as T from "./tokens.js";
 export async function handleSanGlyph(reader: AbstractReader): Promise<PgnSanGlyphToken> {
     reader.copyStart();
 
-    if (!reader.isDataAvailable(4)) await reader.getDataPromise();
-
     if (reader.match(T.QUESTION_MARK) || reader.match(T.EXCLAMATION_MARK)){
         while (
             !reader.isAtEnd() &&

@@ -41,7 +41,6 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
 
     // perform error handling based on the expected next character
     // since we just scanned in the header, we expect to see a value
-    if (!reader.isDataAvailable(4)) await reader.getDataPromise();
     if (reader.get() !== T.RIGHT_SQ_BRACKET &&
         reader.get() !== T.DOUBLE_QUOTES &&
         !reader.isAtEnd()
@@ -54,7 +53,6 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
         });
     }
 
-    if (!reader.isDataAvailable(4)) await reader.getDataPromise();
     if (reader.get() === T.RIGHT_SQ_BRACKET || reader.isAtEnd()){
         // incomplete tag! missing value!
         (errors ??= []).push({
@@ -63,7 +61,7 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
         });
         reader.copyReject();
         header = reader.copyEnd();
-    }else if (reader.get() != T.DOUBLE_QUOTES){
+    }else if (reader.get() !== T.DOUBLE_QUOTES){
         // badly formatted header!
         (errors ??= []).push({
             msg: "Incomplete tag: spaces are not allowed in the header",
@@ -127,7 +125,7 @@ export async function handleTag(reader: AbstractReader): Promise<PgnTagToken | P
         const byte = reader.get();
 
         if (byte === T.LEFT_SQ_BRACKET ||
-            byte == T.RIGHT_SQ_BRACKET ||
+            byte === T.RIGHT_SQ_BRACKET ||
             byte === T.NEWLINE
         )
             break;

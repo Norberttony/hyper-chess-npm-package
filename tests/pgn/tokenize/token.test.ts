@@ -17,19 +17,19 @@ const TESTS_TMP_PATH = path.resolve(".", "tests", "_tmp");
 describe("Integration Test Tokens and BufferedReader", () => {
     beforeAll(() => fs.mkdirSync(TESTS_TMP_PATH, { recursive: true }));
 
-    testTokenUtilityFunction(handleNumber, "12345678", 12345678, 8);
-    testTokenUtilityFunction(handleNag, "$12345678", { type: "nag", id: 12345678 }, 8);
-    testTokenUtilityFunction(handleTag, "[Event \"Example\"]", { type: "tag", header: "Event", value: "Example" }, 8);
-    testTokenUtilityFunction(handleSanGlyph, "!?!?!?!?", { type: "san glyph", content: "!?!?!?!?" }, 8);
+    testTokenUtilityFunction(handleNumber, "123456789", 123456789, 8);
+    testTokenUtilityFunction(handleNag, "$123456789", { type: "nag", id: 123456789 }, 8);
+    testTokenUtilityFunction(handleTag, "[         Event         \"Example\"]", { type: "tag", header: "Event", value: "Example" }, 8);
+    testTokenUtilityFunction(handleSanGlyph, "!?!?!?!?!?", { type: "san glyph", content: "!?!?!?!?!?" }, 8);
     testTokenUtilityFunction(handleCommentTag, "[%eval -3.55]", { name: "eval", value: "-3.55" }, 8);
     testTokenUtilityFunction(handleComment, "{ Some kind of comment }", { type: "comment", tags: [], content: " Some kind of comment " }, 8);
     // move text handles a couple tokens via branching, so they are handled individually here.
     // draw result
     testTokenUtilityFunction(handleMovetext, "1 /  2   -    1     /      2", { type: "result", value: "1/2-1/2" }, 8);
     // win result
-    testTokenUtilityFunction(handleMovetext, "1 - 0", { type: "result", value: "1-0" }, 8);
+    testTokenUtilityFunction(handleMovetext, "1   -   0", { type: "result", value: "1-0" }, 8);
     // move number
-    testTokenUtilityFunction(handleMovetext, "1...", { type: "move num", num: 1, threeDots: true }, 8);
+    testTokenUtilityFunction(handleMovetext, "1234567890..........", { type: "move num", num: 1234567890, threeDots: true }, 8);
     // move
     testTokenUtilityFunction(handleMovetext, "abcdefghijklmnopqrstuvwxyz", { type: "move", content: "abcdefghijklmnopqrstuvwxyz" }, 8);
     // variation
@@ -55,7 +55,7 @@ export function testTokenUtilityFunction<T>(
 ): void {
     describe(`${func.name}`, () => {
         for (let o = 0; o < offsets; o++){
-            test(`offset ${o}`, async () => {
+            test(`${func.name} offset ${o}`, async () => {
                 const offset: string = " ".repeat(o);
                 const reader = new BufferedReaderFacade(
                     `${func.name}${o}`,
