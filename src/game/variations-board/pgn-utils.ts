@@ -1,7 +1,7 @@
 import { VariationNode, VariationRoot } from "./variation.js";
-import { Pgn, PgnMove } from "../pgn/parse/types.js";
-import { Board, StartingFen } from "./board.js";
-import { San } from "./san.js";
+import { Pgn, PgnMove } from "../../pgn/parse/types.js";
+import { Board, StartingFen } from "../board/board.js";
+import type { San } from "../notation/san.js";
 
 // returns the root VariationMove based on the given PGN.
 export function createVariationTree(

@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { Board, GameResult, StartingFen } from "../../src/game/board";
-import { Lan } from "../../src/game/coords";
-import { Side } from "../../src/game/piece";
+import { Board, StartingFen } from "../../src/game/board/board";
+import { GameResult } from "../../src/game/board/move-generator";
+import { Lan } from "../../src/game/notation/coords";
+import { Side } from "../../src/game/notation/piece";
 
 type BoardFactory = () => Board;
 

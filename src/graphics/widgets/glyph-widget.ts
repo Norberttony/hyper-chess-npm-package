@@ -54,7 +54,7 @@ export class GlyphWidget extends BoardWidget {
     }
 
     private updateSelectedGlyphs(): void {
-        const cv = this.boardgfx.getCurrentVariation();
+        const cv = this.boardgfx.getVariationsBoard().getCurrentVariation();
         if (cv.type === "root")
             return;
 
@@ -69,7 +69,7 @@ export class GlyphWidget extends BoardWidget {
     }
 
     private toggleGlyph(id: number): void {
-        const cv = this.boardgfx.getCurrentVariation();
+        const cv = this.boardgfx.getVariationsBoard().getCurrentVariation();
         if (cv.type === "root")
             return console.warn("Cannot toggle glyph before any moves");
 

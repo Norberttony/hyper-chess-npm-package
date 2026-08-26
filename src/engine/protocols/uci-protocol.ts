@@ -1,9 +1,9 @@
 import { BotProtocol, trySetOptionValue } from "../abstract/protocol.js";
-import { StartingFen } from "../../game/board.js";
+import { StartingFen } from "../../game/board/board.js";
 import { readWords } from "./utils.js";
 import type { BotProcess } from "../abstract/bot-process.js";
 import { EngineOption, GameTime, Score, SetOptionStatus } from "../utils.js";
-import { Lan } from "../../game/coords.js";
+import { Lan } from "../../game/notation/coords.js";
 
 const optionPropertyNames = new Set([ "name", "type", "default", "min", "max", "var" ]);
 

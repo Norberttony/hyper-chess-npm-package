@@ -1,4 +1,4 @@
-import type { Move } from "../../game/move.js";
+import type { Move } from "../../game/board/move.js";
 import type { BoardGraphics } from "../board-graphics.js";
 import { BoardWidget } from "./board-widget.js";
 

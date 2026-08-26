@@ -1,8 +1,8 @@
-import { AlgebraicSquare, algebraicToSquare, getFileFromSq, getRankFromSq, Lan, squareToAlgebraic, squareToAlgebraicFile, squareToAlgebraicRank } from "../coords.js";
-import { Move } from "../move.js";
-import { arePiecesSameSide, arePiecesSameType, getPieceFromFenChar, getPieceSide, getPieceType, isPieceOfSide, isPieceOfType, Piece, PieceType, Side } from "../piece.js";
-import { dirOffsets, numSquaresToEdge } from "../pre-game.js";
-import { attachGlyphToSan, getSanCharFromPieceType, removeGlyphs, San } from "../san.js";
+import { AlgebraicSquare, algebraicToSquare, getFileFromSq, getRankFromSq, Lan, squareToAlgebraic, squareToAlgebraicFile, squareToAlgebraicRank } from "../notation/coords.js";
+import { Move } from "./move.js";
+import { arePiecesSameSide, arePiecesSameType, getPieceFromFenChar, getPieceSide, getPieceType, isPieceOfSide, isPieceOfType, Piece, PieceType, Side } from "../notation/piece.js";
+import { dirOffsets, numSquaresToEdge } from "./pre-game.js";
+import { attachGlyphToSan, getSanCharFromPieceType, removeGlyphs, San } from "../notation/san.js";
 import { BoardState } from "./board-state.js";
 
 export interface GameResult {

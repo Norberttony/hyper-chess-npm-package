@@ -1,12 +1,12 @@
 import { PgnSplitter } from "./pgn-splitter.js";
 import { Reader } from "../read/reader.js";
 import { Pgn, PgnComment, PgnHeaders, PgnMove } from "./types.js";
-import { Board, StartingFen } from "../../game/board.js";
-import { Side } from "../../game/piece.js";
-import { San } from "../../game/san.js";
+import { Board, StartingFen } from "../../game/board/board.js";
+import { Side } from "../../game/notation/piece.js";
+import { San } from "../../game/notation/san.js";
 import { PgnTokenizer } from "../tokenize/pgn-tokenizer.js";
 import { CommentTag, PgnToken } from "../tokenize/types.js";
-import { Move } from "../../game/move.js";
+import { Move } from "../../game/board/move.js";
 
 export async function parsePgn(pgn: string): Promise<Pgn | undefined> {
     return await new PgnSplitter(new Reader(pgn)).nextPgn();

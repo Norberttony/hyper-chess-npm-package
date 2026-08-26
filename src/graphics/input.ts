@@ -1,6 +1,6 @@
 import { setAllMoveHighlightsToPool, getMoveHighlightFromPool } from "./pool.js";
 import type { BoardGraphics } from "./board-graphics.js";
-import { Move } from "../game/move.js";
+import { Move } from "../game/board/move.js";
 
 // This file handles the way that the user might interact with the game board via dragging pieces.
 
@@ -73,7 +73,7 @@ function piecePointerdown(event: PointerEvent): void {
     if (!INPUT.gameState!.canMove(square))
         return;
 
-    const piece = INPUT.gameState!.getPiece(square);
+    const piece = INPUT.gameState!.getBoard().getState().getPiece(square);
 
     INPUT.dragging = elem;
     INPUT.selected = elem;
@@ -89,7 +89,7 @@ function piecePointerdown(event: PointerEvent): void {
     setDraggingElemPos(event.pageX, event.pageY);
 
     // get moves for selected piece and display them
-    INPUT.currentMoves = INPUT.gameState!.generatePieceMoves(square, piece);
+    INPUT.currentMoves = INPUT.gameState!.getBoard().generatePieceMoves(square, piece);
     for (let i = 0; i < INPUT.currentMoves.length; i++){
         const move = INPUT.currentMoves[i]!;
         

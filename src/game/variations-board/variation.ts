@@ -1,7 +1,7 @@
-import { Side } from "./piece.js";
-import { Move } from "./move.js";
-import { PgnMove } from "../pgn/parse/types.js";
-import { GameResult } from "./board.js";
+import { Side } from "../notation/piece.js";
+import { Move } from "../board/move.js";
+import { PgnMove } from "../../pgn/parse/types.js";
+import { GameResult } from "../board/move-generator.js";
 
 // the variation object operates as a linked list with a single previous node and a list of next
 // nodes.

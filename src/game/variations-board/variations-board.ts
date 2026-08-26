@@ -1,16 +1,16 @@
-import { Board, StartingFen } from "./board.js";
-import { Reader } from "../pgn/read/reader.js";
-import { getResultMarker } from "../pgn/parse/utils.js";
-import { PgnSplitter } from "../pgn/parse/pgn-splitter.js";
-import { Pgn, PgnMove } from "../pgn/parse/types.js";
+import { Board, StartingFen } from "../board/board.js";
+import { Reader } from "../../pgn/read/reader.js";
+import { getResultMarker } from "../../pgn/parse/utils.js";
+import { PgnSplitter } from "../../pgn/parse/pgn-splitter.js";
+import { Pgn, PgnMove } from "../../pgn/parse/types.js";
 import { VariationMove, VariationNode, VariationRoot } from "./variation.js";
-import { Move } from "./move.js";
-import { removeGlyphs, San } from "./san.js";
-import { Lan } from "./coords.js";
-import { GameResult } from "./board.js";
+import { Move } from "../board/move.js";
+import { removeGlyphs, San } from "../notation/san.js";
+import { Lan } from "../notation/coords.js";
+import { GameResult } from "../board/move-generator.js";
 import { createVariationTree } from "./pgn-utils.js";
 
-export class VariationsBoard extends Board {
+export class VariationsBoard {
     // variations in the position are stored via a tree. The root is the very
     // first empty variation (sentinel node).
     private variationRoot: VariationRoot;
@@ -28,32 +28,32 @@ export class VariationsBoard extends Board {
 
     private startingFen: string = StartingFen;
 
+    private board: Board;
+
     constructor(){
-        super();
+        this.board = new Board(this.startingFen);
         this.variationRoot = new VariationRoot(this.pgn.moveList);
         this.mainVariation = this.variationRoot;
         this.currentVariation = this.variationRoot;
     }
 
-    public override makeMove(move: Move): void {
-        this.playMove(move);
+    public getBoard(): Board {
+        return this.board;
     }
 
-    public override unmakeMove(move: Move): void {
-        const prev = this.currentVariation.prev;
-        if (!prev || prev.type == "root")
-            return;
-        if (prev.move.equals(move))
-            this.previousVariation();
-        else
-            throw new Error("Cannot unmake a move that was not in the previous variation");
+    public getMoveOfLan(lan: Lan): Move | undefined {
+        return this.board.getMoveOfLan(lan);
     }
 
-    public override getResult(): GameResult | undefined {
+    public getFen(): string {
+        return this.board.getFen();
+    }
+
+    public getResult(): GameResult | undefined {
         if (this.currentVariation.type == "root")
             return;
         const res: GameResult | undefined = this.currentVariation.result;
-        return res || super.getResult();
+        return res || this.board.getResult();
     }
 
     public getVariationRoot(): VariationRoot {
@@ -76,8 +76,8 @@ export class VariationsBoard extends Board {
         return this.startingFen;
     }
 
-    public override loadFen(fen: string): void {
-        super.loadFen(fen);
+    public loadFen(fen: string): void {
+        this.board.loadFen(fen);
 
         this.startingFen = fen;
 
@@ -91,7 +91,7 @@ export class VariationsBoard extends Board {
         this.variationRoot.moveList = this.pgn.moveList;
 
         // update headers if this is not the default starting position
-        if (this.getFen() === StartingFen){
+        if (this.board.getFen() === StartingFen){
             delete this.pgn.headers["Variant"];
             delete this.pgn.headers["FEN"];
         }else{
@@ -142,7 +142,7 @@ export class VariationsBoard extends Board {
         const variation = this.currentVariation.next[index];
         if (variation){
             if (variation.move)
-                super.makeMove(variation.move);
+                this.board.makeMove(variation.move);
             this.currentVariation = variation;
             return true;
         }
@@ -153,7 +153,7 @@ export class VariationsBoard extends Board {
     public previousVariation(): boolean {
         if (this.currentVariation.prev && this.currentVariation.type == "move"){
             if (this.currentVariation.move)
-                super.unmakeMove(this.currentVariation.move);
+                this.board.unmakeMove(this.currentVariation.move);
             this.currentVariation = this.currentVariation.prev;
             return true;
         }
@@ -217,9 +217,9 @@ export class VariationsBoard extends Board {
 
         this.jumpToVariation(this.mainVariation);
         
-        const move = this.getMoveOfSan(san);
+        const move = this.board.getMoveOfSan(san);
         if (move)
-            this.makeMove(move);
+            this.board.makeMove(move);
 
         if (doSwitch)
             this.jumpToVariation(previous);
@@ -231,16 +231,16 @@ export class VariationsBoard extends Board {
 
         this.jumpToVariation(this.mainVariation);
 
-        const move = this.getMoveOfLan(lan);
+        const move = this.board.getMoveOfLan(lan);
         if (move)
-            this.makeMove(move);
+            this.board.makeMove(move);
 
         if (doSwitch)
             this.jumpToVariation(previous);
     }
 
     // assumes move is legal
-    public playMove(move: Move, san = super.getMoveSan(move)): VariationMove {
+    public playMove(move: Move, san = this.board.getMoveSan(move)): VariationMove {
         // search for an existing variation with this move
         for (const v of this.currentVariation.next){
             if (v.pgnMove!.san == removeGlyphs(san)){
@@ -273,9 +273,9 @@ export class VariationsBoard extends Board {
         if (variation.prev == this.mainVariation)
             this.mainVariation = variation;
 
-        super.makeMove(move);
+        this.board.makeMove(move);
 
-        const res: GameResult | undefined = super.isGameOver();
+        const res: GameResult | undefined = this.board.isGameOver();
         if (res){
             const resultMarker: string = getResultMarker(res.winner);
             this.currentVariation.result = res;

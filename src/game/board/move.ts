@@ -1,6 +1,5 @@
-import { squareToAlgebraic } from "./coords.js";
-import { Piece } from "./piece.js";
-import { Lan } from "./coords.js";
+import { squareToAlgebraic, Lan } from "../notation/coords.js";
+import { Piece } from "../notation/piece.js";
 
 // The move class contains all relevant information about any move...
 //  - "to"          is a square index of where the moving piece is going to

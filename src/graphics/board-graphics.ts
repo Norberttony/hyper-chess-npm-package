@@ -1,13 +1,14 @@
-import { VariationsBoard } from "../game/variations-board.js";
+import { VariationsBoard } from "../game/variations-board/variations-board.js";
+import { Board } from "../game/board/board.js";
 import { setInputTarget } from "./input.js";
 import { BoardWidget, getFirstElemOfClass, getWidgetLocName, WidgetLocation } from "./widgets/board-widget.js";
 import {
     setAllPiecesToPool, setAllMoveHighlightsToPool, setAllLastMoveHighlightsToPool,
     getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph
 } from "./pool.js";
-import { getPieceSide, getPieceType, Side } from "../game/piece.js";
-import { Move } from "../game/move.js";
-import { VariationMove, VariationNode } from "../game/variation.js";
+import { getPieceSide, getPieceType, Side } from "../game/notation/piece.js";
+import { Move } from "../game/board/move.js";
+import { VariationMove, VariationNode } from "../game/variations-board/variation.js";
 import { getNagEntryFromSanGlyph, NagTable } from "./nag-table.js";
 import { EventDetail } from "./board-events.js";
 
@@ -15,7 +16,7 @@ import { EventDetail } from "./board-events.js";
 // that it allows is a board element with pieces displayed on it, but it can support any combination
 // of widgets, that may listen to relevant state changes.
 
-export class BoardGraphics extends VariationsBoard {
+export class BoardGraphics {
     public skeleton: HTMLElement;
     public boardDiv: HTMLElement;
     public piecesDiv: HTMLElement;
@@ -30,13 +31,14 @@ export class BoardGraphics extends VariationsBoard {
 
     public graphicalVariation: VariationNode;
 
+    private board: VariationsBoard = new VariationsBoard();
+
     constructor(
         public allowDragging = true,
         public displayRanksAndFiles = false,
         skeleton: HTMLElement | null = null,
         private nagTable: NagTable = {},
     ){
-        super();
         this.skeleton = createSkeleton(skeleton);
         this.skeleton.classList.add("board-graphics--board-blue", "board-graphics--pieces-cburnett");
 
@@ -57,7 +59,7 @@ export class BoardGraphics extends VariationsBoard {
 
         // graphicalVariation points to the variation currently displayed to the user. If
         // currentVariation does not match with graphicalVariation, applyChanges should be called.
-        this.graphicalVariation = this.getCurrentVariation();
+        this.graphicalVariation = this.board.getCurrentVariation();
 
         // determine if meant to create files and ranks.
         if (displayRanksAndFiles)
@@ -66,6 +68,14 @@ export class BoardGraphics extends VariationsBoard {
         this.draggingElem = createBoardDraggingElem(this.skeleton);
         if (allowDragging)
             boardDiv.onpointerdown = this.piecePointerDown;
+    }
+
+    public getVariationsBoard(): VariationsBoard {
+        return this.board;
+    }
+
+    public getBoard(): Board {
+        return this.board.getBoard();
     }
 
     public get isFlipped(): boolean {
@@ -128,24 +138,24 @@ export class BoardGraphics extends VariationsBoard {
     // === LOADING FEN AND PGN === //
     // =========================== //
 
-    public override loadFen(fen: string): void {
-        super.loadFen(fen);
+    public loadFen(fen: string): void {
+        this.board.loadFen(fen);
 
-        this.graphicalVariation = this.getVariationRoot();
+        this.graphicalVariation = this.board.getVariationRoot();
         this.applyChanges(false);
         this.dispatchEvent("loadFen", { fen });
     }
 
-    public override async loadPgn(pgn: string): Promise<void> {
-        await super.loadPgn(pgn);
+    public async loadPgn(pgn: string): Promise<void> {
+        await this.board.loadPgn(pgn);
 
         // to-do: this should be temporary, but it's built to work with the PgnWidget
-        const vm: VariationMove | undefined = this.getVariationRoot().next[0];
+        const vm: VariationMove | undefined = this.board.getVariationRoot().next[0];
         if (vm)
             this.dispatchEvent("new-variation", { variation: vm });
 
-        const w = this.getPgn().headers["White"];
-        const b = this.getPgn().headers["Black"];
+        const w = this.board.getPgn().headers["White"];
+        const b = this.board.getPgn().headers["Black"];
         this.setNames(w, b);
 
         this.applyChanges(false);
@@ -158,7 +168,7 @@ export class BoardGraphics extends VariationsBoard {
     public applyChanges(userInput = false): void {
         this.display();
 
-        const cv = this.getCurrentVariation();
+        const cv = this.board.getCurrentVariation();
         const gv = this.graphicalVariation;
 
         // check if one of the variations follows the other
@@ -174,10 +184,10 @@ export class BoardGraphics extends VariationsBoard {
         this.graphicalVariation = cv;
 
         // notify of a game result (potentially re-occurring)
-        const result = this.isGameOver();
+        const result = this.board.getBoard().isGameOver();
         if (result && cv.type === "move"){
             this.dispatchEvent("result", {
-                turn:           this.turn,
+                turn:           this.board.getBoard().getTurn(),
                 termination:    result.termination,
                 winner:         result.winner,
                 variation:      cv,
@@ -185,8 +195,8 @@ export class BoardGraphics extends VariationsBoard {
         }
     }
 
-    public override deleteVariation(variation: VariationMove, isHelper = false): void {
-        super.deleteVariation(variation, isHelper);
+    public deleteVariation(variation: VariationMove, isHelper = false): void {
+        this.board.deleteVariation(variation, isHelper);
         this.dispatchEvent("delete-variation", { variation });
         this.applyChanges(false);
     }
@@ -200,8 +210,8 @@ export class BoardGraphics extends VariationsBoard {
     // === HANDLING MAKE MOVE === //
     // ========================== //
 
-    public override playMove(move: Move): VariationMove {
-        const variation = super.playMove(move);
+    public playMove(move: Move): VariationMove {
+        const variation = this.board.playMove(move);
         if (variation)
             this.dispatchEvent("new-variation", { variation });
         return variation;
@@ -210,16 +220,17 @@ export class BoardGraphics extends VariationsBoard {
     // returns true if the player can move the piece at the given square. Otherwise, returns false.
     public canMove(sq: number): boolean {
         // ensure user is not creating a variation when not allowed to.
-        if (!this.allowVariations && this.getCurrentVariation().next.length > 0)
+        if (!this.allowVariations && this.board.getCurrentVariation().next.length > 0)
             return false;
 
         // prevent user from playing when a result is already set
-        if (this.isGameOver())
+        if (this.board.getBoard().isGameOver())
             return false;
 
-        const piece = this.getPiece(sq);
+        const state = this.board.getBoard().getState();
+        const piece = state.getPiece(sq);
         const side = getPieceSide(piece);
-        return this.allowInputFrom[side]! && !this.isImmobilized(sq, piece) && this.turn == side;
+        return this.allowInputFrom[side]! && !state.isImmobilized(sq, piece) && state.getTurn() == side;
     }
 
     // ============================== //
@@ -245,7 +256,7 @@ export class BoardGraphics extends VariationsBoard {
         setAllMoveHighlightsToPool(this.skeleton);
         setAllLastMoveHighlightsToPool(this.skeleton);
 
-        const cv = this.getCurrentVariation();
+        const cv = this.board.getCurrentVariation();
         const lastMove = cv.type == "move" ?
             cv.move :
             undefined;
@@ -266,7 +277,7 @@ export class BoardGraphics extends VariationsBoard {
         // display all pieces on the board
         for (let r = 0; r < 8; r++){
             for (let f = 0; f < 8; f++){
-                const v = this.getPiece(r * 8 + f);
+                const v = this.board.getBoard().getState().getPiece(r * 8 + f);
                 if (v){
                     const piece = getPieceFromPool(f, r, this.isFlipped, getPieceType(v), getPieceSide(v));
                     this.piecesDiv.appendChild(piece);

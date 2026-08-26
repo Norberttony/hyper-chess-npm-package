@@ -1,4 +1,4 @@
-import type { VariationMove, VariationNode } from "../game/variation.js";
+import type { VariationMove, VariationNode } from "../game/variations-board/variation.ts";
 
 export type PlayerNamesEvent        = CustomEvent<{ whiteName: string | undefined, blackName: string | undefined }>;
 export type LoadFenEvent            = CustomEvent<{ fen: string }>;

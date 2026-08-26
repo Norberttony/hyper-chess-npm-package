@@ -1,8 +1,8 @@
-import { AlgebraicSquare, algebraicToSquare, Lan, squareToAlgebraic, squareToAlgebraicFile, squareToAlgebraicRank } from "../coords.js";
-import { Move } from "../move.js";
-import { arePiecesSameType, getPieceFromFenChar, getPieceSide, getPieceType, isPieceOfType, PieceType, Side } from "../piece.js";
-import { dirOffsets, numSquaresToEdge } from "../pre-game.js";
-import { attachGlyphToSan, getSanCharFromPieceType, removeGlyphs, San } from "../san.js";
+import { AlgebraicSquare, algebraicToSquare, Lan, squareToAlgebraic, squareToAlgebraicFile, squareToAlgebraicRank } from "../notation/coords.js";
+import { Move } from "./move.js";
+import { arePiecesSameType, getPieceFromFenChar, getPieceSide, getPieceType, isPieceOfType, Piece, PieceType, Side } from "../notation/piece.js";
+import { dirOffsets, numSquaresToEdge } from "./pre-game.js";
+import { attachGlyphToSan, getSanCharFromPieceType, removeGlyphs, San } from "../notation/san.js";
 import { BoardState } from "./board-state.js";
 import { GameResult, MoveGenerator } from "./move-generator.js";
 
@@ -18,8 +18,24 @@ export class Board {
         this.moveGen = new MoveGenerator(this.state);
     }
 
-    public loadFen(fen: string){
+    public getState(): BoardState {
+        return this.state;
+    }
+
+    public getFullMove(): number {
+        return this.state.getFullMove();
+    }
+
+    public loadFen(fen: string): void {
         this.state.loadFen(fen);
+    }
+
+    public getFen(): string {
+        return this.state.getFen();
+    }
+
+    public getTurn(): Side {
+        return this.state.getTurn();
     }
 
     public getResult(): GameResult | undefined {
@@ -43,6 +59,10 @@ export class Board {
 
     public unmakeMove(move: Move): void {
         this.state.unmakeMove(move);
+    }
+
+    public generatePieceMoves(start: number, piece: Piece, filter = true, moves: Move[] = []): Move[] {
+        return this.moveGen.generatePieceMoves(start, piece, filter, moves);
     }
 
     public generateMoves(filter = true): Move[] {

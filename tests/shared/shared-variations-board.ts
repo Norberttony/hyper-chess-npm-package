@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { VariationsBoard } from "../../src/game/variations-board";
+import { VariationsBoard } from "../../src/game/variations-board/variations-board";
 import { PgnMove } from "../../src/pgn/parse/types";
-import { Lan } from "../../src/game/coords";
-import { VariationMove } from "../../src/game/variation";
-import { removeGlyphs, San } from "../../src/game/san";
+import { Lan } from "../../src/game/notation/coords";
+import { VariationMove } from "../../src/game/variations-board/variation";
+import { removeGlyphs, San } from "../../src/game/notation/san";
 
 type VariationsBoardFactory = () => VariationsBoard;
 

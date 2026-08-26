@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { parsePgn } from "../../src/pgn/parse/utils";
 import { Pgn } from "../../src/pgn/parse/types";
-import { createVariationTree } from "../../src/game/pgn-utils";
+import { createVariationTree } from "../../src/game/variations-board/pgn-utils";
 
 it("attaches variations to the previous node", async () => {
     const pgn: Pgn = (await parsePgn("1. Pe4 (1. Pd4 Pd5) Pe5"))!;

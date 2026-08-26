@@ -1,7 +1,7 @@
-import { squareToAlgebraic } from "../coords.js";
-import { Move } from "../move.js";
-import { arePiecesSameSide, getFenCharFromPieceType, getPieceFromFenChar, getPieceSide, getPieceType, isPieceOfSide, isPieceOfType, Piece, PieceType, Side } from "../piece.js";
-import { dirOffsets, numSquaresToEdge } from "../pre-game.js";
+import { squareToAlgebraic } from "../notation/coords.js";
+import { Move } from "./move.js";
+import { arePiecesSameSide, getFenCharFromPieceType, getPieceFromFenChar, getPieceSide, getPieceType, isPieceOfSide, isPieceOfType, Piece, PieceType, Side } from "../notation/piece.js";
+import { dirOffsets, numSquaresToEdge } from "./pre-game.js";
 
 export interface HistoryBoardState {
     halfmove: number;

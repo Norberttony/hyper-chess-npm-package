@@ -68,10 +68,10 @@ export class ExtrasWidget extends BoardWidget {
     }
 
     private updateFenText(): void {
-        this.fenText.value = this.boardgfx.getFen();
+        this.fenText.value = this.boardgfx.getBoard().getFen();
     }
 
     private updatePgnText(): void {
-        this.pgnText.value = pgnToString(this.boardgfx.getPgn());
+        this.pgnText.value = pgnToString(this.boardgfx.getVariationsBoard().getPgn());
     }
 }

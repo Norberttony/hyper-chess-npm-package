@@ -1,10 +1,10 @@
-import { getFileFromSq, getRankFromSq } from "../../game/coords.js";
+import { getFileFromSq, getRankFromSq } from "../../game/notation/coords.js";
 import { BoardWidget } from "./board-widget.js";
 import { getPieceFromPool, setElemLocation } from "../pool.js";
 import type { BoardGraphics } from "../board-graphics.js";
-import { getPieceSide, getPieceType } from "../../game/piece.js";
+import { getPieceSide, getPieceType } from "../../game/notation/piece.js";
 import { SingleScrollEvent } from "../board-events.js";
-import { Move } from "../../game/move.js";
+import { Move } from "../../game/board/move.js";
 
 // handles move animations
 

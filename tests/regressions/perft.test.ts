@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { Board } from "../../src/game/board.js";
-import { perft } from "../../src/game/perft.js";
-import { Move } from "../../src/game/move.js";
-import { Lan } from "../../src/game/coords.js";
+import { Board } from "../../src/game/board/board.js";
+import { perft } from "../../src/game/board/perft.js";
+import { Move } from "../../src/game/board/move.js";
+import { Lan } from "../../src/game/notation/coords.js";
 import { fetchPerftTestCases } from "../shared/load-game-fixtures.js";
 
 describe("perft", () => {

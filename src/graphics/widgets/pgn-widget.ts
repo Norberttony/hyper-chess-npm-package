@@ -1,8 +1,9 @@
-import { Side } from "../../game/piece.js";
+import { Side } from "../../game/notation/piece.js";
 import { BoardWidget, WidgetLocation } from "./board-widget.js";
 import { addPointerHoldListener } from "../pgn-control.js";
 import type { BoardGraphics } from "../board-graphics.js";
-import { VariationMove, VariationNode } from "../../game/variation.js";
+import { VariationMove, VariationNode } from "../../game/variations-board/variation.js";
+import { VariationsBoard } from "../../game/variations-board/variations-board.js";
 import { getResultMarker } from "../../pgn/parse/utils.js";
 import { DeleteVariationEvent, ResultEvent, VariationChangeEvent } from "../board-events.js";
 
@@ -33,9 +34,11 @@ export class PgnWidget extends BoardWidget {
     private resultElem?: HTMLElement;
     // maps each VarationMove to its corresponding HTML element.
     private elementMap = new Map<VariationMove, HTMLElement>;
+    private varBoard: VariationsBoard;
 
     constructor(boardgfx: BoardGraphics, location: WidgetLocation){
         super(boardgfx);
+        this.varBoard = boardgfx.getVariationsBoard();
 
         const container = document.createElement("div");
         container.classList.add("pgn-viewer");
@@ -124,13 +127,13 @@ export class PgnWidget extends BoardWidget {
     }
 
     private PgnMoveBack(): void {
-        if (this.boardgfx.previousVariation())
+        if (this.varBoard.previousVariation())
             this.boardgfx.applyChanges();
         this.selectedVariation = 0;
     }
 
     private PgnMoveForward(): void {
-        if (this.boardgfx.nextVariation(this.selectedVariation))
+        if (this.varBoard.nextVariation(this.selectedVariation))
             this.boardgfx.applyChanges();
         this.selectedVariation = 0;
     }
@@ -138,28 +141,28 @@ export class PgnWidget extends BoardWidget {
     private PgnUpVariation(): void {
         this.selectedVariation--;
         if (this.selectedVariation < 0)
-            this.selectedVariation = this.boardgfx.getCurrentVariation().next.length - 1;
+            this.selectedVariation = this.varBoard.getCurrentVariation().next.length - 1;
     }
 
     private PgnDownVariation(): void {
-        const max = this.boardgfx.getCurrentVariation().next.length;
+        const max = this.varBoard.getCurrentVariation().next.length;
         this.selectedVariation = (this.selectedVariation + 1) % max;
     }
 
     private PgnMoveFirst(): void {
         // displays position with no moves made on the board
-        this.boardgfx.jumpToVariation(this.boardgfx.getVariationRoot());
+        this.varBoard.jumpToVariation(this.varBoard.getVariationRoot());
         this.boardgfx.applyChanges();
     }
 
     private PgnMoveLast(): void {
         // displays position of the last committed move in the main variation
-        let iter = this.boardgfx.getCurrentVariation();
+        let iter = this.varBoard.getCurrentVariation();
         while (iter.next[0]){
             iter = iter.next[0];
         }
 
-        this.boardgfx.jumpToVariation(iter);
+        this.varBoard.jumpToVariation(iter);
         this.boardgfx.applyChanges();
     }
 
@@ -171,7 +174,7 @@ export class PgnWidget extends BoardWidget {
     // rebuilds whole list
     private updatePgnList(): void {
         this.elementMap = new Map();
-        const root = this.boardgfx.getVariationRoot();
+        const root = this.varBoard.getVariationRoot();
         const next = root.next[0];
         this.clearPgnList();
         if (next)
@@ -285,7 +288,7 @@ export class PgnWidget extends BoardWidget {
     private onDeleteVariation(event: DeleteVariationEvent): void {
         const { variation } = event.detail;
 
-        if (variation == this.boardgfx.getMainVariation() && this.resultElem && this.resultElem.parentNode){
+        if (variation == this.varBoard.getMainVariation() && this.resultElem && this.resultElem.parentNode){
             this.resultElem.parentNode.removeChild(this.resultElem);
             delete this.resultElem;
         }
@@ -345,7 +348,7 @@ function newSanElem(gameState: BoardGraphics, pgnElem: HTMLElement, san: string,
 
     if (variation){
         div.addEventListener("click", () => {
-            gameState.jumpToVariation(variation);
+            gameState.getVariationsBoard().jumpToVariation(variation);
             gameState.applyChanges();
             selectPgnElem(pgnElem, div);
         });

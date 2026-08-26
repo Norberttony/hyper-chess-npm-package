@@ -1,11 +1,11 @@
 import { BoardWidget, WidgetLocation } from "./board-widget.js";
-import { Side } from "../../game/piece.js";
-import { Board } from "../../game/board.js";
+import { Side } from "../../game/notation/piece.js";
+import { Board } from "../../game/board/board.js";
 import { WebBotProcess } from "../../engine/web/web-bot-process.js";
 import type { BoardGraphics } from "../board-graphics.js";
 import { UCIBotProtocol } from "../../engine/protocols/uci-protocol.js";
 import { ThinkStats } from "../../engine/utils.js";
-import { Lan } from "../../game/coords.js";
+import { Lan } from "../../game/notation/coords.js";
 
 export class EngineWidget extends BoardWidget {
     private engine: WebBotProcess = new WebBotProcess("./scripts/hyper-active/main.js");
@@ -70,9 +70,10 @@ export class EngineWidget extends BoardWidget {
         this.engine.start();
 
         this.protocol.addThinkStatsUpdateListener((stats: ThinkStats) => {
+            const board = this.boardgfx.getBoard();
             // get eval
             if (stats.score){
-                const isWTP = this.boardgfx.getTurn() == Side.White;
+                const isWTP = board.getTurn() == Side.White;
                 const score = (isWTP ? 1 : -1) * stats.score.value;
                 const sign = score > 0 ? "+" : "";
 
@@ -86,9 +87,9 @@ export class EngineWidget extends BoardWidget {
             // get pv
             if (stats.pv){
                 const pv = stats.pv.split(" ") as Lan[];
-                const b = new Board(this.boardgfx.getFen());
-                let fullmove = this.boardgfx.getFullMove();
-                let pvSan = this.boardgfx.getTurn() == Side.White ? "" : `${fullmove}... `;
+                const b = new Board(board.getFen());
+                let fullmove = board.getFullMove();
+                let pvSan = board.getTurn() == Side.White ? "" : `${fullmove}... `;
                 for (const m of pv){
                     const move = b.getMoveOfLan(m);
                     if (b.getTurn() == Side.White)
@@ -133,8 +134,8 @@ export class EngineWidget extends BoardWidget {
     startThinking(){
         if (this.engine.isRunning){
             this.protocol.stopThink();
-            const lanMoves: Lan[] = this.boardgfx.getMovesToCurrentVariation().map(v => v.lan);
-            this.protocol.setFen(this.boardgfx.getStartingFen(), lanMoves);
+            const lanMoves: Lan[] = this.boardgfx.getVariationsBoard().getMovesToCurrentVariation().map(v => v.lan);
+            this.protocol.setFen(this.boardgfx.getVariationsBoard().getStartingFen(), lanMoves);
             this.protocol.startThink();
         }
     }

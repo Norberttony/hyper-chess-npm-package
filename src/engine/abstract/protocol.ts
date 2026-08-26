@@ -1,4 +1,4 @@
-import { Lan } from "../../game/coords.js";
+import { Lan } from "../../game/notation/coords.js";
 import type { EngineOption, GameTime, ThinkStats } from "../utils.js";
 import type { BotProcess } from "./bot-process.js";
 
