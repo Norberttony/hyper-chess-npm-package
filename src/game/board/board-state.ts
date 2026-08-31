@@ -123,7 +123,7 @@ export class BoardState {
 
     // picks up the piece at the sq
     // returns the value of the picked up piece
-    public pickup(sq: number): Piece {
+    private pickup(sq: number): Piece {
         const val = this.getPiece(sq);
 
         if (val == 0)
@@ -174,7 +174,7 @@ export class BoardState {
 
     // places down the given piece at the sq
     // assumes that there is currently no piece at the given sq.
-    public placedown(sq: number, piece: Piece): void {
+    private placedown(sq: number, piece: Piece): void {
         if (this.squares[sq])
             return;
 

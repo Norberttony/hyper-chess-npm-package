@@ -1,6 +1,6 @@
 import { performance } from "node:perf_hooks";
-import { perft } from "../src/game/perft.js";
-import { Board } from "../src/game/board.js";
+import { perft } from "../src/game/board/perft.js";
+import { Board } from "../src/game/board/board.js";
 import rawTests from "../tests/fixtures/perft.json" with { type: "json" };
 
 interface PerftTestCase {

@@ -42,7 +42,7 @@ export class Board {
         return this.result || this.isGameOver();
     }
 
-    public setResult(termination: string, winner: Side): GameResult {
+    private setResult(termination: string, winner: Side): GameResult {
         this.result = { termination, winner };
         return this.result;
     }
