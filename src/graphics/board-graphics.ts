@@ -2,10 +2,7 @@ import { VariationsBoard } from "../game/variations-board/variations-board.js";
 import { Board } from "../game/board/board.js";
 import { setInputTarget } from "./input.js";
 import { BoardWidget, getFirstElemOfClass, getWidgetLocName, WidgetLocation } from "./widgets/board-widget.js";
-import {
-    setAllPiecesToPool, setAllMoveHighlightsToPool, setAllLastMoveHighlightsToPool,
-    getPieceFromPool, getLastMoveHighlightFromPool, attachGlyph
-} from "./pool.js";
+import { BoardElementPool } from "./pooling/board-element-pool.js";
 import { getPieceSide, getPieceType, Side } from "../game/notation/piece.js";
 import { Move } from "../game/board/move.js";
 import { VariationMove, VariationNode } from "../game/variations-board/variation.js";
@@ -32,6 +29,7 @@ export class BoardGraphics {
     public graphicalVariation: VariationNode;
 
     private board: VariationsBoard = new VariationsBoard();
+    private pool: BoardElementPool;
 
     constructor(
         public allowDragging = true,
@@ -40,6 +38,7 @@ export class BoardGraphics {
         private nagTable: NagTable = {},
     ){
         this.skeleton = createSkeleton(skeleton);
+        this.pool = new BoardElementPool(this.skeleton);
         this.skeleton.classList.add("board-graphics--board-blue", "board-graphics--pieces-cburnett");
 
         const boardDiv = this.skeleton.getElementsByClassName("board-graphics__board")[0] as HTMLElement;
@@ -252,9 +251,9 @@ export class BoardGraphics {
     }
 
     public display(): void {
-        setAllPiecesToPool(this.skeleton);
-        setAllMoveHighlightsToPool(this.skeleton);
-        setAllLastMoveHighlightsToPool(this.skeleton);
+        this.pool.setAllPiecesToPool();
+        this.pool.setAllMoveHighlightsToPool();
+        this.pool.setAllLastMoveHighlightsToPool();
 
         const cv = this.board.getCurrentVariation();
         const lastMove = cv.type == "move" ?
@@ -267,9 +266,9 @@ export class BoardGraphics {
             const toY = Math.floor(lastMove.to / 8);
             const fromX = lastMove.from % 8;
             const fromY = Math.floor(lastMove.from / 8);
-            
-            const sq1 = getLastMoveHighlightFromPool(toX, toY, this.isFlipped);
-            const sq2 = getLastMoveHighlightFromPool(fromX, fromY, this.isFlipped);
+
+            const sq1 = this.pool.getLastMoveHighlightFromPool(toX, toY, this.isFlipped);
+            const sq2 = this.pool.getLastMoveHighlightFromPool(fromX, fromY, this.isFlipped);
             this.piecesDiv.appendChild(sq1);
             this.piecesDiv.appendChild(sq2);
         }
@@ -279,7 +278,7 @@ export class BoardGraphics {
             for (let f = 0; f < 8; f++){
                 const v = this.board.getBoard().getState().getPiece(r * 8 + f);
                 if (v){
-                    const piece = getPieceFromPool(f, r, this.isFlipped, getPieceType(v), getPieceSide(v));
+                    const piece = this.pool.getPieceFromPool(f, r, this.isFlipped, getPieceType(v), getPieceSide(v));
                     this.piecesDiv.appendChild(piece);
                 }
             }
@@ -294,7 +293,7 @@ export class BoardGraphics {
                 const pieceElem = this.getPieceElem(toX, toY);
                 const nagEntry = getNagEntryFromSanGlyph(this.nagTable, g);
                 if (pieceElem && nagEntry && nagEntry.icon)
-                    attachGlyph(pieceElem, nagEntry.icon);
+                    this.pool.attachGlyph(pieceElem, nagEntry.icon);
             }
 
             // attach any NAGs
@@ -302,7 +301,7 @@ export class BoardGraphics {
                 const pieceElem = this.getPieceElem(toX, toY);
                 const nagEntry = this.nagTable[g];
                 if (pieceElem && nagEntry && nagEntry.icon)
-                    attachGlyph(pieceElem, nagEntry.icon);
+                    this.pool.attachGlyph(pieceElem, nagEntry.icon);
             }
         }
     }
