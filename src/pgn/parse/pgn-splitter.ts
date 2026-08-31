@@ -16,7 +16,7 @@ export class PgnSplitter {
         if (tokens.length == 0)
             return undefined;
 
-        const headers: PgnHeaders = {};
+        const headers: PgnHeaders = new Map();
         const moves: string[] = [];
         const moveList: PgnMove[] = [];
         let prev: PgnMove | undefined = undefined;
@@ -30,7 +30,7 @@ export class PgnSplitter {
 
         for (const token of tokens){
             if (token.type == "tag")
-                headers[token.header] = token.value;
+                headers.set(token.header, token.value);
             else if (token.type == "move")
                 moves.push(token.content);
             else if (token.type == "result"){

@@ -24,6 +24,7 @@ export function fetchTestCases(): { cases: TestCase[], pgnDb: string } {
 
         const pgnObjPath = path.join(fixturesPath, `${base}-pgn.json`);
         const pgnObj: Pgn = readJSONFile(pgnObjPath);
+        pgnObj.headers = new Map(Object.entries(pgnObj.headers));
         cases.push({
             tokens,
             pgn,

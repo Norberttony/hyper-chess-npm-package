@@ -153,8 +153,8 @@ export class BoardGraphics {
         if (vm)
             this.dispatchEvent("new-variation", { variation: vm });
 
-        const w = this.board.getPgn().headers["White"];
-        const b = this.board.getPgn().headers["Black"];
+        const w = this.board.getPgn().headers.get("White");
+        const b = this.board.getPgn().headers.get("Black");
         this.setNames(w, b);
 
         this.applyChanges(false);

@@ -7,10 +7,10 @@ import { pgnComment } from "./pgn-splitter.test";
 describe("pgnToString", () => {
     it("converts puzzle pgn to string correctly", () => {
         const pgn: Pgn = {
-            headers: {
+            headers: toMap({
                 "Variant": "From Position",
                 "FEN": "2b1kb2/upU2np1/r1p5/7B/P4QBP/7N/2PPPP2/1P4K1 w 0 45"
-            },
+            }),
             moves: [ "Bd7", "Kxd7", "Bxe8" ],
             moveList: [ move("Bd7+"), move("Kxd7"), move("Bxe8#") ],
             result: "1-0",
@@ -27,10 +27,10 @@ describe("pgnToString", () => {
 
     it("converts pgn with variations to string correctly", () => {
         const pgn: Pgn = {
-            headers: {
+            headers: toMap({
                 "Variant": "From Position",
                 "FEN": "2b1kb2/upU2np1/r1p5/7B/P4QBP/7N/2PPPP2/1P4K1 w 0 45"
-            },
+            }),
             moves: [ "Bd7", "Kxd7", "Bxe8" ],
             moveList: [
                 move("Bd7+"),
@@ -53,7 +53,7 @@ describe("pgnToString", () => {
 
     it("handles leading comments correctly", () => {
         const pgn: Pgn = {
-            headers: { "Event": "Example" },
+            headers: toMap({ "Event": "Example" }),
             moves: [ "Pd4" ],
             moveList: [ move("Pd4") ],
             result: "*",
@@ -71,7 +71,7 @@ describe("pgnToString", () => {
 
     it("handles trailing comments correctly", () => {
         const pgn: Pgn = {
-            headers: { "Event": "Example" },
+            headers: toMap({ "Event": "Example" }),
             moves: [ "Pd4" ],
             moveList: [ move("Pd4") ],
             result: "*",
@@ -85,3 +85,7 @@ describe("pgnToString", () => {
 1. Pd4 * { Comment }`);
     });
 });
+
+function toMap(o: { [k: string | symbol]: any }){
+    return new Map(Object.entries(o));
+}

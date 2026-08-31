@@ -92,11 +92,11 @@ export class VariationsBoard {
 
         // update headers if this is not the default starting position
         if (this.board.getFen() === StartingFen){
-            delete this.pgn.headers["Variant"];
-            delete this.pgn.headers["FEN"];
+            this.pgn.headers.delete("Variant");
+            this.pgn.headers.delete("FEN");
         }else{
-            this.pgn.headers["Variant"] = "From Position";
-            this.pgn.headers["FEN"] = this.startingFen;
+            this.pgn.headers.set("Variant", "From Position");
+            this.pgn.headers.set("FEN", this.startingFen);
         }
     }
 
@@ -110,8 +110,8 @@ export class VariationsBoard {
             throw new Error("Could not load PGN");
 
         // check if we have to load from position
-        if (pgn.headers["Variant"] == "From Position" && pgn.headers["FEN"]){
-            fen = pgn.headers["FEN"];
+        if (pgn.headers.get("Variant") == "From Position" && pgn.headers.has("FEN")){
+            fen = pgn.headers.get("FEN")!;
         }
 
         this.loadFen(fen);
@@ -291,7 +291,7 @@ export class VariationsBoard {
 
 function emptyPgnObject(): Pgn {
     return {
-        headers: {},
+        headers: new Map(),
         moves: [],
         moveList: [],
         result: "*",

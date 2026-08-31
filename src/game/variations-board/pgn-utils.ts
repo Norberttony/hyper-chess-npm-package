@@ -9,7 +9,7 @@ export function createVariationTree(
 ): { root: VariationRoot, newPgn: Pgn } {
     const newPgn: Pgn = { ...pgn, moveList: [] };
     const root = new VariationRoot(newPgn.moveList);
-    const board = new Board(pgn.headers["FEN"] || StartingFen);
+    const board = new Board(pgn.headers.get("FEN") || StartingFen);
 
     createVariationTreeHelper(root, pgn.moveList, board);
 

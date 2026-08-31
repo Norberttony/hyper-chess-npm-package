@@ -46,7 +46,7 @@ export function getWinner(resultMarker: string): Side {
 
 export function pgnHeadersToString(headers: PgnHeaders): string {
     let pgn = "";
-    for (const [ name, value ] of Object.entries(headers)){
+    for (const [ name, value ] of headers){
         const s = value
             .replaceAll("\\", "\\\\")
             .replaceAll('"', '\\"');
@@ -64,7 +64,7 @@ export function pgnToString(pgnObj: Pgn): string {
     if (pgnObj.leadingComments.length > 0)
         pgn += "\n";
 
-    const fen: string = pgnObj.headers["FEN"] || StartingFen;
+    const fen: string = pgnObj.headers.get("FEN") || StartingFen;
 
     const board = new Board(fen);
 
@@ -130,12 +130,12 @@ export function commentTagToString(tag: CommentTag): string {
 
 // returns a dictionary where keys are header names and values are header values.
 export async function extractHeaders(pgn: string): Promise<PgnHeaders> {
-    const headers: PgnHeaders = {};
+    const headers: PgnHeaders = new Map();
 
     const tokenizer = new PgnTokenizer(new Reader(pgn));
     let t: PgnToken | undefined;
-    while ((t = await tokenizer.nextToken()) && t.type == "tag")
-        headers[t.header] = t.value;
+    while ((t = await tokenizer.nextToken()) && t.type === "tag")
+        headers.set(t.header, t.value);
 
     return headers;
 }

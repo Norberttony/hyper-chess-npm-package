@@ -1,8 +1,6 @@
 import type { CommentTag, PgnErrorToken } from "../tokenize/types.ts";
 
-export interface PgnHeaders {
-    [k: string]: string;
-}
+export type PgnHeaders = Map<string, string>
 
 export interface PgnComment {
     content: string;
