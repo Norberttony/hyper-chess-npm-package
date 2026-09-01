@@ -140,12 +140,15 @@ export async function extractHeaders(pgn: string): Promise<PgnHeaders> {
     return headers;
 }
 
-// returns the current date in the form YYYY.MM.DD
-export function getPgnDateNow(): string {
-    const date = new Date();
+// returns the given date in the form YYYY.MM.DD
+export function getPgnDate(date: Date): string {
     const y = date.getFullYear().toString().padStart(4, "0");
     const m = (date.getMonth() + 1).toString().padStart(2, "0");
     const d = (date.getDay() + 1).toString().padStart(2, "0");
 
     return `${y}.${m}.${d}`;
+}
+
+export function getPgnDateNow(): string {
+    return getPgnDate(new Date());
 }
