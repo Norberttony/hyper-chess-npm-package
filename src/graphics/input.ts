@@ -1,4 +1,3 @@
-import { setAllMoveHighlightsToPool, getMoveHighlightFromPool } from "./pool.js";
 import type { BoardGraphics } from "./board-graphics.js";
 import { Move } from "../game/board/move.js";
 
@@ -58,8 +57,9 @@ function piecePointerdown(event: PointerEvent): void {
     if (event.button !== undefined && event.button != 0)
         return;
 
+    const pool = INPUT.gameState!.getPool();
     if (!elem.classList.contains("board-graphics__move-highlight"))
-        setAllMoveHighlightsToPool(INPUT.gameState!.skeleton);
+        pool.setAllMoveHighlightsToPool();
     else
         return draggingPointerup(event);
 
@@ -93,7 +93,7 @@ function piecePointerdown(event: PointerEvent): void {
     for (let i = 0; i < INPUT.currentMoves.length; i++){
         const move = INPUT.currentMoves[i]!;
         
-        const highlight = getMoveHighlightFromPool(move.to % 8, Math.floor(move.to / 8), INPUT.gameState!.isFlipped);
+        const highlight = pool.getMoveHighlightFromPool(move.to % 8, Math.floor(move.to / 8), INPUT.gameState!.isFlipped);
         highlight.dataset["index"] = i.toString();
 
         // if move is a capture, update highlight graphically to indicate that
@@ -112,13 +112,14 @@ function draggingPointerup(event: PointerEvent): void {
         INPUT.dragging.classList.remove("board-graphics__piece--dragged");
         INPUT.draggingElem!.style.display = "none";
     }
-    
+
     let highlight = event.target as HTMLElement;
 
     // handle touch events
     if (event.pointerType == "touch")
         highlight = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement;
-    
+
+    const pool = INPUT.gameState!.getPool();
     // player let go at a highlight, indicating they're moving the piece there.
     if (highlight.classList.contains("board-graphics__move-highlight")){
         INPUT.testMove = INPUT.currentMoves[parseInt(highlight.dataset["index"]!)]!;
@@ -129,13 +130,13 @@ function draggingPointerup(event: PointerEvent): void {
         delete INPUT.testMove;
 
         // clear all moves from board
-        setAllMoveHighlightsToPool(INPUT.gameState!.skeleton);
+        pool.setAllMoveHighlightsToPool();
     }
 
     if (!INPUT.dragging){
         // clear all moves from board
         if (INPUT.gameState)
-            setAllMoveHighlightsToPool(INPUT.gameState.skeleton);
+            pool.setAllMoveHighlightsToPool();
     }else{
         delete INPUT.dragging;
     }

@@ -77,6 +77,10 @@ export class BoardGraphics {
         return this.board.getBoard();
     }
 
+    public getPool(): BoardElementPool {
+        return this.pool;
+    }
+
     public get isFlipped(): boolean {
         return this.skeleton.classList.contains("board-graphics--flipped");
     }
@@ -306,8 +310,8 @@ export class BoardGraphics {
         }
     }
 
-    public getPieceElem(f: number, r: number): HTMLElement | undefined {
-        return this.piecesDiv.getElementsByClassName(`${f}_${r}`)[0] as (HTMLElement | undefined);
+    public getPieceElem(f: number, r: number): HTMLDivElement | undefined {
+        return this.piecesDiv.getElementsByClassName(`${f}_${r}`)[0] as (HTMLDivElement | undefined);
     }
 
     private dispatchEvent<K extends keyof GlobalEventHandlersEventMap>(

@@ -60,7 +60,7 @@ export class MoveGenerator {
     }
 
     // returns true if a certain square is attacked
-    public isAttacked(sq: number){
+    public isAttacked(sq: number): boolean {
         // go through every move
         const test = this.generateMoves(false);
         for (const m of test){
